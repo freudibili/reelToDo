@@ -36,7 +36,18 @@ export const signUpWithPassword = createAsyncThunk(
       password: payload.password,
     });
     if (error) return rejectWithValue(error.message);
-    return data;
+
+    if (data.session) {
+      return data;
+    }
+
+    const { data: signInData, error: signInError } =
+      await supabase.auth.signInWithPassword({
+        email: payload.email,
+        password: payload.password,
+      });
+    if (signInError) return rejectWithValue(signInError.message);
+    return signInData;
   }
 );
 
