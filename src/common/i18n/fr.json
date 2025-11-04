@@ -1,0 +1,58 @@
+{
+  "home": {
+    "title": "Accueil",
+    "dashboard": {
+      "lastMeasurements": "Dernières mesures",
+      "nextVaccine": "Prochain vaccin",
+      "nextAppointment": "Prochain rendez-vous"
+    }
+  },
+  "child": {
+    "add": "Ajouter un bébé",
+    "edit": "Modifier le profil du bébé",
+    "profile": "Profil du bébé",
+    "measurements": {
+      "title": "Mesures",
+      "add": "Ajouter une mesure",
+      "weight": "Poids",
+      "height": "Taille",
+      "headCircumference": "Périmètre crânien"
+    },
+    "vaccines": {
+      "title": "Vaccins",
+      "add": "Ajouter un vaccin",
+      "schedule": "Calendrier des vaccins",
+      "status": {
+        "scheduled": "Prévu",
+        "done": "Fait",
+        "overdue": "En retard"
+      }
+    }
+  },
+  "appointments": {
+    "title": "Rendez-vous",
+    "add": "Ajouter un rendez-vous",
+    "reminder": "Rappel"
+  },
+  "documents": {
+    "title": "Documents",
+    "add": "Ajouter un document"
+  },
+  "sharing": {
+    "title": "Partage",
+    "householdKey": "Clé du foyer",
+    "invite": "Inviter un membre",
+    "join": "Rejoindre un foyer"
+  },
+  "settings": {
+    "title": "Réglages",
+    "language": "Langue",
+    "theme": "Thème",
+    "export": "Exporter JSON"
+  },
+  "onboarding": {
+    "title": "Bienvenue dans ReelToDo",
+    "createHousehold": "Créer un foyer",
+    "joinHousehold": "Rejoindre un foyer"
+  }
+}
