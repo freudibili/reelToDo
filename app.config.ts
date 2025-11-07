@@ -3,6 +3,7 @@ import { ExpoConfig } from "expo/config";
 const config: ExpoConfig = {
   name: "ReelToDo",
   slug: "ReelToDo",
+  scheme: "reeltodo",
   version: "1.0.0",
   orientation: "portrait",
   icon: "./assets/icon.png",
@@ -45,7 +46,7 @@ const config: ExpoConfig = {
   web: {
     favicon: "./assets/favicon.png",
   },
-  plugins: ["expo-audio"],
+  plugins: ["expo-audio", "expo-share-intent"],
   extra: {
     SUPABASE_URL: process.env.SUPABASE_URL,
     SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY,

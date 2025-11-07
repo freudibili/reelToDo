@@ -24,6 +24,16 @@ const detectSource = (url: string) => {
   return "generic";
 };
 
+const decodeHtml = (value: string | null | undefined): string | null => {
+  if (!value) return null;
+  return value
+    .replace(/&amp;/g, "&")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">");
+};
+
 const extractMetaFromHtml = (html: string) => {
   const get = (regex: RegExp) => {
     const m = html.match(regex);
@@ -71,6 +81,17 @@ const mergeIfNull = (original: any, enriched: any) => {
   return clone;
 };
 
+const normalizeActivity = (payload: any) => {
+  const safe = payload || {};
+  const dates = Array.isArray(safe.dates) ? safe.dates : [];
+  const tags = Array.isArray(safe.tags) ? safe.tags : [];
+  return {
+    ...safe,
+    dates,
+    tags,
+  };
+};
+
 serve(async (req) => {
   if (req.method !== "POST") {
     return new Response("Method not allowed", { status: 405 });
@@ -82,18 +103,17 @@ serve(async (req) => {
   } catch (_e) {
     return new Response(JSON.stringify({ error: "Invalid JSON body" }), {
       status: 400,
+      headers: { "Content-Type": "application/json" },
     });
   }
 
   const { url, userId, metadata } = body;
 
-  if (!url || !userId) {
-    return new Response(
-      JSON.stringify({ error: "url and userId are required" }),
-      {
-        status: 400,
-      }
-    );
+  if (!url) {
+    return new Response(JSON.stringify({ error: "url is required" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
   const source = detectSource(url);
@@ -150,7 +170,7 @@ Content to analyze:
 ${textParts.join("\n")}
 `.trim();
 
-  let parsed: any;
+  let parsed: any = {};
   try {
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
@@ -166,7 +186,8 @@ ${textParts.join("\n")}
     return new Response(
       JSON.stringify({ error: "OpenAI generation failed", details: `${e}` }),
       {
-        status: 500,
+        status: 200,
+        headers: { "Content-Type": "application/json" },
       }
     );
   }
@@ -222,6 +243,7 @@ Activity context:
   }
 
   const mergedLocation = mergeIfNull(parsed, enriched);
+  const normalized = normalizeActivity(mergedLocation);
 
   const {
     title,
@@ -231,42 +253,54 @@ Activity context:
     city,
     latitude,
     longitude,
-    dates = [],
-    tags = [],
+    dates,
+    tags,
     creator,
     image_url,
     confidence,
     source_url,
-  } = mergedLocation;
+  } = normalized;
 
   const mainDate =
     Array.isArray(dates) && dates.length > 0 ? (dates[0].start ?? null) : null;
 
+  const normalizedSourceUrl = decodeHtml(source_url ?? url);
+  const normalizedImageUrl = decodeHtml(image_url ?? finalImage ?? null);
+
+  const insertPayload = {
+    user_id: userId ?? null,
+    title: title ?? finalTitle ?? "Activité",
+    category: category ?? null,
+    location_name: location_name ?? null,
+    address: address ?? null,
+    city: city ?? null,
+    latitude: latitude ?? null,
+    longitude: longitude ?? null,
+    main_date: mainDate,
+    tags: Array.isArray(tags) ? tags : [],
+    creator: creator ?? finalAuthor ?? null,
+    source_url: normalizedSourceUrl ?? url,
+    image_url: normalizedImageUrl,
+    confidence: typeof confidence === "number" ? confidence : null,
+  };
+
   const { data: activity, error: insertError } = await supabase
     .from("activities")
-    .insert({
-      user_id: userId,
-      title: title ?? finalTitle ?? "Activité",
-      category: category ?? null,
-      location_name: location_name ?? null,
-      address: address ?? null,
-      city: city ?? null,
-      latitude: latitude ?? null,
-      longitude: longitude ?? null,
-      main_date: mainDate,
-      tags,
-      creator: creator ?? finalAuthor ?? null,
-      source_url: source_url ?? url,
-      image_url: image_url ?? finalImage ?? null,
-      confidence: confidence ?? null,
-    })
+    .insert(insertPayload)
     .select("*")
     .single();
 
   if (insertError) {
-    return new Response(JSON.stringify({ error: insertError.message }), {
-      status: 500,
-    });
+    return new Response(
+      JSON.stringify({
+        error: insertError.message,
+        payload: insertPayload,
+      }),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   }
 
   if (Array.isArray(dates) && dates.length > 0) {
@@ -278,13 +312,13 @@ Activity context:
         end_date: d.end ?? null,
         recurrence_rule: d.recurrence_rule ?? null,
       }));
-
     if (rows.length > 0) {
       await supabase.from("activity_dates").insert(rows);
     }
   }
 
   return new Response(JSON.stringify(activity), {
+    status: 200,
     headers: { "Content-Type": "application/json" },
   });
 });
