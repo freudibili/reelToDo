@@ -1,13 +1,33 @@
 import { createSelector } from "@reduxjs/toolkit";
 import type { RootState } from "@core/store";
+import type { Activity } from "../utils/types";
 
-const selectActivitiesState = (state: RootState) => state.activities;
+const selectSlice = (state: RootState) => state.activities;
+
+const items = createSelector([selectSlice], (slice) => slice.items ?? []);
+const loading = createSelector([selectSlice], (slice) => slice.loading);
+const initialized = createSelector([selectSlice], (slice) => slice.initialized);
+
+const groupedByCategory = createSelector([items], (list) => {
+  const groups: Record<string, Activity[]> = {};
+
+  list.forEach((item) => {
+    const key = item.category || "other";
+    if (!groups[key]) {
+      groups[key] = [];
+    }
+    groups[key].push(item);
+  });
+
+  return Object.entries(groups).map(([category, activities]) => ({
+    category,
+    activities,
+  }));
+});
 
 export const activitiesSelectors = {
-  items: createSelector(selectActivitiesState, (state) => state.items),
-  loading: createSelector(selectActivitiesState, (state) => state.loading),
-  initialized: createSelector(
-    selectActivitiesState,
-    (state) => state.initialized
-  ),
+  items,
+  loading,
+  initialized,
+  groupedByCategory,
 };

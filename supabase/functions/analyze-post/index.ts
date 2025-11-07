@@ -92,6 +92,122 @@ const normalizeActivity = (payload: any) => {
   };
 };
 
+// ====== NOUVELLES PARTIES ======
+
+// liste fermée pour tes cards
+const ALLOWED_CATEGORIES = [
+  "outdoor-hike",
+  "outdoor-nature-spot",
+  "food-cafe",
+  "food-restaurant",
+  "drink-bar",
+  "culture-spot",
+  "fun-activity",
+  "shop-local",
+  "accommodation",
+  "event-market",
+  "event-festival",
+  "event-workshop",
+  "event-show",
+  "event-other",
+] as const;
+type AllowedCategory = (typeof ALLOWED_CATEGORIES)[number];
+
+// mappe ce que l'IA renvoie vers ta liste
+const normalizeCategory = (
+  raw: string | null | undefined
+): AllowedCategory | null => {
+  if (!raw) return null;
+  const v = raw.trim().toLowerCase();
+
+  const map: Record<string, AllowedCategory> = {
+    // ancien prompt
+    hike: "outdoor-hike",
+    randonnée: "outdoor-hike",
+    rando: "outdoor-hike",
+    waterfall: "outdoor-nature-spot",
+    cascade: "outdoor-nature-spot",
+    nature: "outdoor-nature-spot",
+    cafe: "food-cafe",
+    coffee: "food-cafe",
+    restaurant: "food-restaurant",
+    market: "event-market",
+    event: "event-other",
+    workshop: "event-workshop",
+    museum: "culture-spot",
+    kids: "fun-activity",
+    sports: "fun-activity",
+  };
+
+  if (map[v]) return map[v];
+
+  const direct = ALLOWED_CATEGORIES.find((c) => c === v);
+  if (direct) return direct;
+
+  return null;
+};
+
+// si l'IA met category=null mais qu'on voit "cascade", on force
+const inferCategoryFromContent = (opts: {
+  title?: string | null;
+  description?: string | null;
+  location_name?: string | null;
+  tags?: string[] | null;
+}): AllowedCategory | null => {
+  const haystack = [
+    opts.title ?? "",
+    opts.description ?? "",
+    opts.location_name ?? "",
+    ...(opts.tags ?? []),
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  if (
+    haystack.includes("cascade") ||
+    haystack.includes("cascades") ||
+    haystack.includes("vallée") ||
+    haystack.includes("vallee") ||
+    haystack.includes("takamaka") ||
+    haystack.includes("réunion") ||
+    haystack.includes("reunion")
+  ) {
+    return "outdoor-nature-spot";
+  }
+
+  return null;
+};
+
+const generateTitle = (
+  category: AllowedCategory,
+  locationName: string | null,
+  city: string | null
+): string => {
+  const emojiMap: Record<AllowedCategory, string> = {
+    "outdoor-hike": "🥾",
+    "outdoor-nature-spot": "🏞️",
+    "food-cafe": "☕",
+    "food-restaurant": "🍽️",
+    "drink-bar": "🍹",
+    "culture-spot": "🏛️",
+    "fun-activity": "🎡",
+    "shop-local": "🛍️",
+    accommodation: "🛏️",
+    "event-market": "🎄",
+    "event-festival": "🎉",
+    "event-workshop": "🎨",
+    "event-show": "🎟️",
+    "event-other": "🗓️",
+  };
+
+  const emoji = emojiMap[category] ?? "📍";
+  if (!locationName && !city) return `${emoji} Activité à découvrir`;
+  if (!locationName) return `${emoji} À faire à ${city}`;
+  if (!city) return `${emoji} ${locationName}`;
+  return `${emoji} ${locationName} – ${city}`;
+};
+
+// ====== HANDLER ======
 serve(async (req) => {
   if (req.method !== "POST") {
     return new Response("Method not allowed", { status: 405 });
@@ -119,8 +235,8 @@ serve(async (req) => {
   const source = detectSource(url);
   const fetchedMeta = await tryFetchMetadata(url);
 
-  const finalTitle = metadata?.title ?? fetchedMeta.title ?? null;
-  const finalDescription =
+  const finalTitleFromMeta = metadata?.title ?? fetchedMeta.title ?? null;
+  const finalDescriptionFromMeta =
     metadata?.description ?? fetchedMeta.description ?? null;
   const finalAuthor = metadata?.author_name ?? null;
   const finalImage = metadata?.thumbnail_url ?? fetchedMeta.image ?? null;
@@ -128,8 +244,9 @@ serve(async (req) => {
   const textParts: string[] = [];
   textParts.push(`Source URL: ${url}`);
   textParts.push(`Source type: ${source}`);
-  if (finalTitle) textParts.push(`Title: ${finalTitle}`);
-  if (finalDescription) textParts.push(`Description: ${finalDescription}`);
+  if (finalTitleFromMeta) textParts.push(`Title: ${finalTitleFromMeta}`);
+  if (finalDescriptionFromMeta)
+    textParts.push(`Description: ${finalDescriptionFromMeta}`);
   if (finalAuthor) textParts.push(`Author: ${finalAuthor}`);
 
   const basePrompt = `
@@ -193,9 +310,9 @@ ${textParts.join("\n")}
   }
 
   const needsEnrich =
-    (!parsed.location_name && finalTitle) ||
-    (!parsed.city && finalTitle) ||
-    (!parsed.latitude && finalTitle);
+    (!parsed.location_name && finalTitleFromMeta) ||
+    (!parsed.city && finalTitleFromMeta) ||
+    (!parsed.latitude && finalTitleFromMeta);
 
   let enriched: any = {};
   if (needsEnrich) {
@@ -220,8 +337,8 @@ Return exactly this JSON shape:
 }
 
 Activity context:
-- title: ${parsed.title ?? finalTitle ?? ""}
-- description: ${finalDescription ?? ""}
+- title: ${parsed.title ?? finalTitleFromMeta ?? ""}
+- description: ${finalDescriptionFromMeta ?? ""}
 - source_url: ${url}
 - creator: ${parsed.creator ?? finalAuthor ?? ""}
 `.trim();
@@ -267,10 +384,45 @@ Activity context:
   const normalizedSourceUrl = decodeHtml(source_url ?? url);
   const normalizedImageUrl = decodeHtml(image_url ?? finalImage ?? null);
 
+  // ====== nouvelle logique de catégorie ======
+  let finalCategory = normalizeCategory(category);
+  if (!finalCategory) {
+    const inferred = inferCategoryFromContent({
+      title: title ?? finalTitleFromMeta ?? "",
+      description: finalDescriptionFromMeta ?? "",
+      location_name: location_name ?? "",
+      tags,
+    });
+    if (inferred) {
+      finalCategory = inferred;
+    }
+  }
+
+  if (!finalCategory) {
+    return new Response(
+      JSON.stringify({
+        error: "UNMAPPED_CATEGORY",
+        reason: "Could not map content to known categories",
+        original_category: category,
+      }),
+      {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  }
+
+  // titre final propre
+  const finalTitle = generateTitle(
+    finalCategory,
+    location_name ?? null,
+    city ?? null
+  );
+
   const insertPayload = {
     user_id: userId ?? null,
-    title: title ?? finalTitle ?? "Activité",
-    category: category ?? null,
+    title: finalTitle,
+    category: finalCategory,
     location_name: location_name ?? null,
     address: address ?? null,
     city: city ?? null,
@@ -281,7 +433,7 @@ Activity context:
     creator: creator ?? finalAuthor ?? null,
     source_url: normalizedSourceUrl ?? url,
     image_url: normalizedImageUrl,
-    confidence: typeof confidence === "number" ? confidence : null,
+    confidence: typeof confidence === "number" ? confidence : 0.9,
   };
 
   const { data: activity, error: insertError } = await supabase

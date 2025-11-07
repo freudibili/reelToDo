@@ -14,7 +14,7 @@ import type { Activity } from "../utils/types";
 
 const ActivitiesScreen = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const items = useSelector(activitiesSelectors.items);
+  const grouped = useSelector(activitiesSelectors.groupedByCategory);
   const loading = useSelector(activitiesSelectors.loading);
   const initialized = useSelector(activitiesSelectors.initialized);
   const [selected, setSelected] = useState<Activity | null>(null);
@@ -46,7 +46,7 @@ const ActivitiesScreen = () => {
       {!initialized && loading ? (
         <ActivityIndicator />
       ) : (
-        <ActivityList data={items} onSelect={handleSelect} />
+        <ActivityList data={grouped} onSelect={handleSelect} />
       )}
       <ActivityDetailsModal
         visible={modalVisible}
