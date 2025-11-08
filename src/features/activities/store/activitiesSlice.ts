@@ -33,7 +33,6 @@ export const fetchActivities = createAsyncThunk<
   }
 
   const rows = await ActivitiesService.fetchActivities(userId);
-  // rows = [{ ...activityFields, is_favorite: true/false }, ...]
 
   const activities: Activity[] = rows.map((row: any) => {
     const { is_favorite, ...rest } = row;
@@ -144,6 +143,7 @@ const activitiesSlice = createSlice({
     });
     builder.addCase(deleteActivity.fulfilled, (state, action) => {
       const id = action.payload;
+      state.items = state.items.filter((a) => a.id !== id);
       state.favoriteIds = state.favoriteIds.filter((x) => x !== id);
     });
   },
@@ -193,10 +193,12 @@ export const startActivitiesListener =
             table: "user_activities",
             filter: `user_id=eq.${userId}`,
           },
-          (payload) =>
-            dispatch(
-              favoriteToggledLocal((payload.new as any).activity_id as string)
-            )
+          (payload) => {
+            const row = payload.new;
+            if (row.is_favorite) {
+              dispatch(favoriteToggledLocal(row.activity_id));
+            }
+          }
         )
         .on(
           "postgres_changes",
@@ -206,10 +208,10 @@ export const startActivitiesListener =
             table: "user_activities",
             filter: `user_id=eq.${userId}`,
           },
-          (payload) =>
-            dispatch(
-              favoriteToggledLocal((payload.old as any).activity_id as string)
-            )
+          (payload) => {
+            const oldRow = payload.old;
+            dispatch(activityDeleted(oldRow.activity_id));
+          }
         )
         .subscribe();
     }

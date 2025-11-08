@@ -48,8 +48,9 @@ const ActivitiesScreen = () => {
     handleClose();
   };
 
-  const handleToggleFavorite = (id: string) => {
-    if (favoriteIds.includes(id)) {
+  const handleToggleFavorite = (id: string, next?: boolean) => {
+    const isFav = next ?? favoriteIds.includes(id);
+    if (isFav) {
       dispatch(removeFavorite(id));
     } else {
       dispatch(addFavorite(id));
@@ -60,7 +61,7 @@ const ActivitiesScreen = () => {
     <View style={styles.container}>
       <Text style={styles.header}>Activities</Text>
       {!initialized && loading ? (
-        <ActivityIndicator />
+        <ActivityIndicator style={{ marginTop: 20 }} />
       ) : (
         <ActivityList
           data={grouped}
@@ -74,6 +75,8 @@ const ActivitiesScreen = () => {
         activity={selected}
         onClose={handleClose}
         onDelete={handleDelete}
+        isFavorite={!!selected && favoriteIds.includes(selected.id)}
+        onToggleFavorite={handleToggleFavorite}
       />
     </View>
   );

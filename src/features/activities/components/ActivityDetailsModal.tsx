@@ -1,16 +1,18 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
+  Modal,
   View,
   Text,
   StyleSheet,
-  Image,
+  ImageBackground,
   ScrollView,
   Pressable,
   Animated,
   Easing,
   ViewStyle,
+  Linking,
+  Platform,
 } from "react-native";
-import { Modal, IconButton } from "react-native-paper";
 import type { Activity } from "../utils/types";
 import { useConfirmDialog } from "@common/hooks/useConfirmDialog";
 
@@ -19,6 +21,8 @@ interface Props {
   activity: Activity | null;
   onClose: () => void;
   onDelete: (id: string) => void;
+  isFavorite?: boolean;
+  onToggleFavorite?: (id: string, next: boolean) => void;
 }
 
 const ActivityDetailsModal: React.FC<Props> = ({
@@ -26,6 +30,8 @@ const ActivityDetailsModal: React.FC<Props> = ({
   activity,
   onClose,
   onDelete,
+  isFavorite = false,
+  onToggleFavorite,
 }) => {
   const { confirm } = useConfirmDialog();
   const [internalVisible, setInternalVisible] = useState(visible);
@@ -55,7 +61,7 @@ const ActivityDetailsModal: React.FC<Props> = ({
     }
   }, [visible, anim, onClose]);
 
-  if (!activity || !internalVisible) return null;
+  if (!activity) return null;
 
   const handleRequestClose = () => {
     Animated.timing(anim, {
@@ -83,129 +89,287 @@ const ActivityDetailsModal: React.FC<Props> = ({
     );
   };
 
+  const handleToggleFavorite = () => {
+    if (!onToggleFavorite) return;
+    onToggleFavorite(activity.id, !isFavorite);
+  };
+
+  const handleOpenMaps = () => {
+    if (activity.latitude && activity.longitude) {
+      const url = `https://www.google.com/maps/search/?api=1&query=${activity.latitude},${activity.longitude}`;
+      Linking.openURL(url);
+      return;
+    }
+    const query =
+      activity.address ||
+      activity.location_name ||
+      activity.city ||
+      activity.title;
+    if (query) {
+      const encoded = encodeURIComponent(query);
+      const url = `https://www.google.com/maps/search/?api=1&query=${encoded}`;
+      Linking.openURL(url);
+    }
+  };
+
+  const handleOpenSource = () => {
+    if (activity.source_url) {
+      Linking.openURL(activity.source_url);
+    }
+  };
+
   const translateY = anim.interpolate({
     inputRange: [0, 1],
     outputRange: [20, 0],
   });
 
-  const scale = anim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0.98, 1],
-  });
-
   const animatedStyle = {
     opacity: anim,
-    transform: [{ translateY }, { scale }] as NonNullable<
-      ViewStyle["transform"]
-    >,
+    transform: [{ translateY }] as NonNullable<ViewStyle["transform"]>,
   };
+
+  const metaLocation =
+    activity.city ||
+    activity.location_name ||
+    activity.address ||
+    activity.country ||
+    "—";
 
   return (
     <Modal
+      animationType="fade"
+      transparent
       visible={internalVisible}
-      onDismiss={handleRequestClose}
-      dismissable
-      style={styles.modalBackground}
+      onRequestClose={handleRequestClose}
     >
-      <Animated.View style={[styles.container, animatedStyle]}>
-        <View style={styles.header}>
-          <View style={{ flex: 1 }} />
-          <IconButton icon="close" size={22} onPress={handleRequestClose} />
-        </View>
+      <View style={styles.overlay}>
+        <Animated.View style={[styles.screen, animatedStyle]}>
+          <View style={styles.headerImageWrapper}>
+            {activity.image_url ? (
+              <ImageBackground
+                source={{ uri: activity.image_url }}
+                style={styles.headerImage}
+              >
+                <View style={styles.headerOverlay} />
+              </ImageBackground>
+            ) : (
+              <View style={styles.headerPlaceholder}>
+                <Text style={styles.headerPlaceholderText}>
+                  {activity.title?.slice(0, 1).toUpperCase() ?? "A"}
+                </Text>
+              </View>
+            )}
 
-        <ScrollView showsVerticalScrollIndicator={false}>
-          {activity.image_url ? (
-            <Image source={{ uri: activity.image_url }} style={styles.image} />
-          ) : null}
-
-          <Text style={styles.title}>{activity.title ?? "Activity"}</Text>
-          <Text style={styles.meta}>
-            {activity.category ?? "—"} ·{" "}
-            {activity.city ?? activity.location_name ?? "—"}
-            {activity.country ?? activity.location_name ?? "—"}
-          </Text>
-          {activity.creator ? (
-            <Text style={styles.creator}>by {activity.creator}</Text>
-          ) : null}
-
-          <View style={styles.block}>
-            <Text style={styles.label}>Location</Text>
-            <Text style={styles.value}>{activity.location_name ?? "—"}</Text>
-            <Text style={styles.value}>{activity.address ?? ""}</Text>
-            <Text style={styles.value}>{activity.city ?? ""}</Text>
-            <Text style={styles.value}>{activity.country ?? ""}</Text>
+            <View style={styles.topBar}>
+              <Pressable
+                style={styles.topBarBtn}
+                onPress={handleToggleFavorite}
+              >
+                <Text style={styles.topBarIcon}>{isFavorite ? "♥" : "♡"}</Text>
+              </Pressable>
+              <Pressable style={styles.topBarBtn} onPress={handleRequestClose}>
+                <Text style={styles.topBarIcon}>×</Text>
+              </Pressable>
+            </View>
           </View>
 
-          <View style={styles.block}>
-            <Text style={styles.label}>Source</Text>
-            <Text style={styles.value}>{activity.source_url ?? "—"}</Text>
+          <View style={styles.contentCard}>
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.scrollContent}
+            >
+              <Text style={styles.title}>{activity.title ?? "Activité"}</Text>
+              <Text style={styles.meta}>
+                {activity.category ?? "—"} · {metaLocation}
+              </Text>
+              {activity.creator ? (
+                <Text style={styles.creator}>par {activity.creator}</Text>
+              ) : null}
+
+              <View style={styles.block}>
+                <Text style={styles.label}>Lieu</Text>
+                <Text style={styles.value}>
+                  {activity.location_name ?? "—"}
+                </Text>
+                {activity.address ? (
+                  <Text style={styles.value}>{activity.address}</Text>
+                ) : null}
+                {activity.city ? (
+                  <Text style={styles.value}>{activity.city}</Text>
+                ) : null}
+                {activity.country ? (
+                  <Text style={styles.value}>{activity.country}</Text>
+                ) : null}
+              </View>
+
+              <View style={styles.block}>
+                <Text style={styles.label}>Tags</Text>
+                <Text style={styles.value}>
+                  {Array.isArray(activity.tags) && activity.tags.length
+                    ? activity.tags.join(", ")
+                    : "—"}
+                </Text>
+              </View>
+
+              <View style={styles.block}>
+                <Text style={styles.label}>Confiance</Text>
+                <Text style={styles.value}>
+                  {activity.confidence
+                    ? `${Math.round(activity.confidence * 100)}%`
+                    : "—"}
+                </Text>
+              </View>
+
+              <View style={{ height: 110 }} />
+            </ScrollView>
           </View>
 
-          <View style={styles.block}>
-            <Text style={styles.label}>Tags</Text>
-            <Text style={styles.value}>
-              {Array.isArray(activity.tags) && activity.tags.length
-                ? activity.tags.join(", ")
-                : "—"}
-            </Text>
+          <View style={styles.footer}>
+            <Pressable style={styles.footerBtn} onPress={handleOpenMaps}>
+              <Text style={styles.footerBtnText}>Ouvrir Maps</Text>
+            </Pressable>
+            <Pressable
+              style={[
+                styles.footerBtn,
+                !activity.source_url && styles.disabled,
+              ]}
+              onPress={handleOpenSource}
+              disabled={!activity.source_url}
+            >
+              <Text style={styles.footerBtnText}>Voir la source</Text>
+            </Pressable>
+            <Pressable style={styles.deleteBtn} onPress={handleDelete}>
+              <Text style={styles.deleteText}>🗑</Text>
+            </Pressable>
           </View>
-
-          <View style={styles.block}>
-            <Text style={styles.label}>Confidence</Text>
-            <Text style={styles.value}>
-              {activity.confidence
-                ? `${Math.round(activity.confidence * 100)}%`
-                : "—"}
-            </Text>
-          </View>
-        </ScrollView>
-
-        <Pressable style={styles.deleteBtn} onPress={handleDelete}>
-          <Text style={styles.deleteText}>Supprimer</Text>
-        </Pressable>
-      </Animated.View>
+        </Animated.View>
+      </View>
     </Modal>
   );
 };
 
 const styles = StyleSheet.create({
-  modalBackground: {
-    backgroundColor: "rgba(0,0,0,0.4)",
+  overlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
   },
-  container: {
-    backgroundColor: "#fff",
-    borderRadius: 20,
-    marginHorizontal: 16,
-    padding: 16,
-    maxHeight: "90%",
+  screen: {
+    flex: 1,
+    backgroundColor: "#0f172a",
   },
-  header: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    alignItems: "center",
-    marginBottom: 4,
-  },
-  image: {
+  headerImageWrapper: {
+    height: 240,
     width: "100%",
-    height: 220,
-    borderRadius: 12,
-    marginBottom: 16,
-    backgroundColor: "#eee",
   },
-  title: { fontSize: 20, fontWeight: "700" },
-  meta: { marginTop: 4, color: "#555" },
-  creator: { marginTop: 4, color: "#333" },
-  block: { marginTop: 14 },
-  label: { fontWeight: "600", marginBottom: 4 },
-  value: { color: "#333" },
-  deleteBtn: {
-    marginTop: 16,
-    backgroundColor: "#d32f2f",
+  headerImage: {
+    height: "100%",
+    width: "100%",
+  },
+  headerOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.25)",
+  },
+  headerPlaceholder: {
+    height: "100%",
+    width: "100%",
+    backgroundColor: "#1f2937",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headerPlaceholderText: {
+    color: "#fff",
+    fontSize: 40,
+    fontWeight: "700",
+  },
+  topBar: {
+    position: "absolute",
+    top: Platform.OS === "ios" ? 50 : 20,
+    right: 16,
+    flexDirection: "row",
+    gap: 8,
+  },
+  topBarBtn: {
+    backgroundColor: "rgba(0,0,0,0.35)",
+    height: 34,
+    width: 34,
     borderRadius: 999,
-    paddingVertical: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  topBarIcon: {
+    color: "#fff",
+    fontSize: 18,
+  },
+  contentCard: {
+    flex: 1,
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
+    marginTop: -40,
+    paddingTop: 20,
+  },
+  scrollContent: {
+    paddingHorizontal: 16,
+    paddingBottom: 20,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#0f172a",
+  },
+  meta: {
+    marginTop: 4,
+    color: "#64748b",
+  },
+  creator: {
+    marginTop: 4,
+    color: "#0f172a",
+  },
+  block: {
+    marginTop: 16,
+  },
+  label: {
+    fontWeight: "600",
+    marginBottom: 4,
+    color: "#0f172a",
+  },
+  value: {
+    color: "#1f2937",
+  },
+  footer: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: Platform.OS === "ios" ? 16 : 10,
+    flexDirection: "row",
+    gap: 10,
+    paddingHorizontal: 16,
+  },
+  footerBtn: {
+    flex: 1,
+    backgroundColor: "#0f172a",
+    borderRadius: 999,
+    paddingVertical: 12,
     alignItems: "center",
   },
-  deleteText: { color: "#fff", fontWeight: "600" },
+  footerBtnText: {
+    color: "#fff",
+    fontWeight: "600",
+  },
+  disabled: {
+    opacity: 0.5,
+  },
+  deleteBtn: {
+    width: 44,
+    borderRadius: 999,
+    backgroundColor: "#dc2626",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  deleteText: {
+    color: "#fff",
+    fontWeight: "700",
+  },
 });
 
 export default ActivityDetailsModal;
