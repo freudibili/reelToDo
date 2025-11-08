@@ -28,15 +28,23 @@ export const fetchActivities = createAsyncThunk<
   { dispatch: AppDispatch; state: RootState }
 >("activities/fetchActivities", async (_, { getState }) => {
   const userId = getState().auth.user?.id ?? null;
-
-  const activities = await ActivitiesService.fetchActivities(userId);
-  let favorites: string[] = [];
-
-  if (userId) {
-    favorites = await ActivitiesService.fetchFavorites(userId);
+  if (!userId) {
+    return { activities: [], favorites: [] };
   }
 
-  return { activities: activities as Activity[], favorites };
+  const rows = await ActivitiesService.fetchActivities(userId);
+  // rows = [{ ...activityFields, is_favorite: true/false }, ...]
+
+  const activities: Activity[] = rows.map((row: any) => {
+    const { is_favorite, ...rest } = row;
+    return rest as Activity;
+  });
+
+  const favorites = rows
+    .filter((row: any) => row.is_favorite)
+    .map((row: any) => row.id as string);
+
+  return { activities, favorites };
 });
 
 export const addFavorite = createAsyncThunk<

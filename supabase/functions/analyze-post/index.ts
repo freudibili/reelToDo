@@ -32,6 +32,8 @@ serve(async (req) => {
   }
 
   const url = body.url as string | undefined;
+  const userId = body.user_id as string | undefined;
+
   if (!url) {
     return new Response(JSON.stringify({ error: "Missing url" }), {
       status: 400,
@@ -46,8 +48,30 @@ serve(async (req) => {
     .eq("source_url", url)
     .maybeSingle();
 
+  // ⚠️ si l'activité existe déjà, on crée quand même le lien user_activities
   if (existing) {
     console.log("[fn] already exists, returning existing id", existing.id);
+
+    if (userId) {
+      console.log("[fn] upserting user_activities for existing activity");
+      const { error: uaError } = await supabase.from("user_activities").upsert(
+        [
+          {
+            user_id: userId,
+            activity_id: existing.id,
+            is_favorite: false,
+          },
+        ],
+        {
+          onConflict: "user_id,activity_id",
+        }
+      );
+
+      if (uaError) {
+        console.log("[fn] user_activities upsert error", uaError);
+      }
+    }
+
     return new Response(JSON.stringify(existing), {
       status: 200,
       headers: { "Content-Type": "application/json" },
@@ -183,6 +207,26 @@ serve(async (req) => {
     if (rows.length > 0) {
       console.log("[fn] inserting activity_dates", rows.length);
       await supabase.from("activity_dates").insert(rows);
+    }
+  }
+
+  if (userId && activity?.id) {
+    console.log("[fn] upserting user_activities for new activity");
+    const { error: uaError } = await supabase.from("user_activities").upsert(
+      [
+        {
+          user_id: userId,
+          activity_id: activity.id,
+          is_favorite: false,
+        },
+      ],
+      {
+        onConflict: "user_id,activity_id",
+      }
+    );
+
+    if (uaError) {
+      console.log("[fn] user_activities upsert error", uaError);
     }
   }
 

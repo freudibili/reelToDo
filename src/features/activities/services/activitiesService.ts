@@ -2,16 +2,26 @@ import { supabase } from "@config/supabase";
 
 export const ActivitiesService = {
   async fetchActivities(userId?: string | null) {
-    const query = supabase
-      .from("activities")
-      .select("*")
+    if (!userId) return [];
+
+    const { data, error } = await supabase
+      .from("user_activities")
+      .select(
+        `
+        activity_id,
+        is_favorite,
+        activities (*)
+      `
+      )
+      .eq("user_id", userId)
       .order("created_at", { ascending: false });
 
-    if (userId) query.eq("user_id", userId);
-
-    const { data, error } = await query;
     if (error) throw error;
-    return data;
+
+    return data.map((row) => ({
+      ...row.activities,
+      is_favorite: row.is_favorite,
+    }));
   },
 
   async fetchFavorites(userId: string) {
@@ -26,20 +36,25 @@ export const ActivitiesService = {
   },
 
   async addFavorite(userId: string, activityId: string) {
-    const { error } = await supabase.from("user_activities").insert([
+    const { error } = await supabase.from("user_activities").upsert(
+      [
+        {
+          user_id: userId,
+          activity_id: activityId,
+          is_favorite: true,
+        },
+      ],
       {
-        user_id: userId,
-        activity_id: activityId,
-        is_favorite: true,
-      },
-    ]);
+        onConflict: "user_id,activity_id",
+      }
+    );
     if (error) throw error;
   },
 
   async removeFavorite(userId: string, activityId: string) {
     const { error } = await supabase
       .from("user_activities")
-      .delete()
+      .update({ is_favorite: false })
       .eq("user_id", userId)
       .eq("activity_id", activityId);
     if (error) throw error;
