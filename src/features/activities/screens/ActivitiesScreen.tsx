@@ -4,7 +4,10 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   fetchActivities,
   startActivitiesListener,
+  stopActivitiesListener,
   deleteActivity,
+  addFavorite,
+  removeFavorite,
 } from "../store/activitiesSlice";
 import { activitiesSelectors } from "../store/activitiesSelectors";
 import type { AppDispatch } from "@core/store";
@@ -17,12 +20,17 @@ const ActivitiesScreen = () => {
   const grouped = useSelector(activitiesSelectors.groupedByCategory);
   const loading = useSelector(activitiesSelectors.loading);
   const initialized = useSelector(activitiesSelectors.initialized);
+  const favoriteIds = useSelector(activitiesSelectors.favoriteIds);
   const [selected, setSelected] = useState<Activity | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
     dispatch(fetchActivities());
     dispatch(startActivitiesListener());
+
+    return () => {
+      stopActivitiesListener();
+    };
   }, [dispatch]);
 
   const handleSelect = (activity: Activity) => {
@@ -40,13 +48,26 @@ const ActivitiesScreen = () => {
     handleClose();
   };
 
+  const handleToggleFavorite = (id: string) => {
+    if (favoriteIds.includes(id)) {
+      dispatch(removeFavorite(id));
+    } else {
+      dispatch(addFavorite(id));
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Activities</Text>
       {!initialized && loading ? (
         <ActivityIndicator />
       ) : (
-        <ActivityList data={grouped} onSelect={handleSelect} />
+        <ActivityList
+          data={grouped}
+          onSelect={handleSelect}
+          favoriteIds={favoriteIds}
+          onToggleFavorite={handleToggleFavorite}
+        />
       )}
       <ActivityDetailsModal
         visible={modalVisible}

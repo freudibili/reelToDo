@@ -18,9 +18,16 @@ interface CategoryGroup {
 interface Props {
   data: CategoryGroup[];
   onSelect: (activity: Activity) => void;
+  favoriteIds: string[];
+  onToggleFavorite: (id: string) => void;
 }
 
-const ActivityList: React.FC<Props> = ({ data, onSelect }) => {
+const ActivityList: React.FC<Props> = ({
+  data,
+  onSelect,
+  favoriteIds,
+  onToggleFavorite,
+}) => {
   const { width } = useWindowDimensions();
   const columns = getColumns(width);
 
@@ -44,7 +51,12 @@ const ActivityList: React.FC<Props> = ({ data, onSelect }) => {
                 key={activity.id}
                 style={[styles.cardWrapper, { width: `${100 / columns}%` }]}
               >
-                <ActivityCard activity={activity} onPress={onSelect} />
+                <ActivityCard
+                  activity={activity}
+                  onPress={onSelect}
+                  isFavorite={favoriteIds.includes(activity.id)}
+                  onToggleFavorite={onToggleFavorite}
+                />
               </View>
             ))}
           </View>

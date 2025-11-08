@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import type { ShareIntent } from "expo-share-intent";
 import { importService } from "../services/importService";
-import type { Activity } from "@features/activites/utils/types";
+import type { Activity } from "@features/activities/utils/types";
 
 export interface ImportState {
   loading: boolean;

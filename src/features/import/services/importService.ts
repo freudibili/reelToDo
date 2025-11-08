@@ -1,6 +1,6 @@
 import { supabase } from "@config/supabase";
 import type { ShareIntent } from "expo-share-intent";
-import type { Activity } from "@features/activites/utils/types";
+import type { Activity } from "@features/activities/utils/types";
 
 interface AnalyzeArgs {
   shared: ShareIntent;

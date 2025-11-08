@@ -14,8 +14,10 @@ serve(async (req) => {
   console.log("[fn] --- analyze-post invoked ---");
 
   if (req.method !== "POST") {
-    console.log("[fn] invalid method", req.method);
-    return new Response("Method not allowed", { status: 405 });
+    return new Response(JSON.stringify({ error: "Method not allowed" }), {
+      status: 405,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
   let body: any;
@@ -33,6 +35,21 @@ serve(async (req) => {
   if (!url) {
     return new Response(JSON.stringify({ error: "Missing url" }), {
       status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  console.log("[fn] checking if activity already exists for", url);
+  const { data: existing } = await supabase
+    .from("activities")
+    .select("*")
+    .eq("source_url", url)
+    .maybeSingle();
+
+  if (existing) {
+    console.log("[fn] already exists, returning existing id", existing.id);
+    return new Response(JSON.stringify(existing), {
+      status: 200,
       headers: { "Content-Type": "application/json" },
     });
   }
@@ -116,7 +133,6 @@ serve(async (req) => {
   );
   console.log("[fn] finalTitle", finalTitle);
 
-  // ❗ activities are public → no user_id here
   const insertPayload = {
     title: finalTitle,
     category: finalCategory,
