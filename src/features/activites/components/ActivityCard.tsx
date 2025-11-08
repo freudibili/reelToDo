@@ -18,6 +18,7 @@ const ActivityCard: React.FC<Props> = ({ activity, onPress }) => {
         <Text style={styles.meta}>
           {activity.category ?? "—"} ·{" "}
           {activity.city ?? activity.location_name ?? "—"}
+          {activity.country ?? ""}
         </Text>
         {activity.creator ? (
           <Text style={styles.creator}>by {activity.creator}</Text>

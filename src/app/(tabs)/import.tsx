@@ -1,5 +1,5 @@
 import React from "react";
-import ImportScreen from "@features/sharing/screens/ImportScreen";
+import ImportScreen from "@features/import/screens/ImportScreen";
 
 const ImportRoute = () => {
   return <ImportScreen />;

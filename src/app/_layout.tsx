@@ -5,7 +5,7 @@ import { PaperProvider } from "react-native-paper";
 import { store, persistor } from "@core/store";
 import paperTheme from "@common/theme/paperTheme";
 import AuthGate from "@features/auth/navigation/AuthGate";
-import { useShareListener } from "@features/sharing/hooks/useShareListener";
+import { useShareListener } from "@features/import/hooks/useShareListener";
 
 const RootLayout = () => {
   useShareListener();

@@ -122,6 +122,7 @@ const ActivityDetailsModal: React.FC<Props> = ({
           <Text style={styles.meta}>
             {activity.category ?? "—"} ·{" "}
             {activity.city ?? activity.location_name ?? "—"}
+            {activity.country ?? activity.location_name ?? "—"}
           </Text>
           {activity.creator ? (
             <Text style={styles.creator}>by {activity.creator}</Text>
@@ -132,6 +133,7 @@ const ActivityDetailsModal: React.FC<Props> = ({
             <Text style={styles.value}>{activity.location_name ?? "—"}</Text>
             <Text style={styles.value}>{activity.address ?? ""}</Text>
             <Text style={styles.value}>{activity.city ?? ""}</Text>
+            <Text style={styles.value}>{activity.country ?? ""}</Text>
           </View>
 
           <View style={styles.block}>

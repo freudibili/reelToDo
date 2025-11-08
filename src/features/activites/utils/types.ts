@@ -6,6 +6,7 @@ export interface Activity {
   location_name: string | null;
   address: string | null;
   city: string | null;
+  country: string | null;
   latitude: number | null;
   longitude: number | null;
   main_date: string | null;

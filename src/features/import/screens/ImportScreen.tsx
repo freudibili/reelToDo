@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useCallback } from "react";
+import React, { useEffect, useMemo, useCallback } from "react";
 import {
   View,
   Text,
@@ -10,14 +10,25 @@ import {
   Image,
 } from "react-native";
 import { useLocalSearchParams } from "expo-router";
-import { supabase } from "@config/supabase";
 import type { ShareIntent } from "expo-share-intent";
-import { useSelector } from "react-redux";
+
 import { selectAuthUser } from "@features/auth/store/authSelectors";
+import {
+  selectImportLoading,
+  selectImportError,
+  selectImportedActivity,
+} from "@features/import/store/importSelectors";
+import { analyzeSharedLink } from "@features/import/store/importSlice";
+import { useAppDispatch, useAppSelector } from "@core/store/hook";
 
 const ImportScreen = () => {
   const { shared } = useLocalSearchParams();
-  const user = useSelector(selectAuthUser);
+  const dispatch = useAppDispatch();
+  const user = useAppSelector(selectAuthUser);
+
+  const loading = useAppSelector(selectImportLoading);
+  const error = useAppSelector(selectImportError);
+  const activity = useAppSelector(selectImportedActivity);
 
   const sharedData = useMemo<ShareIntent | null>(() => {
     if (!shared || Array.isArray(shared)) return null;
@@ -28,45 +39,21 @@ const ImportScreen = () => {
     }
   }, [shared]);
 
-  const [loading, setLoading] = useState(false);
-  const [activity, setActivity] = useState<any>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  const analyze = useCallback(async () => {
-    const url = sharedData?.webUrl;
-    if (!url || !user?.id) return;
-
-    setLoading(true);
-    setError(null);
-    setActivity(null);
-
-    const metadata = sharedData?.meta
-      ? {
-          title: sharedData.meta.title,
-          description: [sharedData.text, sharedData.meta.description]
-            .filter(Boolean)
-            .join(" "),
-          thumbnail_url: sharedData.meta.image,
-          author_name: sharedData.meta.siteName,
-        }
-      : undefined;
-
-    try {
-      const { data, error } = await supabase.functions.invoke("analyze-post", {
-        body: { url, userId: user.id, metadata },
-      });
-      if (error) throw error;
-      setActivity(data);
-    } catch (e: any) {
-      setError(e?.message ?? "Unable to analyze link");
-    } finally {
-      setLoading(false);
-    }
-  }, [user, sharedData]);
+  const analyze = useCallback(() => {
+    if (!sharedData?.webUrl || !user?.id) return;
+    dispatch(
+      analyzeSharedLink({
+        shared: sharedData,
+        userId: user.id,
+      })
+    );
+  }, [dispatch, sharedData, user]);
 
   useEffect(() => {
-    if (sharedData?.webUrl && user) analyze();
-  }, [sharedData?.webUrl, user, analyze]);
+    if (sharedData?.webUrl && user?.id) {
+      analyze();
+    }
+  }, [sharedData?.webUrl, user?.id, analyze]);
 
   return (
     <View style={styles.container}>
@@ -77,6 +64,7 @@ const ImportScreen = () => {
         placeholder="Paste link here"
         autoCapitalize="none"
         autoCorrect={false}
+        editable={false}
       />
       <Button
         title={loading ? "Analyzing..." : "Analyze"}
@@ -109,6 +97,9 @@ const ImportScreen = () => {
             <Text style={styles.label}>City</Text>
             <Text style={styles.value}>{activity.city}</Text>
 
+            <Text style={styles.label}>Country</Text>
+            <Text style={styles.value}>{activity.country}</Text>
+
             <Text style={styles.label}>Creator</Text>
             <Text style={styles.value}>{activity.creator}</Text>
 
@@ -119,7 +110,9 @@ const ImportScreen = () => {
 
             <Text style={styles.label}>Confidence</Text>
             <Text style={styles.value}>
-              {Math.round(activity.confidence * 100)}%
+              {typeof activity.confidence === "number"
+                ? `${Math.round(activity.confidence * 100)}%`
+                : "—"}
             </Text>
 
             <Text style={styles.label}>Source URL</Text>
