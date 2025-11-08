@@ -8,14 +8,7 @@ export const useShareListener = () => {
   useEffect(() => {
     if (!hasShareIntent || !shareIntent) return;
 
-    const sourceUrl = shareIntent.webUrl || shareIntent.text || null;
-
-    const payload = {
-      sourceUrl,
-      ...shareIntent,
-    };
-
-    const encoded = encodeURIComponent(JSON.stringify(payload));
+    const encoded = encodeURIComponent(JSON.stringify(shareIntent));
     router.push(`/import?shared=${encoded}`);
 
     resetShareIntent();

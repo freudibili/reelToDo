@@ -297,9 +297,14 @@ ${textParts.join("\n")}
         { role: "user", content: basePrompt },
       ],
     });
+
     const raw = completion.choices[0].message.content || "{}";
+
+    console.log("[analyze-post] ✅ OpenAI base completion raw:", raw);
+
     parsed = JSON.parse(raw);
   } catch (e) {
+    console.error("[analyze-post] ❌ Error during base completion:", e);
     return new Response(
       JSON.stringify({ error: "OpenAI generation failed", details: `${e}` }),
       {
@@ -352,9 +357,14 @@ Activity context:
           { role: "user", content: enrichPrompt },
         ],
       });
+
       const raw2 = enrichCompletion.choices[0].message.content || "{}";
+
+      console.log("[analyze-post] 🌍 OpenAI enrich completion raw:", raw2);
+
       enriched = JSON.parse(raw2);
     } catch (_e) {
+      console.error("[analyze-post] ⚠️ Error during enrich completion:", _e);
       enriched = {};
     }
   }

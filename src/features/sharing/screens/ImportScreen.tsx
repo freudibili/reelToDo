@@ -12,45 +12,48 @@ import {
 import { useLocalSearchParams } from "expo-router";
 import { supabase } from "@config/supabase";
 import type { ShareIntent } from "expo-share-intent";
-
-interface ShareIntentData extends ShareIntent {
-  sourceUrl: string | null;
-}
+import { useSelector } from "react-redux";
+import { selectAuthUser } from "@features/auth/store/authSelectors";
 
 const ImportScreen = () => {
   const { shared } = useLocalSearchParams();
+  const user = useSelector(selectAuthUser);
 
-  const sharedData: ShareIntentData | null = useMemo(() => {
+  const sharedData = useMemo<ShareIntent | null>(() => {
     if (!shared || Array.isArray(shared)) return null;
     try {
-      return JSON.parse(shared);
+      return JSON.parse(shared) as ShareIntent;
     } catch {
       return null;
     }
   }, [shared]);
 
-  const [url, setUrl] = useState(sharedData?.sourceUrl ?? "");
   const [loading, setLoading] = useState(false);
   const [activity, setActivity] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
-
-  useEffect(() => {
-    const loadUser = async () => {
-      const { data, error } = await supabase.auth.getUser();
-      if (!error && data.user) setUserId(data.user.id);
-    };
-    loadUser();
-  }, []);
 
   const analyze = useCallback(async () => {
-    if (!url) return;
+    const url = sharedData?.webUrl;
+    if (!url || !user?.id) return;
+
     setLoading(true);
     setError(null);
     setActivity(null);
+
+    const metadata = sharedData?.meta
+      ? {
+          title: sharedData.meta.title,
+          description: [sharedData.text, sharedData.meta.description]
+            .filter(Boolean)
+            .join(" "),
+          thumbnail_url: sharedData.meta.image,
+          author_name: sharedData.meta.siteName,
+        }
+      : undefined;
+
     try {
       const { data, error } = await supabase.functions.invoke("analyze-post", {
-        body: { url, userId },
+        body: { url, userId: user.id, metadata },
       });
       if (error) throw error;
       setActivity(data);
@@ -59,23 +62,18 @@ const ImportScreen = () => {
     } finally {
       setLoading(false);
     }
-  }, [url, userId]);
+  }, [user, sharedData]);
 
   useEffect(() => {
-    if (sharedData?.sourceUrl) setUrl(sharedData.sourceUrl);
-  }, [sharedData]);
-
-  useEffect(() => {
-    if (sharedData?.sourceUrl && userId !== undefined) analyze();
-  }, [sharedData?.sourceUrl, userId, analyze]);
+    if (sharedData?.webUrl && user) analyze();
+  }, [sharedData?.webUrl, user, analyze]);
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Import activity</Text>
       <TextInput
         style={styles.input}
-        value={url}
-        onChangeText={setUrl}
+        value={sharedData?.webUrl}
         placeholder="Paste link here"
         autoCapitalize="none"
         autoCorrect={false}
@@ -83,7 +81,7 @@ const ImportScreen = () => {
       <Button
         title={loading ? "Analyzing..." : "Analyze"}
         onPress={analyze}
-        disabled={loading || !url}
+        disabled={loading || !sharedData?.webUrl}
       />
 
       {loading && <ActivityIndicator style={styles.loader} />}
@@ -91,14 +89,13 @@ const ImportScreen = () => {
 
       {activity && (
         <ScrollView style={styles.result}>
-          {activity.image_url ? (
+          {activity.image_url && (
             <Image
               source={{ uri: activity.image_url }}
               style={styles.image}
               resizeMode="cover"
             />
-          ) : null}
-
+          )}
           <View style={styles.details}>
             <Text style={styles.label}>Title</Text>
             <Text style={styles.value}>{activity.title}</Text>

@@ -59,7 +59,7 @@ const ActivitiesScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, paddingTop: 40 },
+  container: { flex: 1, paddingHorizontal: 16, paddingTop: 40 },
   header: { fontSize: 22, fontWeight: "600", marginBottom: 12 },
 });
 
