@@ -6,6 +6,17 @@ import {
 } from "./normalize.ts";
 import { geocodePlace } from "./googlePlaces.ts";
 
+const cleanTitle = (raw: string | null): string | null => {
+  if (!raw) return null;
+  // strip basic emojis (ranges) + hashtags + extra spaces
+  const noEmoji = raw
+    .replace(/[\u{1F300}-\u{1FAFF}]/gu, "")
+    .replace(/[\u{1F600}-\u{1F64F}]/gu, "");
+  const noHash = noEmoji.replace(/#\w+/g, "");
+  const collapsed = noHash.replace(/\s+/g, " ").trim();
+  return collapsed.length > 0 ? collapsed : null;
+};
+
 const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
 if (!OPENAI_API_KEY) {
   throw new Error("Missing OPENAI_API_KEY");
@@ -26,6 +37,7 @@ type AnalyzeOutput = {
   location_name: string | null;
   address: string | null;
   city: string | null;
+  country: string | null;
   latitude: number | null;
   longitude: number | null;
   date: string | null;
@@ -36,21 +48,12 @@ type AnalyzeOutput = {
   confidence: number;
 };
 
-const buildUserContent = (meta: AnalyzeInput) =>
-  [meta.title ?? "", meta.description ?? "", meta.source_url].join("\n");
+const safeLower = (v: string | null | undefined) =>
+  typeof v === "string" ? v.toLowerCase() : "";
 
-const emptyToNull = (v: any) => (v === "" || v === undefined ? null : v);
+const guessCountryFromText = (text: string | null): string | null => {
+  const hay = safeLower(text);
 
-const extractLocationContext = (textParts: (string | null | undefined)[]) => {
-  const hay = textParts.filter(Boolean).join(" ").toLowerCase();
-
-  if (
-    hay.includes("austria") ||
-    hay.includes("autriche") ||
-    hay.includes("österreich")
-  ) {
-    return "Austria";
-  }
   if (
     hay.includes("switzerland") ||
     hay.includes("suisse") ||
@@ -72,6 +75,13 @@ const extractLocationContext = (textParts: (string | null | undefined)[]) => {
   ) {
     return "Germany";
   }
+  if (
+    hay.includes("norway") ||
+    hay.includes("norvège") ||
+    hay.includes("norwegen")
+  ) {
+    return "Norway";
+  }
   return null;
 };
 
@@ -90,16 +100,13 @@ export const analyzeActivity = async (
       },
       {
         role: "user",
-        content: `Allowed categories: ${allowed}`,
-      },
-      {
-        role: "user",
-        content: buildUserContent(meta),
-      },
-      {
-        role: "user",
         content:
-          "Return JSON with keys: title, category, location_name, address, city, latitude, longitude, date, tags, creator, source_url, confidence, image_url.",
+          `Return JSON with keys: title, category, location_name, address, city, latitude, longitude, date, tags, creator, source_url, confidence, image_url.` +
+          ` The category MUST be one of: ${allowed}. Title must be human friendly (no emojis, no hashtags).`,
+      },
+      {
+        role: "user",
+        content: `Post metadata:\nTitle: ${meta.title}\nDescription: ${meta.description}\nAuthor: ${meta.author}\nImage: ${meta.image}\nURL: ${meta.source_url}`,
       },
     ],
   });
@@ -115,49 +122,33 @@ export const analyzeActivity = async (
       description: meta.description,
       tags: parsed.tags ?? [],
       location_name: parsed.location_name ?? null,
-    });
+    }) ??
+    "other";
 
-  const locationName = emptyToNull(parsed.location_name);
-  const city = emptyToNull(parsed.city);
-
-  const context = extractLocationContext([
-    parsed.title,
-    parsed.address,
-    parsed.city,
-    meta.title,
-    meta.description,
-  ]);
-
-  let resolvedLocation = {
-    location_name: locationName,
-    address: emptyToNull(parsed.address),
-    city,
+  // try to geocode if AI gave a place name or address
+  const resolvedLocation = (await geocodePlace(
+    parsed.location_name ?? parsed.address ?? meta.title ?? ""
+  )) ?? {
+    location_name: parsed.location_name ?? null,
+    address: parsed.address ?? null,
+    city: parsed.city ?? null,
+    country: null,
     latitude: parsed.latitude ?? null,
     longitude: parsed.longitude ?? null,
   };
 
-  if (
-    locationName &&
-    (!resolvedLocation.latitude || !resolvedLocation.longitude)
-  ) {
-    const geo = await geocodePlace(String(locationName), context);
-    if (geo) {
-      resolvedLocation = {
-        location_name: geo.location_name ?? locationName,
-        address: geo.address ?? resolvedLocation.address,
-        city: geo.city ?? resolvedLocation.city,
-        latitude: geo.latitude ?? resolvedLocation.latitude,
-        longitude: geo.longitude ?? resolvedLocation.longitude,
-      };
-    }
-  }
-
   return {
-    title: parsed.title ?? meta.title ?? null,
+    title: cleanTitle(parsed.title ?? meta.title ?? null),
     category: fallbackCategory,
     location_name: resolvedLocation.location_name,
     address: resolvedLocation.address,
     city: resolvedLocation.city,
+    country:
+      parsed.country ??
+      resolvedLocation.country ??
+      guessCountryFromText(meta.title ?? "") ??
+      guessCountryFromText(meta.description ?? "") ??
+      null,
     latitude: resolvedLocation.latitude,
     longitude: resolvedLocation.longitude,
     date: parsed.date ?? null,

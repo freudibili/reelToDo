@@ -14,9 +14,9 @@ export type AllowedCategory =
   | "event-exhibition"
   | "culture-museum"
   | "culture-monument"
-  | "culture-street-art"
-  | "workshop-art"
+  | "culture-architecture"
   | "workshop-cooking"
+  | "workshop-art"
   | "workshop-wellness"
   | "nightlife-club"
   | "nightlife-bar"
@@ -40,9 +40,9 @@ export const ALLOWED_CATEGORIES: AllowedCategory[] = [
   "event-exhibition",
   "culture-museum",
   "culture-monument",
-  "culture-street-art",
-  "workshop-art",
+  "culture-architecture",
   "workshop-cooking",
+  "workshop-art",
   "workshop-wellness",
   "nightlife-club",
   "nightlife-bar",
@@ -51,144 +51,87 @@ export const ALLOWED_CATEGORIES: AllowedCategory[] = [
   "other",
 ];
 
-const normalizeText = (v: string) =>
-  v
-    .trim()
-    .toLowerCase()
-    .replace(/[#@]/g, "")
-    .replace(/[^\p{L}\p{N}\s-]/gu, "");
+export const normalizeCategory = (value: string | null): string | null => {
+  if (!value) return null;
+  const low = value.toLowerCase();
 
-export const normalizeCategory = (
-  raw: string | null | undefined
-): AllowedCategory | null => {
-  if (!raw) return null;
-  const v = normalizeText(raw);
-  if (ALLOWED_CATEGORIES.includes(v as AllowedCategory)) {
-    return v as AllowedCategory;
-  }
-
-  const map: Record<string, AllowedCategory> = {
-    hike: "outdoor-hike",
-    hiking: "outdoor-hike",
-    trek: "outdoor-hike",
-    trail: "outdoor-hike",
-    randonnée: "outdoor-hike",
-    rando: "outdoor-hike",
-    mountain: "outdoor-hike",
-    mountains: "outdoor-hike",
-    dolomites: "outdoor-hike",
-    nature: "outdoor-nature-spot",
-    waterfall: "outdoor-nature-spot",
-    cascade: "outdoor-nature-spot",
-    forest: "outdoor-nature-spot",
-    parc: "outdoor-park",
-    park: "outdoor-park",
-    plage: "outdoor-beach",
-    beach: "outdoor-beach",
-    lake: "outdoor-nature-spot",
-    viewpoint: "outdoor-viewpoint",
-    view: "outdoor-viewpoint",
-    café: "food-cafe",
-    cafe: "food-cafe",
-    coffee: "food-cafe",
-    restaurant: "food-restaurant",
-    resto: "food-restaurant",
-    bar: "food-bar",
-    pub: "food-bar",
-    cocktail: "food-bar",
-    streetfood: "food-street-food",
-    foodtruck: "food-street-food",
-    marché: "event-market",
-    market: "event-market",
-    festival: "event-festival",
-    concert: "event-concert",
-    gig: "event-concert",
-    expo: "event-exhibition",
-    exhibition: "event-exhibition",
-    art: "culture-street-art",
-    musée: "culture-museum",
-    museum: "culture-museum",
-    monument: "culture-monument",
-    landmark: "culture-monument",
-    mural: "culture-street-art",
-    graffiti: "culture-street-art",
-    peinture: "workshop-art",
-    painting: "workshop-art",
-    poterie: "workshop-art",
-    pottery: "workshop-art",
-    atelier: "workshop-art",
-    cooking: "workshop-cooking",
-    cuisine: "workshop-cooking",
-    yoga: "workshop-wellness",
-    meditation: "workshop-wellness",
-    spa: "workshop-wellness",
-    massage: "workshop-wellness",
-    night: "nightlife-club",
-    club: "nightlife-club",
-    nightlife: "nightlife-club",
-    dance: "nightlife-club",
-    vintage: "shopping-vintage",
-    friperie: "shopping-vintage",
-    local: "shopping-local",
-    shop: "shopping-local",
-    boutique: "shopping-local",
-  };
-
-  return map[v] ?? null;
-};
-
-export const inferCategoryFromContent = (opts: {
-  title?: string | null;
-  description?: string | null;
-  location_name?: string | null;
-  tags?: string[] | null;
-}): AllowedCategory | null => {
-  const haystack = [
-    opts.title ?? "",
-    opts.description ?? "",
-    opts.location_name ?? "",
-    ...(opts.tags ?? []),
-  ]
-    .join(" ")
-    .toLowerCase()
-    .replace(/[#@]/g, "")
-    .replace(/[^\p{L}\p{N}\s-]/gu, "");
-
-  if (
-    haystack.match(
-      /\b(hike|hiking|rando|randonnée|trail|trek|mountain|mountains|dolomites)\b/
-    )
-  )
-    return "outdoor-hike";
-
-  if (haystack.match(/\b(beach|plage|lake|forest|nature|waterfall|cascade)\b/))
-    return "outdoor-nature-spot";
-
-  if (haystack.match(/\b(park|parc)\b/)) return "outdoor-park";
-  if (haystack.match(/\b(viewpoint|view|panorama)\b/))
+  if (low.includes("hike") || low.includes("trail")) return "outdoor-hike";
+  if (low.includes("view") || low.includes("viewpoint"))
     return "outdoor-viewpoint";
-  if (haystack.match(/\b(café|cafe|coffee)\b/)) return "food-cafe";
-  if (haystack.match(/\b(restaurant|resto)\b/)) return "food-restaurant";
-  if (haystack.match(/\b(bar|pub|cocktail)\b/)) return "food-bar";
-  if (haystack.match(/\b(streetfood|foodtruck)\b/)) return "food-street-food";
-  if (haystack.match(/\b(marché|market)\b/)) return "event-market";
-  if (haystack.match(/\b(festival)\b/)) return "event-festival";
-  if (haystack.match(/\b(concert|gig)\b/)) return "event-concert";
-  if (haystack.match(/\b(expo|exhibition)\b/)) return "event-exhibition";
-  if (haystack.match(/\b(musée|museum)\b/)) return "culture-museum";
-  if (haystack.match(/\b(monument|landmark)\b/)) return "culture-monument";
-  if (haystack.match(/\b(street art|graffiti|mural)\b/))
-    return "culture-street-art";
-  if (haystack.match(/\b(painting|poterie|pottery|atelier|art)\b/))
-    return "workshop-art";
-  if (haystack.match(/\b(cooking|cuisine)\b/)) return "workshop-cooking";
-  if (haystack.match(/\b(yoga|meditation|spa|massage)\b/))
+  if (low.includes("beach")) return "outdoor-beach";
+  if (low.includes("park")) return "outdoor-park";
+  if (low.includes("nature")) return "outdoor-nature-spot";
+
+  if (low.includes("cafe") || low.includes("coffee")) return "food-cafe";
+  if (low.includes("restaurant") || low.includes("food"))
+    return "food-restaurant";
+  if (low.includes("bar")) return "food-bar";
+  if (low.includes("street food")) return "food-street-food";
+
+  if (low.includes("market")) return "event-market";
+  if (low.includes("festival")) return "event-festival";
+  if (low.includes("concert")) return "event-concert";
+  if (low.includes("exhibition")) return "event-exhibition";
+
+  if (low.includes("museum")) return "culture-museum";
+  if (low.includes("monument")) return "culture-monument";
+  if (low.includes("architecture")) return "culture-architecture";
+
+  if (low.includes("workshop") && low.includes("cook"))
+    return "workshop-cooking";
+  if (low.includes("workshop") && low.includes("art")) return "workshop-art";
+  if (low.includes("workshop") && low.includes("wellness"))
     return "workshop-wellness";
-  if (haystack.match(/\b(club|nightlife|dance)\b/)) return "nightlife-club";
-  if (haystack.match(/\b(vintage|friperie)\b/)) return "shopping-vintage";
-  if (haystack.match(/\b(shop|boutique|local)\b/)) return "shopping-local";
+
+  if (low.includes("club")) return "nightlife-club";
+  if (low.includes("nightlife") || low.includes("night bar"))
+    return "nightlife-bar";
+
+  if (low.includes("vintage")) return "shopping-vintage";
+  if (low.includes("shop") || low.includes("local")) return "shopping-local";
 
   return "other";
+};
+
+export const inferCategoryFromContent = (input: {
+  title?: string | null;
+  description?: string | null;
+  tags?: string[] | null;
+  location_name?: string | null;
+}): string | null => {
+  const hay = [
+    input.title ?? "",
+    input.description ?? "",
+    ...(input.tags ?? []),
+    input.location_name ?? "",
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  if (hay.match(/\b(hike|trail|randonn[eé]e|wanderung)\b/))
+    return "outdoor-hike";
+  if (hay.match(/\b(view|viewpoint|panorama|belvedere)\b/))
+    return "outdoor-viewpoint";
+  if (hay.match(/\b(beach|plage|strand)\b/)) return "outdoor-beach";
+  if (hay.match(/\b(park|parc)\b/)) return "outdoor-park";
+  if (hay.match(/\b(nature|forest|forêt|wald)\b/)) return "outdoor-nature-spot";
+
+  if (hay.match(/\b(cafe|coffee|café)\b/)) return "food-cafe";
+  if (hay.match(/\b(restaurant|food|lunch|dinner)\b/)) return "food-restaurant";
+  if (hay.match(/\b(bar|cocktail)\b/)) return "food-bar";
+
+  if (hay.match(/\b(market|march[eé]|markt)\b/)) return "event-market";
+  if (hay.match(/\b(festival|fest)\b/)) return "event-festival";
+  if (hay.match(/\b(concert|live music)\b/)) return "event-concert";
+  if (hay.match(/\b(exhibition|expo)\b/)) return "event-exhibition";
+
+  if (hay.match(/\b(museum|mus[eé]e)\b/)) return "culture-museum";
+  if (hay.match(/\b(monument|castle|château|burg)\b/))
+    return "culture-monument";
+
+  if (hay.match(/\b(workshop|cours|ateliers)\b/)) return "workshop-art";
+
+  return null;
 };
 
 export const mergeIfNull = <T extends Record<string, any>>(
@@ -219,6 +162,7 @@ export const normalizeActivity = (activity: any) => {
     location_name: activity.location_name ?? null,
     address: activity.address ?? null,
     city: activity.city ?? null,
+    country: activity.country ?? null,
     latitude: activity.latitude ?? null,
     longitude: activity.longitude ?? null,
     dates,
@@ -237,12 +181,13 @@ export const generateTitle = (
   city: string | null
 ): string => {
   const cleanBase = baseName.replace(/^#/, "").trim();
-  const suffix = city ? ` — ${city}` : "";
+  const suffix = city ? ` (${city})` : "";
+
   switch (category) {
     case "outdoor-hike":
       return `Hike: ${cleanBase}${suffix}`;
     case "outdoor-nature-spot":
-      return `Nature: ${cleanBase}${suffix}`;
+      return `Nature spot: ${cleanBase}${suffix}`;
     case "outdoor-beach":
       return `Beach: ${cleanBase}${suffix}`;
     case "outdoor-park":
@@ -269,12 +214,12 @@ export const generateTitle = (
       return `Museum: ${cleanBase}${suffix}`;
     case "culture-monument":
       return `Monument: ${cleanBase}${suffix}`;
-    case "culture-street-art":
-      return `Street art: ${cleanBase}${suffix}`;
-    case "workshop-art":
-      return `Art workshop: ${cleanBase}${suffix}`;
+    case "culture-architecture":
+      return `Place: ${cleanBase}${suffix}`;
     case "workshop-cooking":
       return `Cooking workshop: ${cleanBase}${suffix}`;
+    case "workshop-art":
+      return `Art workshop: ${cleanBase}${suffix}`;
     case "workshop-wellness":
       return `Wellness: ${cleanBase}${suffix}`;
     case "nightlife-club":

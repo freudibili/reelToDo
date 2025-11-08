@@ -29,18 +29,16 @@ serve(async (req) => {
     });
   }
 
-  const { url, userId, metadata } = body;
-  console.log("[fn] body", body);
-
+  const url = body.url as string | undefined;
   if (!url) {
-    console.log("[fn] missing url");
-    return new Response(JSON.stringify({ error: "url is required" }), {
+    return new Response(JSON.stringify({ error: "Missing url" }), {
       status: 400,
       headers: { "Content-Type": "application/json" },
     });
   }
 
-  const sourceMeta = await getSourceMetadata(url, metadata);
+  console.log("[fn] fetching source meta for", url);
+  const sourceMeta = await getSourceMetadata(url);
   console.log("[fn] sourceMeta", sourceMeta);
 
   const aiActivity = await analyzeActivity({
@@ -69,6 +67,7 @@ serve(async (req) => {
     location_name,
     address,
     city,
+    country,
     latitude,
     longitude,
     dates,
@@ -124,6 +123,7 @@ serve(async (req) => {
     location_name: location_name ?? null,
     address: address ?? null,
     city: city ?? null,
+    country: country ?? null,
     latitude: latitude ?? null,
     longitude: longitude ?? null,
     main_date: mainDate,
@@ -145,17 +145,17 @@ serve(async (req) => {
   if (insertError) {
     console.log("[fn] insertError", insertError);
     return new Response(
-      JSON.stringify({ error: insertError.message, payload: insertPayload }),
+      JSON.stringify({
+        error: insertError.message,
+      }),
       {
-        status: 200,
+        status: 500,
         headers: { "Content-Type": "application/json" },
       }
     );
   }
 
-  // here, IF you later create a table for user ↔ activity, you can insert it using userId
-
-  if (Array.isArray(dates) && dates.length > 0) {
+  if (Array.isArray(dates) && dates.length > 0 && activity?.id) {
     const rows = dates
       .filter((d: any) => d && d.start)
       .map((d: any) => ({
