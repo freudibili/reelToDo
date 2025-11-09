@@ -102,8 +102,8 @@ const ActivitiesMapScreen = () => {
             <Marker
               key={activity.id}
               coordinate={{
-                latitude: activity.latitude as number,
-                longitude: activity.longitude as number,
+                latitude: activity.latitude,
+                longitude: activity.longitude,
               }}
               title={activity.title}
               description={activity.location_name ?? activity.category ?? ""}

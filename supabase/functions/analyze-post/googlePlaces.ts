@@ -1,4 +1,4 @@
-const GOOGLE_PLACES_API_KEY = Deno.env.get("GOOGLE_PLACES_API_KEY");
+const GOOGLE_MAPS_API_KEY = Deno.env.get("GOOGLE_MAPS_API_KEY");
 
 type GeocodedPlace = {
   location_name: string | null;
@@ -17,7 +17,7 @@ const fetchTextSearch = async (query: string) => {
     "https://maps.googleapis.com/maps/api/place/textsearch/json"
   );
   url.searchParams.set("query", query);
-  url.searchParams.set("key", GOOGLE_PLACES_API_KEY ?? "");
+  url.searchParams.set("key", GOOGLE_MAPS_API_KEY ?? "");
   const res = await fetch(url);
   if (!res.ok) {
     console.log("[google] textsearch failed", res.status);
@@ -35,7 +35,7 @@ const fetchPlaceDetails = async (placeId: string) => {
     "fields",
     "name,formatted_address,geometry,address_component"
   );
-  url.searchParams.set("key", GOOGLE_PLACES_API_KEY ?? "");
+  url.searchParams.set("key", GOOGLE_MAPS_API_KEY ?? "");
   const res = await fetch(url);
   if (!res.ok) {
     console.log("[google] details failed", res.status);
@@ -53,13 +53,13 @@ const reverseGeocode = async (
   city: string | null;
   address: string | null;
 }> => {
-  if (!GOOGLE_PLACES_API_KEY) {
+  if (!GOOGLE_MAPS_API_KEY) {
     return { country: null, city: null, address: null };
   }
 
   const url = new URL("https://maps.googleapis.com/maps/api/geocode/json");
   url.searchParams.set("latlng", `${lat},${lng}`);
-  url.searchParams.set("key", GOOGLE_PLACES_API_KEY);
+  url.searchParams.set("key", GOOGLE_MAPS_API_KEY);
 
   const res = await fetch(url);
   if (!res.ok) {
@@ -94,7 +94,7 @@ export const geocodePlace = async (
   name: string,
   context?: string | null
 ): Promise<GeocodedPlace | null> => {
-  if (!GOOGLE_PLACES_API_KEY) {
+  if (!GOOGLE_MAPS_API_KEY) {
     console.log("[google] no api key, skipping");
     return null;
   }
