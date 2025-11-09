@@ -1,33 +1,31 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
-import { useDispatch, useSelector } from "react-redux";
+
 import {
   fetchActivities,
   startActivitiesListener,
   stopActivitiesListener,
-  deleteActivity,
   addFavorite,
   removeFavorite,
 } from "../store/activitiesSlice";
 import { activitiesSelectors } from "../store/activitiesSelectors";
-import type { AppDispatch } from "@core/store";
 import ActivityList from "../components/ActivityList";
 import ActivityDetailsModal from "../components/ActivityDetailsModal";
 import type { Activity } from "../utils/types";
+import { useAppDispatch, useAppSelector } from "@core/store/hook";
 
 const ActivitiesScreen = () => {
-  const dispatch = useDispatch<AppDispatch>();
-  const grouped = useSelector(activitiesSelectors.groupedByCategory);
-  const loading = useSelector(activitiesSelectors.loading);
-  const initialized = useSelector(activitiesSelectors.initialized);
-  const favoriteIds = useSelector(activitiesSelectors.favoriteIds);
+  const dispatch = useAppDispatch();
+  const grouped = useAppSelector(activitiesSelectors.groupedByCategory);
+  const loading = useAppSelector(activitiesSelectors.loading);
+  const initialized = useAppSelector(activitiesSelectors.initialized);
+  const favoriteIds = useAppSelector(activitiesSelectors.favoriteIds);
   const [selected, setSelected] = useState<Activity | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
     dispatch(fetchActivities());
     dispatch(startActivitiesListener());
-
     return () => {
       stopActivitiesListener();
     };
@@ -41,11 +39,6 @@ const ActivitiesScreen = () => {
   const handleClose = () => {
     setModalVisible(false);
     setSelected(null);
-  };
-
-  const handleDelete = (id: string) => {
-    dispatch(deleteActivity(id));
-    handleClose();
   };
 
   const handleToggleFavorite = (id: string, next?: boolean) => {
@@ -74,9 +67,6 @@ const ActivitiesScreen = () => {
         visible={modalVisible}
         activity={selected}
         onClose={handleClose}
-        onDelete={handleDelete}
-        isFavorite={!!selected && favoriteIds.includes(selected.id)}
-        onToggleFavorite={handleToggleFavorite}
       />
     </View>
   );

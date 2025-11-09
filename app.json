@@ -14,10 +14,10 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.reeltodo"
+      "bundleIdentifier": "com.fredericstudio.reeltodo"
     },
     "android": {
-      "package": "com.anonymous.reeltodo",
+      "package": "com.fredericstudio.reeltodo",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -44,7 +44,16 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": ["expo-audio", "expo-share-intent"],
+    "plugins": [
+      "expo-audio",
+      "expo-share-intent",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location."
+        }
+      ]
+    ],
     "extra": {
       "SUPABASE_URL": "${SUPABASE_URL}",
       "SUPABASE_ANON_KEY": "${SUPABASE_ANON_KEY}"

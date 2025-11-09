@@ -1,4 +1,5 @@
 import { ExpoConfig } from "expo/config";
+import "dotenv/config";
 
 const config: ExpoConfig = {
   name: "ReelToDo",
@@ -16,10 +17,10 @@ const config: ExpoConfig = {
   },
   ios: {
     supportsTablet: true,
-    bundleIdentifier: "com.anonymous.reeltodo",
+    bundleIdentifier: "com.fredericstudio.reeltodo",
   },
   android: {
-    package: "com.anonymous.reeltodo",
+    package: "com.fredericstudio.reeltodo",
     adaptiveIcon: {
       foregroundImage: "./assets/adaptive-icon.png",
       backgroundColor: "#ffffff",
@@ -42,14 +43,32 @@ const config: ExpoConfig = {
         data: [{ mimeType: "image/*" }],
       },
     ],
+    config: {
+      googleMaps: {
+        apiKey: process.env.GOOGLE_MAPS_API_KEY,
+      },
+    },
   },
   web: {
     favicon: "./assets/favicon.png",
   },
-  plugins: ["expo-audio", "expo-share-intent"],
+  plugins: [
+    "expo-audio",
+    "expo-share-intent",
+    [
+      "expo-location",
+      {
+        locationAlwaysAndWhenInUsePermission:
+          "Allow $(PRODUCT_NAME) to use your location.",
+      },
+    ],
+  ],
   extra: {
     SUPABASE_URL: process.env.SUPABASE_URL,
     SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY,
+    eas: {
+      projectId: "85b20dc6-dd0c-4438-92f0-23a53f754cc4",
+    },
   },
 };
 

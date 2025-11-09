@@ -13,29 +13,35 @@ import {
   Linking,
   Platform,
 } from "react-native";
-import type { Activity } from "../utils/types";
+import {
+  deleteActivity,
+  addFavorite,
+  removeFavorite,
+} from "../store/activitiesSlice";
+import { activitiesSelectors } from "../store/activitiesSelectors";
+import { useAppDispatch, useAppSelector } from "@core/store/hook";
+import { Activity } from "../utils/types";
 import { useConfirmDialog } from "@common/hooks/useConfirmDialog";
 
 interface Props {
   visible: boolean;
   activity: Activity | null;
   onClose: () => void;
-  onDelete: (id: string) => void;
-  isFavorite?: boolean;
-  onToggleFavorite?: (id: string, next: boolean) => void;
 }
 
 const ActivityDetailsModal: React.FC<Props> = ({
   visible,
   activity,
   onClose,
-  onDelete,
-  isFavorite = false,
-  onToggleFavorite,
 }) => {
+  const dispatch = useAppDispatch();
   const { confirm } = useConfirmDialog();
+  const favoriteIds = useAppSelector(activitiesSelectors.favoriteIds);
   const [internalVisible, setInternalVisible] = useState(visible);
   const anim = useRef(new Animated.Value(0)).current;
+
+  const isFavorite =
+    !!activity && favoriteIds ? favoriteIds.includes(activity.id) : false;
 
   useEffect(() => {
     if (visible) {
@@ -82,7 +88,7 @@ const ActivityDetailsModal: React.FC<Props> = ({
       "Supprimer cette activité ?",
       "Cette action est définitive.",
       () => {
-        onDelete(activity.id);
+        dispatch(deleteActivity(activity.id));
         handleRequestClose();
       },
       { cancelText: "Annuler", confirmText: "Supprimer" }
@@ -90,8 +96,12 @@ const ActivityDetailsModal: React.FC<Props> = ({
   };
 
   const handleToggleFavorite = () => {
-    if (!onToggleFavorite) return;
-    onToggleFavorite(activity.id, !isFavorite);
+    if (!activity) return;
+    if (isFavorite) {
+      dispatch(removeFavorite(activity.id));
+    } else {
+      dispatch(addFavorite(activity.id));
+    }
   };
 
   const handleOpenMaps = () => {

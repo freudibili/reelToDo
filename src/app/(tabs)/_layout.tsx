@@ -38,6 +38,15 @@ const TabsLayout = () => {
           ),
         }}
       />
+      <Tabs.Screen
+        name="activities-map"
+        options={{
+          title: "Map",
+          tabBarIcon: ({ color, size }) => (
+            <Icon source="map" color={color} size={size} />
+          ),
+        }}
+      />
     </Tabs>
   );
 };
