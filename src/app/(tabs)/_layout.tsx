@@ -12,11 +12,20 @@ const TabsLayout = () => {
       }}
     >
       <Tabs.Screen
-        name="index"
+        name="activities"
         options={{
-          title: "Home",
+          title: "Activities",
           tabBarIcon: ({ color, size }) => (
-            <Icon source="home-outline" color={color} size={size} />
+            <Icon source="pine-tree" color={color} size={size} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="activities-map"
+        options={{
+          title: "Map",
+          tabBarIcon: ({ color, size }) => (
+            <Icon source="map" color={color} size={size} />
           ),
         }}
       />
@@ -30,20 +39,11 @@ const TabsLayout = () => {
         }}
       />
       <Tabs.Screen
-        name="activities"
+        name="index"
         options={{
-          title: "Activities",
+          title: "Settings",
           tabBarIcon: ({ color, size }) => (
-            <Icon source="map-outline" color={color} size={size} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="activities-map"
-        options={{
-          title: "Map",
-          tabBarIcon: ({ color, size }) => (
-            <Icon source="map" color={color} size={size} />
+            <Icon source="cog-outline" color={color} size={size} />
           ),
         }}
       />
