@@ -1,4 +1,7 @@
 import React from "react";
+import "react-native-gesture-handler";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 import { PaperProvider } from "react-native-paper";
@@ -9,14 +12,19 @@ import { useShareListener } from "@features/import/hooks/useShareListener";
 
 const RootLayout = () => {
   useShareListener();
+
   return (
-    <Provider store={store}>
-      <PersistGate loading={null} persistor={persistor}>
-        <PaperProvider theme={paperTheme}>
-          <AuthGate />
-        </PaperProvider>
-      </PersistGate>
-    </Provider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <Provider store={store}>
+          <PersistGate loading={null} persistor={persistor}>
+            <PaperProvider theme={paperTheme}>
+              <AuthGate />
+            </PaperProvider>
+          </PersistGate>
+        </Provider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 };
 
