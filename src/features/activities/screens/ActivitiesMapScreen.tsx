@@ -268,17 +268,16 @@ const ActivitiesMapScreen = () => {
             userRegion={userRegion}
             category={category}
             onSelectActivity={handleSelectFromNearby}
-            onClose={handleCloseSheet}
           />
         ) : (
           <ActivityDetailsSheet
             activity={selected}
             isFavorite={selected ? favoriteIds.includes(selected.id) : false}
-            onClose={handleCloseSheet}
             onDelete={handleDelete}
             onToggleFavorite={handleToggleFavorite}
             onOpenMaps={handleOpenMaps}
             onOpenSource={handleOpenSource}
+            onAddToCalendar={() => {}}
           />
         )}
       </AppBottomSheet>

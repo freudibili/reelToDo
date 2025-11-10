@@ -1,17 +1,11 @@
 import React, {
   useEffect,
   useState,
-  useCallback,
   useRef,
   useMemo,
+  useCallback,
 } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ActivityIndicator,
-  Linking,
-} from "react-native";
+import { Text, StyleSheet } from "react-native";
 import {
   fetchActivities,
   startActivitiesListener,
@@ -19,6 +13,9 @@ import {
   addFavorite,
   removeFavorite,
   deleteActivity,
+  createActivityCalendarEvent,
+  openActivityInMaps,
+  openActivitySource,
 } from "../store/activitiesSlice";
 import { activitiesSelectors } from "../store/activitiesSelectors";
 import ActivityList from "../components/ActivityList";
@@ -86,30 +83,6 @@ const ActivitiesScreen = () => {
     [confirm, dispatch]
   );
 
-  const handleOpenMaps = useCallback((activity: Activity) => {
-    if (activity.latitude && activity.longitude) {
-      const url = `https://www.google.com/maps/search/?api=1&query=${activity.latitude},${activity.longitude}`;
-      Linking.openURL(url);
-      return;
-    }
-    const query =
-      activity.address ||
-      activity.location_name ||
-      activity.city ||
-      activity.title;
-    if (query) {
-      const encoded = encodeURIComponent(query);
-      const url = `https://www.google.com/maps/search/?api=1&query=${encoded}`;
-      Linking.openURL(url);
-    }
-  }, []);
-
-  const handleOpenSource = useCallback((activity: Activity) => {
-    if (activity.source_url) {
-      Linking.openURL(activity.source_url);
-    }
-  }, []);
-
   return (
     <Screen loading={loading && !initialized}>
       <Text style={styles.header}>Activities</Text>
@@ -131,11 +104,17 @@ const ActivitiesScreen = () => {
           <ActivityDetailsSheet
             activity={selected}
             isFavorite={selected ? favoriteIds.includes(selected.id) : false}
-            onClose={handleClose}
             onDelete={handleDelete}
             onToggleFavorite={(activity) => handleToggleFavorite(activity.id)}
-            onOpenMaps={handleOpenMaps}
-            onOpenSource={handleOpenSource}
+            onOpenMaps={(activity) => {
+              dispatch(openActivityInMaps(activity.id));
+            }}
+            onOpenSource={(activity) => {
+              dispatch(openActivitySource(activity.id));
+            }}
+            onAddToCalendar={(activity) => {
+              dispatch(createActivityCalendarEvent(activity.id));
+            }}
           />
         </AppBottomSheet>
       )}

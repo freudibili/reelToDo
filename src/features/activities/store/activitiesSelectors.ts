@@ -27,6 +27,9 @@ const groupedByCategory = createSelector([items], (list) => {
   }));
 });
 
+const byId = (id: string) =>
+  createSelector([items], (list) => list.find((a) => a.id === id) ?? null);
+
 const isFavorite = (activityId: string) =>
   createSelector([favoriteIds], (favorites) => favorites.includes(activityId));
 
@@ -37,4 +40,5 @@ export const activitiesSelectors = {
   groupedByCategory,
   favoriteIds,
   isFavorite,
+  byId,
 };

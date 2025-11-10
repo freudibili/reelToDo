@@ -8,7 +8,6 @@ interface Props {
   userRegion: Region | null;
   category?: string | null;
   onSelectActivity: (activity: Activity) => void;
-  onClose: () => void;
 }
 
 const toRad = (value: number) => (value * Math.PI) / 180;

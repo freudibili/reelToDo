@@ -2,8 +2,10 @@ import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { supabase } from "@config/supabase";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { ActivitiesService } from "../services/activitiesService";
+import { createEventFromActivity } from "../services/calendarService";
+import { Linking } from "react-native";
 import type { Activity } from "../utils/types";
-import { AppDispatch, RootState } from "@core/store";
+import type { AppDispatch, RootState } from "@core/store";
 
 interface ActivitiesState {
   items: Activity[];
@@ -91,6 +93,71 @@ export const deleteActivity = createAsyncThunk<
   return id;
 });
 
+export const createActivityCalendarEvent = createAsyncThunk<
+  { activityId: string; calendarEventId: string },
+  string,
+  { state: RootState; rejectValue: string }
+>(
+  "activities/createActivityCalendarEvent",
+  async (activityId, { getState, rejectWithValue }) => {
+    const { activities } = getState();
+    const activity = activities.items.find((a) => a.id === activityId);
+    if (!activity) {
+      return rejectWithValue("Activity not found");
+    }
+
+    const eventId = await createEventFromActivity(activity);
+    if (!eventId) {
+      return rejectWithValue("Calendar event not created");
+    }
+
+    await supabase
+      .from("activities")
+      .update({ calendar_event_id: eventId })
+      .eq("id", activityId);
+
+    return { activityId, calendarEventId: eventId };
+  }
+);
+
+export const openActivityInMaps = createAsyncThunk<
+  void,
+  string,
+  { state: RootState }
+>("activities/openActivityInMaps", async (activityId, { getState }) => {
+  const { activities } = getState();
+  const activity = activities.items.find((a) => a.id === activityId);
+  if (!activity) return;
+
+  if (activity.latitude && activity.longitude) {
+    const url = `https://www.google.com/maps/search/?api=1&query=${activity.latitude},${activity.longitude}`;
+    Linking.openURL(url);
+    return;
+  }
+
+  const query =
+    activity.address ||
+    activity.location_name ||
+    activity.city ||
+    activity.title;
+  if (query) {
+    const encoded = encodeURIComponent(query);
+    const url = `https://www.google.com/maps/search/?api=1&query=${encoded}`;
+    Linking.openURL(url);
+  }
+});
+
+export const openActivitySource = createAsyncThunk<
+  void,
+  string,
+  { state: RootState }
+>("activities/openActivitySource", async (activityId, { getState }) => {
+  const { activities } = getState();
+  const activity = activities.items.find((a) => a.id === activityId);
+  if (!activity?.source_url) return;
+  Linking.openURL(activity.source_url);
+});
+
 const activitiesSlice = createSlice({
   name: "activities",
   initialState,
@@ -145,6 +212,16 @@ const activitiesSlice = createSlice({
       const id = action.payload;
       state.items = state.items.filter((a) => a.id !== id);
       state.favoriteIds = state.favoriteIds.filter((x) => x !== id);
+    });
+    builder.addCase(createActivityCalendarEvent.fulfilled, (state, action) => {
+      const { activityId, calendarEventId } = action.payload;
+      const idx = state.items.findIndex((a) => a.id === activityId);
+      if (idx >= 0) {
+        state.items[idx] = {
+          ...state.items[idx],
+          calendar_event_id: calendarEventId,
+        } as Activity;
+      }
     });
   },
 });

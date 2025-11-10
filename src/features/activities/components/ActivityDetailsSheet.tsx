@@ -12,21 +12,21 @@ import type { Activity } from "../utils/types";
 interface Props {
   activity: Activity | null;
   isFavorite: boolean;
-  onClose: () => void;
   onDelete: (activity: Activity) => void;
   onToggleFavorite: (activity: Activity) => void;
   onOpenMaps: (activity: Activity) => void;
   onOpenSource: (activity: Activity) => void;
+  onAddToCalendar: (activity: Activity) => void;
 }
 
 const ActivityDetailsSheet: React.FC<Props> = ({
   activity,
   isFavorite,
-  onClose,
   onDelete,
   onToggleFavorite,
   onOpenMaps,
   onOpenSource,
+  onAddToCalendar,
 }) => {
   if (!activity) return null;
 
@@ -117,6 +117,12 @@ const ActivityDetailsSheet: React.FC<Props> = ({
           disabled={!activity.source_url}
         >
           <Text style={styles.footerBtnText}>Voir la source</Text>
+        </Pressable>
+        <Pressable
+          style={styles.footerBtn}
+          onPress={() => onAddToCalendar(activity)}
+        >
+          <Text style={styles.footerBtnText}>Calendrier</Text>
         </Pressable>
         <Pressable style={styles.deleteBtn} onPress={() => onDelete(activity)}>
           <Text style={styles.deleteText}>🗑</Text>
