@@ -62,6 +62,14 @@ const config: ExpoConfig = {
           "Allow $(PRODUCT_NAME) to use your location.",
       },
     ],
+    [
+      "expo-calendar",
+      {
+        calendarPermission:
+          "Autorisez $(PRODUCT_NAME) à accéder à votre calendrier",
+        remindersPermission: "Autorisez $(PRODUCT_NAME) à créer des rappels",
+      },
+    ],
   ],
   extra: {
     SUPABASE_URL: process.env.SUPABASE_URL,

@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { View, Text, StyleSheet, FlatList, Pressable } from "react-native";
 import type { Region } from "react-native-maps";
-import type { Activity } from "../utils/types";
+import type { Activity } from "../../utils/types";
 
 interface Props {
   activities: Activity[];

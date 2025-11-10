@@ -30,6 +30,15 @@ const TabsLayout = () => {
         }}
       />
       <Tabs.Screen
+        name="activities-calendar"
+        options={{
+          title: "Calendar",
+          tabBarIcon: ({ color, size }) => (
+            <Icon source="calendar-month" color={color} size={size} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="import"
         options={{
           title: "Import",

@@ -19,8 +19,10 @@ import * as Location from "expo-location";
 import type { Region } from "react-native-maps";
 import { useAppSelector, useAppDispatch } from "@core/store/hook";
 import { activitiesSelectors } from "../store/activitiesSelectors";
-import ActivitiesMap, { ActivitiesMapHandle } from "../components/ActivityMap";
-import NearbyActivitiesSheet from "../components/NearbyActivitiesSheet";
+import ActivitiesMap, {
+  ActivitiesMapHandle,
+} from "../components/Map/ActivityMap";
+import NearbyActivitiesSheet from "../components/Map/NearbyActivitiesSheet";
 import ActivityDetailsSheet from "../components/ActivityDetailsSheet";
 import {
   deleteActivity,

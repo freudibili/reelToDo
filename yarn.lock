@@ -3844,6 +3844,11 @@ expo-build-properties@^1.0.9:
     ajv "^8.11.0"
     semver "^7.6.0"
 
+expo-calendar@~14.1.4:
+  version "14.1.4"
+  resolved "https://registry.yarnpkg.com/expo-calendar/-/expo-calendar-14.1.4.tgz#2782b613f8b7a13da63caa7952c04e8b52df225f"
+  integrity sha512-4h23qUBqQNIvLsx2FfL6DcmxgZvhCbMqUN55UQIiBeHlCnyrcNu6Fo9c179aWsgh35nbD+mntt1AaEOplHTzeg==
+
 expo-clipboard@~7.1.5:
   version "7.1.5"
   resolved "https://registry.yarnpkg.com/expo-clipboard/-/expo-clipboard-7.1.5.tgz#6980f825d4d7f53aa557d3321dd975bf65541910"
@@ -3928,7 +3933,7 @@ expo-linking@~7.1.7:
     expo-constants "~17.1.7"
     invariant "^2.2.4"
 
-expo-localization@^16.1.6:
+expo-localization@~16.1.6:
   version "16.1.6"
   resolved "https://registry.yarnpkg.com/expo-localization/-/expo-localization-16.1.6.tgz#0ad7bd6bb61f14d9d786e63fd0f7d190d44695cc"
   integrity sha512-v4HwNzs8QvyKHwl40MvETNEKr77v1o9/eVC8WCBY++DIlBAvonHyJe2R9CfqpZbC4Tlpl7XV+07nLXc8O5PQsA==
