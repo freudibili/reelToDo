@@ -13,13 +13,13 @@ import {
   Linking,
   Pressable,
   Text,
+  ScrollView,
 } from "react-native";
 import * as Location from "expo-location";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { Region } from "react-native-maps";
 import { useAppSelector, useAppDispatch } from "@core/store/hook";
 import { activitiesSelectors } from "../store/activitiesSelectors";
-import ActivitiesMap from "../components/ActivityMap";
+import ActivitiesMap, { ActivitiesMapHandle } from "../components/ActivityMap";
 import NearbyActivitiesSheet from "../components/NearbyActivitiesSheet";
 import ActivityDetailsSheet from "../components/ActivityDetailsSheet";
 import {
@@ -33,18 +33,21 @@ import Screen from "@common/components/AppScreen";
 import AppBottomSheet from "@common/components/AppBottomSheet";
 
 const ActivitiesMapScreen = () => {
-  const insets = useSafeAreaInsets();
   const dispatch = useAppDispatch();
   const { confirm } = useConfirmDialog();
   const loading = useAppSelector(activitiesSelectors.loading);
   const initialized = useAppSelector(activitiesSelectors.initialized);
   const activities = useAppSelector(activitiesSelectors.items);
   const favoriteIds = useAppSelector(activitiesSelectors.favoriteIds);
+
   const [userRegion, setUserRegion] = useState<Region | null>(null);
   const [selected, setSelected] = useState<Activity | null>(null);
   const [mode, setMode] = useState<"list" | "details">("list");
   const [sheetIndex, setSheetIndex] = useState(-1);
+  const [category, setCategory] = useState<string | null>(null);
+
   const sheetRef = useRef(null);
+  const mapRef = useRef<ActivitiesMapHandle | null>(null);
 
   useEffect(() => {
     const requestLocation = async () => {
@@ -103,19 +106,19 @@ const ActivitiesMapScreen = () => {
     setSelected(null);
   }, []);
 
-  const handleSelectActivity = useCallback((activity: Activity) => {
+  // ⬇️ ici la modif : on snap à l'index 0 au lieu d'expand
+  const openDetails = useCallback((activity: Activity) => {
     setSelected(activity);
     setMode("details");
     setSheetIndex(0);
-
-    sheetRef.current?.expand?.();
+    sheetRef.current?.snapToIndex?.(0);
   }, []);
 
   const handleMapSelect = useCallback(
     (activity: Activity) => {
-      handleSelectActivity(activity);
+      openDetails(activity);
     },
-    [handleSelectActivity]
+    [openDetails]
   );
 
   const handleDelete = useCallback(
@@ -169,8 +172,30 @@ const ActivitiesMapScreen = () => {
   const handleShowNearby = () => {
     setMode("list");
     setSheetIndex(0);
-    sheetRef.current?.expand?.();
+    sheetRef.current?.snapToIndex?.(0);
   };
+
+  const handleSelectFromNearby = useCallback(
+    (activity: Activity) => {
+      if (activity.latitude != null && activity.longitude != null) {
+        mapRef.current?.focusActivity(activity);
+      }
+      openDetails(activity); // va ouvrir en 50%
+    },
+    [openDetails]
+  );
+
+  const handleCategoryChange = useCallback((next: string | null) => {
+    setCategory(next);
+  }, []);
+
+  const categories = useMemo(() => {
+    const set = new Set<string>();
+    activities.forEach((a) => {
+      if (a.category) set.add(a.category);
+    });
+    return Array.from(set);
+  }, [activities]);
 
   if (!initialized || loading || !initialRegion) {
     return (
@@ -182,42 +207,87 @@ const ActivitiesMapScreen = () => {
 
   return (
     <Screen noPadding>
-      <ActivitiesMap
-        activities={activities}
-        initialRegion={initialRegion}
-        onSelectActivity={handleMapSelect}
-      />
-      <Pressable
-        style={[styles.fab, { bottom: 16 + insets.bottom }]}
-        onPress={handleShowNearby}
-      >
-        <Text style={styles.fabText}>☰</Text>
-      </Pressable>
-      <AppBottomSheet
-        ref={sheetRef}
-        index={sheetIndex}
-        snapPoints={snapPoints}
-        onClose={handleCloseSheet}
-      >
-        {mode === "list" ? (
-          <NearbyActivitiesSheet
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.headerContent}
+          >
+            <Pressable
+              onPress={() => handleCategoryChange(null)}
+              style={[styles.chip, category === null && styles.chipActive]}
+            >
+              <Text
+                style={[
+                  styles.chipText,
+                  category === null && styles.chipTextActive,
+                ]}
+              >
+                All
+              </Text>
+            </Pressable>
+            {categories.map((cat) => (
+              <Pressable
+                key={cat}
+                onPress={() => handleCategoryChange(cat)}
+                style={[styles.chip, category === cat && styles.chipActive]}
+              >
+                <Text
+                  style={[
+                    styles.chipText,
+                    category === cat && styles.chipTextActive,
+                  ]}
+                >
+                  {cat}
+                </Text>
+              </Pressable>
+            ))}
+          </ScrollView>
+        </View>
+
+        <View style={styles.mapContainer}>
+          <ActivitiesMap
+            ref={mapRef}
             activities={activities}
-            userRegion={userRegion}
-            onSelectActivity={handleSelectActivity}
-            onClose={handleCloseSheet}
+            initialRegion={initialRegion}
+            onSelectActivity={handleMapSelect}
+            selectedCategory={category}
+            onCategoryChange={handleCategoryChange}
           />
-        ) : (
-          <ActivityDetailsSheet
-            activity={selected}
-            isFavorite={selected ? favoriteIds.includes(selected.id) : false}
-            onClose={handleCloseSheet}
-            onDelete={handleDelete}
-            onToggleFavorite={handleToggleFavorite}
-            onOpenMaps={handleOpenMaps}
-            onOpenSource={handleOpenSource}
-          />
-        )}
-      </AppBottomSheet>
+
+          <Pressable style={styles.fab} onPress={handleShowNearby}>
+            <Text style={styles.fabText}>☰</Text>
+          </Pressable>
+        </View>
+
+        <AppBottomSheet
+          ref={sheetRef}
+          index={sheetIndex}
+          snapPoints={snapPoints}
+          onClose={handleCloseSheet}
+        >
+          {mode === "list" ? (
+            <NearbyActivitiesSheet
+              activities={activities}
+              userRegion={userRegion}
+              category={category}
+              onSelectActivity={handleSelectFromNearby}
+              onClose={handleCloseSheet}
+            />
+          ) : (
+            <ActivityDetailsSheet
+              activity={selected}
+              isFavorite={selected ? favoriteIds.includes(selected.id) : false}
+              onClose={handleCloseSheet}
+              onDelete={handleDelete}
+              onToggleFavorite={handleToggleFavorite}
+              onOpenMaps={handleOpenMaps}
+              onOpenSource={handleOpenSource}
+            />
+          )}
+        </AppBottomSheet>
+      </View>
     </Screen>
   );
 };
@@ -233,6 +303,33 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  header: {
+    backgroundColor: "#fff",
+  },
+  headerContent: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    gap: 8,
+  },
+  chip: {
+    backgroundColor: "rgba(15,23,42,0.05)",
+    borderRadius: 999,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+  },
+  chipActive: {
+    backgroundColor: "#0f172a",
+  },
+  chipText: {
+    fontSize: 13,
+    color: "#0f172a",
+  },
+  chipTextActive: {
+    color: "#fff",
+  },
+  mapContainer: {
+    flex: 1,
+  },
   fab: {
     position: "absolute",
     right: 16,
@@ -243,12 +340,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     elevation: 4,
+    zIndex: 20,
+    bottom: 16,
   },
   fabText: {
     color: "#fff",
     fontSize: 20,
-  },
-  sheetContent: {
-    flex: 1,
   },
 });

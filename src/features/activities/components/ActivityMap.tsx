@@ -1,81 +1,86 @@
-import React, { useMemo, useState } from "react";
-import { View, StyleSheet, Platform } from "react-native";
-import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
-import type { Region } from "react-native-maps";
+import React, { forwardRef, useImperativeHandle, useRef, useMemo } from "react";
+import MapView, { Marker, Region } from "react-native-maps";
+import { StyleSheet } from "react-native";
 import type { Activity } from "../utils/types";
-import ActivitiesCategoryBar from "./ActivitiesCategoryBar";
 
 interface Props {
   activities: Activity[];
   initialRegion: Region;
   onSelectActivity: (activity: Activity) => void;
+  selectedCategory?: string | null;
+  onCategoryChange?: (category: string | null) => void;
 }
 
-const ActivitiesMap: React.FC<Props> = ({
-  activities,
-  initialRegion,
-  onSelectActivity,
-}) => {
-  const grouped = useMemo(() => {
-    const acc: Record<string, Activity[]> = {};
-    activities.forEach((a) => {
-      const key = a.category || "other";
-      if (!acc[key]) acc[key] = [];
-      acc[key] = acc[key].concat(a);
-    });
-    return acc;
-  }, [activities]);
+export interface ActivitiesMapHandle {
+  focusActivity: (activity: Activity) => void;
+}
 
-  const categories = useMemo(() => Object.keys(grouped), [grouped]);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+const ActivitiesMap = forwardRef<ActivitiesMapHandle, Props>(
+  (
+    {
+      activities,
+      initialRegion,
+      onSelectActivity,
+      selectedCategory,
+      onCategoryChange,
+    },
+    ref
+  ) => {
+    const mapRef = useRef<MapView | null>(null);
 
-  const visibleActivities = useMemo(() => {
-    if (!categories.length) return [];
-    const cat = selectedCategory ?? categories[0];
-    return (grouped[cat] || []).filter(
-      (a) => typeof a.latitude === "number" && typeof a.longitude === "number"
-    );
-  }, [grouped, selectedCategory, categories]);
+    useImperativeHandle(ref, () => ({
+      focusActivity: (activity: Activity) => {
+        if (
+          activity.latitude != null &&
+          activity.longitude != null &&
+          mapRef.current
+        ) {
+          const region: Region = {
+            latitude: activity.latitude,
+            longitude: activity.longitude,
+            latitudeDelta: 0.03,
+            longitudeDelta: 0.03,
+          };
+          mapRef.current.animateToRegion(region, 350);
+        }
+      },
+    }));
 
-  return (
-    <View style={styles.container}>
-      {categories.length > 0 ? (
-        <ActivitiesCategoryBar
-          categories={categories}
-          selected={selectedCategory ?? categories[0]}
-          onSelect={setSelectedCategory}
-        />
-      ) : null}
-      <MapView
-        style={styles.map}
-        provider={Platform.OS === "android" ? PROVIDER_GOOGLE : undefined}
-        initialRegion={initialRegion}
-        showsUserLocation
-        showsMyLocationButton
-      >
-        {visibleActivities.map((activity) => (
-          <Marker
-            key={activity.id}
-            coordinate={{
-              latitude: activity.latitude as number,
-              longitude: activity.longitude as number,
-            }}
-            title={activity.title}
-            description={activity.location_name ?? activity.category ?? ""}
-            onPress={() => onSelectActivity(activity)}
-          />
-        ))}
+    const visibleActivities = useMemo(() => {
+      if (!selectedCategory) return activities;
+      return activities.filter((a) => a.category === selectedCategory);
+    }, [activities, selectedCategory]);
+
+    return (
+      <MapView ref={mapRef} style={styles.map} initialRegion={initialRegion}>
+        {visibleActivities.map((activity) => {
+          if (
+            typeof activity.latitude !== "number" ||
+            typeof activity.longitude !== "number"
+          ) {
+            return null;
+          }
+          return (
+            <Marker
+              key={activity.id}
+              coordinate={{
+                latitude: activity.latitude,
+                longitude: activity.longitude,
+              }}
+              title={activity.title ?? "Activité"}
+              description={activity.location_name ?? activity.category ?? ""}
+              onPress={() => onSelectActivity(activity)}
+            />
+          );
+        })}
       </MapView>
-    </View>
-  );
-};
+    );
+  }
+);
 
 export default ActivitiesMap;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
   map: {
     flex: 1,
   },

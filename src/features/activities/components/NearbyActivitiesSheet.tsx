@@ -6,6 +6,7 @@ import type { Activity } from "../utils/types";
 interface Props {
   activities: Activity[];
   userRegion: Region | null;
+  category?: string | null;
   onSelectActivity: (activity: Activity) => void;
   onClose: () => void;
 }
@@ -34,11 +35,15 @@ const getDistanceKm = (
 const NearbyActivitiesSheet: React.FC<Props> = ({
   activities,
   userRegion,
+  category,
   onSelectActivity,
-  onClose,
 }) => {
   const sorted = useMemo(() => {
-    const withCoords = activities.filter(
+    const base = category
+      ? activities.filter((a) => a.category === category)
+      : activities;
+
+    const withCoords = base.filter(
       (a) => typeof a.latitude === "number" && typeof a.longitude === "number"
     );
 
@@ -67,7 +72,7 @@ const NearbyActivitiesSheet: React.FC<Props> = ({
         return a.distance - b.distance;
       })
       .slice(0, 20);
-  }, [activities, userRegion]);
+  }, [activities, userRegion, category]);
 
   return (
     <View>
@@ -111,7 +116,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginBottom: 8,
   },
-
   row: {
     flexDirection: "row",
     alignItems: "center",
