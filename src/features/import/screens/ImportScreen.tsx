@@ -20,6 +20,7 @@ import {
 } from "@features/import/store/importSelectors";
 import { analyzeSharedLink } from "@features/import/store/importSlice";
 import { useAppDispatch, useAppSelector } from "@core/store/hook";
+import Screen from "@common/components/ui/Screen";
 
 const ImportScreen = () => {
   const { shared } = useLocalSearchParams();
@@ -56,7 +57,7 @@ const ImportScreen = () => {
   }, [sharedData?.webUrl, user?.id, analyze]);
 
   return (
-    <View style={styles.container}>
+    <Screen>
       <Text style={styles.title}>Import activity</Text>
       <TextInput
         style={styles.input}
@@ -120,12 +121,11 @@ const ImportScreen = () => {
           </View>
         </ScrollView>
       )}
-    </View>
+    </Screen>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, marginTop: 40 },
   title: { fontSize: 22, fontWeight: "600", marginBottom: 12 },
   input: {
     borderWidth: 1,

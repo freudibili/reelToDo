@@ -27,6 +27,7 @@ import ActivityDetailsSheet from "../components/ActivityDetailsSheet";
 import type { Activity } from "../utils/types";
 import { useAppDispatch, useAppSelector } from "@core/store/hook";
 import { useConfirmDialog } from "@common/hooks/useConfirmDialog";
+import Screen from "@common/components/ui/Screen";
 
 const ActivitiesScreen = () => {
   const dispatch = useAppDispatch();
@@ -111,7 +112,7 @@ const ActivitiesScreen = () => {
   }, []);
 
   return (
-    <View style={styles.container}>
+    <Screen>
       <Text style={styles.header}>Activities</Text>
       {!initialized && loading ? (
         <ActivityIndicator style={{ marginTop: 20 }} />
@@ -147,12 +148,11 @@ const ActivitiesScreen = () => {
           </BottomSheetView>
         </BottomSheet>
       )}
-    </View>
+    </Screen>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingHorizontal: 16, paddingTop: 40 },
   header: { fontSize: 22, fontWeight: "600", marginBottom: 12 },
   sheetBg: {
     backgroundColor: "#fff",

@@ -30,6 +30,7 @@ import {
 } from "../store/activitiesSlice";
 import type { Activity } from "../utils/types";
 import { useConfirmDialog } from "@common/hooks/useConfirmDialog";
+import Screen from "@common/components/ui/Screen";
 
 const ActivitiesMapScreen = () => {
   const insets = useSafeAreaInsets();
@@ -176,7 +177,7 @@ const ActivitiesMapScreen = () => {
   }
 
   return (
-    <View style={styles.container}>
+    <Screen noPadding>
       <ActivitiesMap
         activities={activities}
         initialRegion={initialRegion}
@@ -219,7 +220,7 @@ const ActivitiesMapScreen = () => {
           )}
         </BottomSheetView>
       </BottomSheet>
-    </View>
+    </Screen>
   );
 };
 
