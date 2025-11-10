@@ -7,6 +7,7 @@ interface Props {
   activities: Activity[];
   userRegion: Region | null;
   onSelectActivity: (activity: Activity) => void;
+  onClose: () => void;
 }
 
 const toRad = (value: number) => (value * Math.PI) / 180;
@@ -34,6 +35,7 @@ const NearbyActivitiesSheet: React.FC<Props> = ({
   activities,
   userRegion,
   onSelectActivity,
+  onClose,
 }) => {
   const sorted = useMemo(() => {
     const withCoords = activities.filter(
@@ -68,7 +70,7 @@ const NearbyActivitiesSheet: React.FC<Props> = ({
   }, [activities, userRegion]);
 
   return (
-    <View style={styles.container}>
+    <View>
       <Text style={styles.title}>À proximité</Text>
       <FlatList
         data={sorted}
@@ -96,7 +98,6 @@ const NearbyActivitiesSheet: React.FC<Props> = ({
           </Pressable>
         )}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
-        contentContainerStyle={styles.listContent}
       />
     </View>
   );
@@ -105,19 +106,12 @@ const NearbyActivitiesSheet: React.FC<Props> = ({
 export default NearbyActivitiesSheet;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingHorizontal: 14,
-    paddingTop: 6,
-  },
   title: {
     fontSize: 16,
     fontWeight: "600",
     marginBottom: 8,
   },
-  listContent: {
-    paddingBottom: 24,
-  },
+
   row: {
     flexDirection: "row",
     alignItems: "center",

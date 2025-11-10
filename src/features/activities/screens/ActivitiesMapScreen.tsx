@@ -17,7 +17,6 @@ import {
 import * as Location from "expo-location";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { Region } from "react-native-maps";
-import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { useAppSelector, useAppDispatch } from "@core/store/hook";
 import { activitiesSelectors } from "../store/activitiesSelectors";
 import ActivitiesMap from "../components/ActivityMap";
@@ -30,7 +29,8 @@ import {
 } from "../store/activitiesSlice";
 import type { Activity } from "../utils/types";
 import { useConfirmDialog } from "@common/hooks/useConfirmDialog";
-import Screen from "@common/components/ui/Screen";
+import Screen from "@common/components/AppScreen";
+import AppBottomSheet from "@common/components/AppBottomSheet";
 
 const ActivitiesMapScreen = () => {
   const insets = useSafeAreaInsets();
@@ -44,7 +44,7 @@ const ActivitiesMapScreen = () => {
   const [selected, setSelected] = useState<Activity | null>(null);
   const [mode, setMode] = useState<"list" | "details">("list");
   const [sheetIndex, setSheetIndex] = useState(-1);
-  const sheetRef = useRef<BottomSheet>(null);
+  const sheetRef = useRef(null);
 
   useEffect(() => {
     const requestLocation = async () => {
@@ -96,10 +96,19 @@ const ActivitiesMapScreen = () => {
     return ["50%"];
   }, [mode]);
 
+  const handleCloseSheet = useCallback(() => {
+    sheetRef.current?.close?.();
+    setSheetIndex(-1);
+    setMode("list");
+    setSelected(null);
+  }, []);
+
   const handleSelectActivity = useCallback((activity: Activity) => {
     setSelected(activity);
     setMode("details");
     setSheetIndex(0);
+
+    sheetRef.current?.expand?.();
   }, []);
 
   const handleMapSelect = useCallback(
@@ -109,12 +118,6 @@ const ActivitiesMapScreen = () => {
     [handleSelectActivity]
   );
 
-  const handleBackToList = useCallback(() => {
-    setMode("list");
-    setSelected(null);
-    setSheetIndex(-1);
-  }, []);
-
   const handleDelete = useCallback(
     (activity: Activity) => {
       confirm(
@@ -122,12 +125,12 @@ const ActivitiesMapScreen = () => {
         "Cette action est définitive.",
         () => {
           dispatch(deleteActivity(activity.id));
-          handleBackToList();
+          handleCloseSheet();
         },
         { cancelText: "Annuler", confirmText: "Supprimer" }
       );
     },
-    [confirm, dispatch, handleBackToList]
+    [confirm, dispatch, handleCloseSheet]
   );
 
   const handleToggleFavorite = useCallback(
@@ -166,6 +169,7 @@ const ActivitiesMapScreen = () => {
   const handleShowNearby = () => {
     setMode("list");
     setSheetIndex(0);
+    sheetRef.current?.expand?.();
   };
 
   if (!initialized || loading || !initialRegion) {
@@ -189,37 +193,31 @@ const ActivitiesMapScreen = () => {
       >
         <Text style={styles.fabText}>☰</Text>
       </Pressable>
-      <BottomSheet
+      <AppBottomSheet
         ref={sheetRef}
         index={sheetIndex}
         snapPoints={snapPoints}
-        enablePanDownToClose
-        onClose={
-          mode === "details" ? handleBackToList : () => setSheetIndex(-1)
-        }
+        onClose={handleCloseSheet}
       >
-        <BottomSheetView
-          style={[styles.sheetContent, { paddingBottom: insets.bottom || 12 }]}
-        >
-          {mode === "list" ? (
-            <NearbyActivitiesSheet
-              activities={activities}
-              userRegion={userRegion}
-              onSelectActivity={handleSelectActivity}
-            />
-          ) : (
-            <ActivityDetailsSheet
-              activity={selected}
-              isFavorite={selected ? favoriteIds.includes(selected.id) : false}
-              onClose={handleBackToList}
-              onDelete={handleDelete}
-              onToggleFavorite={handleToggleFavorite}
-              onOpenMaps={handleOpenMaps}
-              onOpenSource={handleOpenSource}
-            />
-          )}
-        </BottomSheetView>
-      </BottomSheet>
+        {mode === "list" ? (
+          <NearbyActivitiesSheet
+            activities={activities}
+            userRegion={userRegion}
+            onSelectActivity={handleSelectActivity}
+            onClose={handleCloseSheet}
+          />
+        ) : (
+          <ActivityDetailsSheet
+            activity={selected}
+            isFavorite={selected ? favoriteIds.includes(selected.id) : false}
+            onClose={handleCloseSheet}
+            onDelete={handleDelete}
+            onToggleFavorite={handleToggleFavorite}
+            onOpenMaps={handleOpenMaps}
+            onOpenSource={handleOpenSource}
+          />
+        )}
+      </AppBottomSheet>
     </Screen>
   );
 };

@@ -5,7 +5,7 @@ import {
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 
-interface ScreenProps {
+interface AppScreenProps {
   children: React.ReactNode;
   style?: ViewStyle;
   noPadding?: boolean;
@@ -13,7 +13,7 @@ interface ScreenProps {
   withBottomInset?: boolean;
 }
 
-const Screen: React.FC<ScreenProps> = ({
+const AppScreen: React.FC<AppScreenProps> = ({
   children,
   style,
   noPadding = false,
@@ -47,4 +47,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Screen;
+export default AppScreen;

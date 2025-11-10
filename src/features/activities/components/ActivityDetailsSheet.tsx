@@ -6,7 +6,6 @@ import {
   ImageBackground,
   ScrollView,
   Pressable,
-  Platform,
 } from "react-native";
 import type { Activity } from "../utils/types";
 
@@ -40,54 +39,38 @@ const ActivityDetailsSheet: React.FC<Props> = ({
 
   return (
     <ScrollView contentContainerStyle={styles.scrollContent}>
+      <View style={styles.headerBlock}>
+        <Text style={styles.title}>{activity.title ?? "Activité"}</Text>
+        <Text style={styles.meta}>
+          {activity.category ?? "—"} · {metaLocation}
+        </Text>
+      </View>
       {activity.image_url ? (
         <ImageBackground
           source={{ uri: activity.image_url }}
           style={styles.headerImage}
         >
           <View style={styles.imageOverlay} />
-          <View style={styles.imageTopActions}>
-            <Pressable
-              style={styles.circleBtn}
-              onPress={() => onToggleFavorite(activity)}
-            >
-              <Text style={styles.circleBtnText}>
-                {isFavorite ? "♥" : "♡"}
-              </Text>
-            </Pressable>
-            <Pressable style={styles.circleBtn} onPress={onClose}>
-              <Text style={styles.circleBtnText}>×</Text>
-            </Pressable>
-          </View>
+          <Pressable
+            style={styles.circleBtn}
+            onPress={() => onToggleFavorite(activity)}
+          >
+            <Text style={styles.circleBtnText}>{isFavorite ? "♥" : "♡"}</Text>
+          </Pressable>
         </ImageBackground>
       ) : (
         <View style={styles.headerPlaceholder}>
           <Text style={styles.headerPlaceholderText}>
             {activity.title?.slice(0, 1).toUpperCase() ?? "A"}
           </Text>
-          <View style={styles.imageTopActions}>
-            <Pressable
-              style={styles.circleBtn}
-              onPress={() => onToggleFavorite(activity)}
-            >
-              <Text style={styles.circleBtnText}>
-                {isFavorite ? "♥" : "♡"}
-              </Text>
-            </Pressable>
-            <Pressable style={styles.circleBtn} onPress={onClose}>
-              <Text style={styles.circleBtnText}>×</Text>
-            </Pressable>
-          </View>
+          <Pressable
+            style={styles.circleBtn}
+            onPress={() => onToggleFavorite(activity)}
+          >
+            <Text style={styles.circleBtnText}>{isFavorite ? "♥" : "♡"}</Text>
+          </Pressable>
         </View>
       )}
-
-      <Text style={styles.title}>{activity.title ?? "Activité"}</Text>
-      <Text style={styles.meta}>
-        {activity.category ?? "—"} · {metaLocation}
-      </Text>
-      {activity.creator ? (
-        <Text style={styles.creator}>par {activity.creator}</Text>
-      ) : null}
 
       <View style={styles.block}>
         <Text style={styles.label}>Lieu</Text>
@@ -147,27 +130,25 @@ export default ActivityDetailsSheet;
 
 const styles = StyleSheet.create({
   scrollContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 24,
+    paddingBottom: 12,
+  },
+  headerBlock: {
+    width: "60%",
   },
   headerImage: {
     height: 160,
     borderRadius: 18,
     overflow: "hidden",
-    marginBottom: 16,
+    marginTop: 16,
   },
   imageOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "rgba(0,0,0,0.2)",
   },
-  imageTopActions: {
-    position: "absolute",
-    top: Platform.OS === "ios" ? 40 : 18,
-    right: 14,
-    flexDirection: "row",
-    gap: 8,
-  },
   circleBtn: {
+    position: "absolute",
+    top: 14,
+    right: 14,
     backgroundColor: "rgba(0,0,0,0.4)",
     height: 32,
     width: 32,

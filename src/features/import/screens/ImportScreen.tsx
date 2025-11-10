@@ -20,7 +20,7 @@ import {
 } from "@features/import/store/importSelectors";
 import { analyzeSharedLink } from "@features/import/store/importSlice";
 import { useAppDispatch, useAppSelector } from "@core/store/hook";
-import Screen from "@common/components/ui/Screen";
+import Screen from "@common/components/AppScreen";
 
 const ImportScreen = () => {
   const { shared } = useLocalSearchParams();

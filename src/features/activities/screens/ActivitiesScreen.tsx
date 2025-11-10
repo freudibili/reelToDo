@@ -12,7 +12,6 @@ import {
   ActivityIndicator,
   Linking,
 } from "react-native";
-import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import {
   fetchActivities,
   startActivitiesListener,
@@ -27,7 +26,8 @@ import ActivityDetailsSheet from "../components/ActivityDetailsSheet";
 import type { Activity } from "../utils/types";
 import { useAppDispatch, useAppSelector } from "@core/store/hook";
 import { useConfirmDialog } from "@common/hooks/useConfirmDialog";
-import Screen from "@common/components/ui/Screen";
+import Screen from "@common/components/AppScreen";
+import AppBottomSheet from "@common/components/AppBottomSheet";
 
 const ActivitiesScreen = () => {
   const dispatch = useAppDispatch();
@@ -38,7 +38,7 @@ const ActivitiesScreen = () => {
   const favoriteIds = useAppSelector(activitiesSelectors.favoriteIds);
   const [selected, setSelected] = useState<Activity | null>(null);
   const [sheetVisible, setSheetVisible] = useState(false);
-  const sheetRef = useRef<BottomSheet>(null);
+  const sheetRef = useRef(null);
   const snapPoints = useMemo(() => ["25%", "50%"], []);
 
   useEffect(() => {
@@ -52,7 +52,6 @@ const ActivitiesScreen = () => {
   const handleSelect = (activity: Activity) => {
     setSelected(activity);
     setSheetVisible(true);
-    sheetRef.current?.snapToIndex(1);
   };
 
   const handleClose = () => {
@@ -126,27 +125,22 @@ const ActivitiesScreen = () => {
       )}
 
       {sheetVisible && (
-        <BottomSheet
+        <AppBottomSheet
           ref={sheetRef}
           index={1}
           snapPoints={snapPoints}
-          enablePanDownToClose
           onClose={handleClose}
-          backgroundStyle={styles.sheetBg}
-          handleIndicatorStyle={styles.handle}
         >
-          <BottomSheetView>
-            <ActivityDetailsSheet
-              activity={selected}
-              isFavorite={selected ? favoriteIds.includes(selected.id) : false}
-              onClose={handleClose}
-              onDelete={handleDelete}
-              onToggleFavorite={(activity) => handleToggleFavorite(activity.id)}
-              onOpenMaps={handleOpenMaps}
-              onOpenSource={handleOpenSource}
-            />
-          </BottomSheetView>
-        </BottomSheet>
+          <ActivityDetailsSheet
+            activity={selected}
+            isFavorite={selected ? favoriteIds.includes(selected.id) : false}
+            onClose={handleClose}
+            onDelete={handleDelete}
+            onToggleFavorite={(activity) => handleToggleFavorite(activity.id)}
+            onOpenMaps={handleOpenMaps}
+            onOpenSource={handleOpenSource}
+          />
+        </AppBottomSheet>
       )}
     </Screen>
   );
@@ -154,14 +148,6 @@ const ActivitiesScreen = () => {
 
 const styles = StyleSheet.create({
   header: { fontSize: 22, fontWeight: "600", marginBottom: 12 },
-  sheetBg: {
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 0,
-    borderTopRightRadius: 0,
-  },
-  handle: {
-    backgroundColor: "#d1d5db",
-  },
 });
 
 export default ActivitiesScreen;
