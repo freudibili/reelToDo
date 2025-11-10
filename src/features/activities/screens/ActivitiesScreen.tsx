@@ -111,18 +111,15 @@ const ActivitiesScreen = () => {
   }, []);
 
   return (
-    <Screen>
+    <Screen loading={loading && !initialized}>
       <Text style={styles.header}>Activities</Text>
-      {!initialized && loading ? (
-        <ActivityIndicator style={{ marginTop: 20 }} />
-      ) : (
-        <ActivityList
-          data={grouped}
-          onSelect={handleSelect}
-          favoriteIds={favoriteIds}
-          onToggleFavorite={handleToggleFavorite}
-        />
-      )}
+
+      <ActivityList
+        data={grouped}
+        onSelect={handleSelect}
+        favoriteIds={favoriteIds}
+        onToggleFavorite={handleToggleFavorite}
+      />
 
       {sheetVisible && (
         <AppBottomSheet

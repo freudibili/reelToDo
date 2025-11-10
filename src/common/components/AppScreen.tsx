@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, ViewStyle } from "react-native";
+import { StyleSheet, View, ActivityIndicator, ViewStyle } from "react-native";
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -11,6 +11,7 @@ interface AppScreenProps {
   noPadding?: boolean;
   backgroundColor?: string;
   withBottomInset?: boolean;
+  loading?: boolean;
 }
 
 const AppScreen: React.FC<AppScreenProps> = ({
@@ -19,6 +20,7 @@ const AppScreen: React.FC<AppScreenProps> = ({
   noPadding = false,
   backgroundColor = "#fff",
   withBottomInset = false,
+  loading = false,
 }) => {
   const insets = useSafeAreaInsets();
 
@@ -36,6 +38,11 @@ const AppScreen: React.FC<AppScreenProps> = ({
       ]}
     >
       {children}
+      {loading && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color="#000" />
+        </View>
+      )}
     </SafeAreaView>
   );
 };
@@ -44,6 +51,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 16,
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.7)",
   },
 });
 

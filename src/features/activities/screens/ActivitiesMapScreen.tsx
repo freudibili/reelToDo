@@ -197,97 +197,89 @@ const ActivitiesMapScreen = () => {
     return Array.from(set);
   }, [activities]);
 
-  if (!initialized || loading || !initialRegion) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator />
-      </View>
-    );
-  }
+  const isLoading = !initialized || loading || !initialRegion;
 
   return (
-    <Screen noPadding>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.headerContent}
+    <Screen noPadding loading={isLoading}>
+      <View style={styles.header}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.headerContent}
+        >
+          <Pressable
+            onPress={() => handleCategoryChange(null)}
+            style={[styles.chip, category === null && styles.chipActive]}
           >
+            <Text
+              style={[
+                styles.chipText,
+                category === null && styles.chipTextActive,
+              ]}
+            >
+              All
+            </Text>
+          </Pressable>
+          {categories.map((cat) => (
             <Pressable
-              onPress={() => handleCategoryChange(null)}
-              style={[styles.chip, category === null && styles.chipActive]}
+              key={cat}
+              onPress={() => handleCategoryChange(cat)}
+              style={[styles.chip, category === cat && styles.chipActive]}
             >
               <Text
                 style={[
                   styles.chipText,
-                  category === null && styles.chipTextActive,
+                  category === cat && styles.chipTextActive,
                 ]}
               >
-                All
+                {cat}
               </Text>
             </Pressable>
-            {categories.map((cat) => (
-              <Pressable
-                key={cat}
-                onPress={() => handleCategoryChange(cat)}
-                style={[styles.chip, category === cat && styles.chipActive]}
-              >
-                <Text
-                  style={[
-                    styles.chipText,
-                    category === cat && styles.chipTextActive,
-                  ]}
-                >
-                  {cat}
-                </Text>
-              </Pressable>
-            ))}
-          </ScrollView>
-        </View>
-
-        <View style={styles.mapContainer}>
-          <ActivitiesMap
-            ref={mapRef}
-            activities={activities}
-            initialRegion={initialRegion}
-            onSelectActivity={handleMapSelect}
-            selectedCategory={category}
-            onCategoryChange={handleCategoryChange}
-          />
-
-          <Pressable style={styles.fab} onPress={handleShowNearby}>
-            <Text style={styles.fabText}>☰</Text>
-          </Pressable>
-        </View>
-
-        <AppBottomSheet
-          ref={sheetRef}
-          index={sheetIndex}
-          snapPoints={snapPoints}
-          onClose={handleCloseSheet}
-        >
-          {mode === "list" ? (
-            <NearbyActivitiesSheet
-              activities={activities}
-              userRegion={userRegion}
-              category={category}
-              onSelectActivity={handleSelectFromNearby}
-              onClose={handleCloseSheet}
-            />
-          ) : (
-            <ActivityDetailsSheet
-              activity={selected}
-              isFavorite={selected ? favoriteIds.includes(selected.id) : false}
-              onClose={handleCloseSheet}
-              onDelete={handleDelete}
-              onToggleFavorite={handleToggleFavorite}
-              onOpenMaps={handleOpenMaps}
-              onOpenSource={handleOpenSource}
-            />
-          )}
-        </AppBottomSheet>
+          ))}
+        </ScrollView>
       </View>
+
+      <View style={styles.mapContainer}>
+        <ActivitiesMap
+          ref={mapRef}
+          activities={activities}
+          initialRegion={initialRegion}
+          onSelectActivity={handleMapSelect}
+          selectedCategory={category}
+          onCategoryChange={handleCategoryChange}
+        />
+
+        <Pressable style={styles.fab} onPress={handleShowNearby}>
+          <Text style={styles.fabText}>☰</Text>
+        </Pressable>
+      </View>
+
+      <AppBottomSheet
+        ref={sheetRef}
+        index={sheetIndex}
+        snapPoints={snapPoints}
+        onClose={handleCloseSheet}
+      >
+        {mode === "list" ? (
+          <NearbyActivitiesSheet
+            activities={activities}
+            userRegion={userRegion}
+            category={category}
+            onSelectActivity={handleSelectFromNearby}
+            onClose={handleCloseSheet}
+          />
+        ) : (
+          <ActivityDetailsSheet
+            activity={selected}
+            isFavorite={selected ? favoriteIds.includes(selected.id) : false}
+            onClose={handleCloseSheet}
+            onDelete={handleDelete}
+            onToggleFavorite={handleToggleFavorite}
+            onOpenMaps={handleOpenMaps}
+            onOpenSource={handleOpenSource}
+          />
+        )}
+      </AppBottomSheet>
     </Screen>
   );
 };
@@ -295,14 +287,6 @@ const ActivitiesMapScreen = () => {
 export default ActivitiesMapScreen;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  loadingContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
   header: {
     backgroundColor: "#fff",
   },
