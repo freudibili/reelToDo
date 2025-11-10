@@ -1,8 +1,8 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
-import { supabase } from "@config/supabase";
 import type { RealtimeChannel } from "@supabase/supabase-js";
+import { supabase } from "@config/supabase";
 import { ActivitiesService } from "../services/activitiesService";
-import { createEventFromActivity } from "../services/calendarService";
+import { createCalendarEventForActivity } from "../services/calendarService";
 import { Linking } from "react-native";
 import type { Activity } from "../utils/types";
 import type { AppDispatch, RootState } from "@core/store";
@@ -55,9 +55,7 @@ export const addFavorite = createAsyncThunk<
 >("activities/addFavorite", async (activityId, { getState }) => {
   const userId = getState().auth.user?.id;
   if (!userId) return activityId;
-
   await ActivitiesService.addFavorite(userId, activityId);
-
   return activityId;
 });
 
@@ -68,9 +66,7 @@ export const removeFavorite = createAsyncThunk<
 >("activities/removeFavorite", async (activityId, { getState }) => {
   const userId = getState().auth.user?.id;
   if (!userId) return activityId;
-
   await ActivitiesService.removeFavorite(userId, activityId);
-
   return activityId;
 });
 
@@ -83,38 +79,44 @@ export const deleteActivity = createAsyncThunk<
   if (!userId) {
     return rejectWithValue("No user authenticated");
   }
-
   try {
     await ActivitiesService.deleteActivity(userId, id);
   } catch (e: any) {
     return rejectWithValue(e.message ?? "Failed to delete");
   }
-
   return id;
 });
 
 export const createActivityCalendarEvent = createAsyncThunk<
   { activityId: string; calendarEventId: string },
-  string,
+  {
+    activityId: string;
+    activityDate?: { id?: string; start: string | Date; end?: string | Date };
+  },
   { state: RootState; rejectValue: string }
 >(
   "activities/createActivityCalendarEvent",
-  async (activityId, { getState, rejectWithValue }) => {
-    const { activities } = getState();
-    const activity = activities.items.find((a) => a.id === activityId);
+  async ({ activityId, activityDate }, { getState, rejectWithValue }) => {
+    const userId = getState().auth.user?.id;
+    if (!userId) {
+      return rejectWithValue("No user authenticated");
+    }
+
+    const activity = getState().activities.items.find(
+      (a) => a.id === activityId
+    );
     if (!activity) {
       return rejectWithValue("Activity not found");
     }
 
-    const eventId = await createEventFromActivity(activity);
+    const eventId = await createCalendarEventForActivity(
+      userId,
+      activity,
+      activityDate
+    );
     if (!eventId) {
       return rejectWithValue("Calendar event not created");
     }
-
-    await supabase
-      .from("activities")
-      .update({ calendar_event_id: eventId })
-      .eq("id", activityId);
 
     return { activityId, calendarEventId: eventId };
   }

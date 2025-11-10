@@ -113,7 +113,11 @@ const ActivitiesScreen = () => {
               dispatch(openActivitySource(activity.id));
             }}
             onAddToCalendar={(activity) => {
-              dispatch(createActivityCalendarEvent(activity.id));
+              dispatch(
+                createActivityCalendarEvent({
+                  activityId: activity.id,
+                })
+              );
             }}
           />
         </AppBottomSheet>
