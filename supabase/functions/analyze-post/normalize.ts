@@ -234,3 +234,13 @@ export const generateTitle = (
       return `${cleanBase}${suffix}`;
   }
 };
+
+export const categoriesRequiringDate = new Set([
+  "event-market",
+  "event-festival",
+  "event-concert",
+  "event-exhibition",
+  "workshop-cooking",
+  "workshop-art",
+  "workshop-wellness",
+] as const);

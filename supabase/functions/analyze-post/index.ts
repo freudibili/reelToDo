@@ -9,6 +9,7 @@ import {
   inferCategoryFromContent,
   generateTitle,
 } from "./normalize.ts";
+import { resolveDatesFromText, categoryNeedsDate } from "./datesResolver.ts";
 
 serve(async (req) => {
   console.log("[fn] --- analyze-post invoked ---");
@@ -41,6 +42,23 @@ serve(async (req) => {
     });
   }
 
+  try {
+    new URL(url);
+  } catch {
+    console.log("[fn] invalid URL format", url);
+    return new Response(
+      JSON.stringify({
+        error: "INVALID_URL",
+        reason: "The provided url is not a valid URL",
+        url,
+      }),
+      {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  }
+
   console.log("[fn] checking if activity already exists for", url);
   const { data: existing } = await supabase
     .from("activities")
@@ -48,7 +66,6 @@ serve(async (req) => {
     .eq("source_url", url)
     .maybeSingle();
 
-  // ⚠️ si l'activité existe déjà, on crée quand même le lien user_activities
   if (existing) {
     console.log("[fn] already exists, returning existing id", existing.id);
 
@@ -102,7 +119,7 @@ serve(async (req) => {
   const normalized = normalizeActivity(merged);
   console.log("[fn] merged/normalized", normalized);
 
-  const {
+  let {
     title,
     category,
     location_name,
@@ -118,6 +135,33 @@ serve(async (req) => {
     confidence,
     source_url,
   } = normalized;
+
+  // Fallback date resolution: text parsing + OpenAI web search
+  if (!Array.isArray(dates) || dates.length === 0) {
+    const textForDates = [
+      title ?? sourceMeta.title ?? "",
+      sourceMeta.description ?? "",
+      Array.isArray(tags) ? tags.join(" ") : "",
+    ]
+      .filter(Boolean)
+      .join(" ");
+
+    const r = await resolveDatesFromText({
+      text: textForDates,
+      localeHint: "de",
+      venue: location_name ?? null,
+      city: city ?? null,
+      artists: [creator].filter((x): x is string => Boolean(x)),
+    });
+
+    if (r && Array.isArray(r.dates) && r.dates.length > 0) {
+      dates = r.dates.map((d: string) => ({
+        start: d,
+        end: null,
+        recurrence_rule: null,
+      }));
+    }
+  }
 
   const mainDate =
     Array.isArray(dates) && dates.length > 0 ? (dates[0].start ?? null) : null;
@@ -157,6 +201,11 @@ serve(async (req) => {
   );
   console.log("[fn] finalTitle", finalTitle);
 
+  const needsLocationConfirmation =
+    !location_name && !city && !latitude && !longitude;
+
+  const needsDateConfirmation = categoryNeedsDate(finalCategory) && !mainDate;
+
   const insertPayload = {
     title: finalTitle,
     category: finalCategory,
@@ -172,6 +221,8 @@ serve(async (req) => {
     source_url: source_url ?? url,
     image_url: image_url ?? sourceMeta.image ?? null,
     confidence: typeof confidence === "number" ? confidence : 0.9,
+    needs_location_confirmation: needsLocationConfirmation,
+    needs_date_confirmation: needsDateConfirmation,
   };
 
   console.log("[fn] insertPayload", insertPayload);
@@ -195,7 +246,7 @@ serve(async (req) => {
     );
   }
 
-  if (Array.isArray(dates) && dates.length > 0 && activity?.id) {
+  if (activity && Array.isArray(dates) && dates.length > 0) {
     const rows = dates
       .filter((d: any) => d && d.start)
       .map((d: any) => ({

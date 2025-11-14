@@ -1,4 +1,3 @@
-// supabase/functions/analyze-post/source.ts
 import { youtubeApiKey } from "./deps.ts";
 
 export type SourceType =

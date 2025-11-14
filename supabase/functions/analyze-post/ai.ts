@@ -62,6 +62,14 @@ const guessCountryFromText = (text: string | null): string | null => {
     return "Switzerland";
   }
   if (
+    hay.includes("france") ||
+    hay.includes("français") ||
+    hay.includes("francaise") ||
+    hay.includes("française")
+  ) {
+    return "France";
+  }
+  if (
     hay.includes("italy") ||
     hay.includes("italie") ||
     hay.includes("italien")
@@ -78,9 +86,16 @@ const guessCountryFromText = (text: string | null): string | null => {
   if (
     hay.includes("norway") ||
     hay.includes("norvège") ||
-    hay.includes("norwegen")
+    hay.includes("norge")
   ) {
     return "Norway";
+  }
+  if (
+    hay.includes("austria") ||
+    hay.includes("autriche") ||
+    hay.includes("österreich")
+  ) {
+    return "Austria";
   }
   return null;
 };
@@ -89,24 +104,106 @@ export const analyzeActivity = async (
   meta: AnalyzeInput
 ): Promise<AnalyzeOutput> => {
   const allowed = ALLOWED_CATEGORIES.join(", ");
+
   const completion = await openai.chat.completions.create({
     model: "gpt-4o-mini",
     response_format: { type: "json_object" },
     messages: [
       {
         role: "system",
-        content:
-          "You extract structured activity data from social media posts. Choose the best category from the provided list.",
+        content: `
+You are an extraction engine specialized in identifying real-world activities from social media posts.
+
+Extract the following fields and return ONLY a valid JSON object:
+- title
+- category
+- location_name
+- address
+- city
+- country
+- latitude
+- longitude
+- date
+- tags
+- creator
+- source_url
+- confidence
+- image_url
+
+### CATEGORY RULES
+The "category" MUST be exactly one of:
+${allowed}
+
+Choose the **single best** category. Never invent new ones.
+
+### TITLE FORMAT
+Title must be:
+"<Category label>: <Name> (<City>)"
+If city is unknown, omit "(<City>)".
+Never include emojis or hashtags.
+
+### MAIN ACTIVITY SELECTION
+If the post mentions multiple places or events:
+- Select **only the main one** (the primary topic of the post).
+- Prefer the one with the strongest emphasis, call to action, details, or the first highlighted element.
+
+### LOCATION VALIDATION
+Determine whether the place/event/restaurant/hike appears to be real:
+- Use name, city hints, hashtags, metadata, known places.
+- If confident, return detailed address + coordinates.
+- If unsure, return null for unclear fields and lower the confidence.
+- Never invent precise addresses or GPS coordinates.
+
+### DATE VALIDATION (CRITICAL)
+If the category is an event or workshop:
+- Extract a real calendar date if the post mentions one.
+- Use explicit dates OR relative dates ("this Saturday") based on post publication date.
+- Output format: "YYYY-MM-DD"
+- If the date is unclear or missing, set date = null and lower confidence.
+
+For non-event categories (restaurants, hikes, views, museums, landmarks), date = null.
+
+### TAGS
+Return a short array of relevant keywords ("concert","music","zurich","nature","hike",...).
+
+### CONFIDENCE
+Return a number between 0 and 1.
+Lower confidence when:
+- location uncertain
+- date uncertain
+- ambiguous post
+
+### STRICTNESS
+- Never hallucinate places or dates.
+- Use null for unknown or uncertain fields.
+- Return ONLY the JSON object.
+        `,
       },
+
       {
         role: "user",
-        content:
-          `Return JSON with keys: title, category, location_name, address, city, latitude, longitude, date, tags, creator, source_url, confidence, image_url.` +
-          ` The category MUST be one of: ${allowed}. Title must be human friendly (no emojis, no hashtags).`,
+        content: `
+Return a JSON object with the keys:
+title, category, location_name, address, city, country,
+latitude, longitude, date, tags, creator, source_url, confidence, image_url.
+
+The category MUST be one of: ${allowed}.
+        `,
       },
+
       {
         role: "user",
-        content: `Post metadata:\nTitle: ${meta.title}\nDescription: ${meta.description}\nAuthor: ${meta.author}\nImage: ${meta.image}\nURL: ${meta.source_url}`,
+        content: `
+Post metadata:
+Title: ${meta.title}
+Description: ${meta.description}
+Author: ${meta.author}
+Image: ${meta.image}
+URL: ${meta.source_url}
+
+
+Respond strictly in JSON format only.
+        `,
       },
     ],
   });
@@ -125,7 +222,33 @@ export const analyzeActivity = async (
     }) ??
     "other";
 
-  // try to geocode if AI gave a place name or address
+  // minimal: compute a fallback date from plain text if model didn't give one
+
+  let resolvedDateFromText: string | null = null;
+  try {
+    const textForDates = [
+      meta.title ?? "",
+      meta.description ?? "",
+      Array.isArray(parsed.tags) ? parsed.tags.join(" ") : "",
+    ]
+      .filter(Boolean)
+      .join(" ");
+
+    const dateInfo = await resolveDatesFromText({
+      text: textForDates,
+      localeHint: "en",
+      venue: parsed.location_name ?? null,
+      city: parsed.city ?? null,
+      artists: [parsed.creator, meta.author].filter((x): x is string =>
+        Boolean(x)
+      ),
+    });
+
+    if (dateInfo?.main_date) {
+      resolvedDateFromText = dateInfo.main_date;
+    }
+  } catch {}
+
   const resolvedLocation = (await geocodePlace(
     parsed.location_name ?? parsed.address ?? meta.title ?? ""
   )) ?? {
@@ -141,8 +264,8 @@ export const analyzeActivity = async (
     title: cleanTitle(parsed.title ?? meta.title ?? null),
     category: fallbackCategory,
     location_name: resolvedLocation.location_name,
-    address: resolvedLocation.address,
-    city: resolvedLocation.city,
+    address: parsed.address ?? resolvedLocation.address ?? null,
+    city: parsed.city ?? resolvedLocation.city ?? null,
     country:
       parsed.country ??
       resolvedLocation.country ??
@@ -151,7 +274,7 @@ export const analyzeActivity = async (
       null,
     latitude: resolvedLocation.latitude,
     longitude: resolvedLocation.longitude,
-    date: parsed.date ?? null,
+    date: parsed.date ?? resolvedDateFromText ?? null,
     tags: Array.isArray(parsed.tags) ? parsed.tags : [],
     creator: parsed.creator ?? meta.author ?? null,
     source_url: parsed.source_url ?? meta.source_url,
