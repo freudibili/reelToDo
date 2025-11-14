@@ -16,4 +16,6 @@ export interface Activity {
   image_url: string | null;
   confidence: number | null;
   created_at: string;
+  needs_location_confirmation: boolean;
+  needs_date_confirmation: boolean;
 }

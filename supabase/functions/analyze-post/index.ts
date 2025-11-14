@@ -8,6 +8,7 @@ import {
   normalizeCategory,
   inferCategoryFromContent,
   generateTitle,
+  normalizeActivityUrl,
 } from "./normalize.ts";
 import { resolveDatesFromText, categoryNeedsDate } from "./datesResolver.ts";
 
@@ -59,11 +60,12 @@ serve(async (req) => {
     );
   }
 
-  console.log("[fn] checking if activity already exists for", url);
+  const normalizedUrl = normalizeActivityUrl(url);
+  console.log("[fn] checking if activity already exists for", normalizedUrl);
   const { data: existing } = await supabase
     .from("activities")
     .select("*")
-    .eq("source_url", url)
+    .eq("source_url", normalizedUrl)
     .maybeSingle();
 
   if (existing) {
@@ -201,8 +203,11 @@ serve(async (req) => {
   );
   console.log("[fn] finalTitle", finalTitle);
 
-  const needsLocationConfirmation =
-    !location_name && !city && !latitude && !longitude;
+  const confidenceValue = typeof confidence === "number" ? confidence : 0.9;
+
+  const hasLocation = !!location_name || !!city || (!!latitude && !!longitude);
+
+  const needsLocationConfirmation = !hasLocation || confidenceValue < 0.7;
 
   const needsDateConfirmation = categoryNeedsDate(finalCategory) && !mainDate;
 

@@ -1,18 +1,27 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import type { ShareIntent } from "expo-share-intent";
-import { importService } from "../services/importService";
+import {
+  importService,
+  markActivityDateConfirmed,
+  markActivityLocationConfirmed,
+  updateImportedActivityDetails,
+} from "../services/importService";
 import type { Activity } from "@features/activities/utils/types";
+import { activityUpdated } from "@features/activities/store/activitiesSlice";
+import { AppDispatch, RootState } from "@core/store";
 
 export interface ImportState {
   loading: boolean;
   error: string | null;
   activity: Activity | null;
+  importedActivity: Activity | null;
 }
 
 const initialState: ImportState = {
   loading: false,
   error: null,
   activity: null,
+  importedActivity: null,
 };
 
 export const analyzeSharedLink = createAsyncThunk<
@@ -32,6 +41,72 @@ export const analyzeSharedLink = createAsyncThunk<
           : typeof err === "string"
             ? err
             : "Unable to analyze link";
+      return rejectWithValue(message);
+    }
+  }
+);
+
+export const confirmImportedLocation = createAsyncThunk<
+  Activity,
+  string,
+  { rejectValue: string }
+>("import/confirmImportedLocation", async (activityId, { rejectWithValue }) => {
+  try {
+    const updated = await markActivityLocationConfirmed(activityId);
+    return updated;
+  } catch (error) {
+    return rejectWithValue("Failed to confirm location");
+  }
+});
+
+export const confirmImportedDate = createAsyncThunk<
+  Activity,
+  { activityId: string; date: string },
+  { rejectValue: string }
+>(
+  "import/confirmImportedDate",
+  async ({ activityId, date }, { rejectWithValue }) => {
+    try {
+      const updated = await markActivityDateConfirmed(activityId, date);
+      return updated;
+    } catch (error) {
+      return rejectWithValue("Failed to confirm date");
+    }
+  }
+);
+
+export const saveImportedActivityDetails = createAsyncThunk<
+  Activity,
+  {
+    activityId: string;
+    locationName: string;
+    city: string;
+    dateIso: string | null;
+  },
+  { rejectValue: string; state: RootState; dispatch: AppDispatch }
+>(
+  "import/saveImportedActivityDetails",
+  async (
+    { activityId, locationName, city, dateIso },
+    { rejectWithValue, dispatch }
+  ) => {
+    try {
+      const result = await updateImportedActivityDetails(activityId, {
+        locationName,
+        city,
+        dateIso,
+      });
+
+      dispatch(activityUpdated(result)); // ← totally fine
+
+      return result as Activity;
+    } catch (err) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : typeof err === "string"
+            ? err
+            : "Unable to save activity details";
       return rejectWithValue(message);
     }
   }
@@ -57,6 +132,27 @@ const importSlice = createSlice({
       .addCase(analyzeSharedLink.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload ?? "Unable to analyze link";
+      })
+      .addCase(confirmImportedLocation.fulfilled, (state, action) => {
+        state.importedActivity = action.payload;
+        state.error = null;
+      })
+      .addCase(confirmImportedLocation.rejected, (state, action) => {
+        state.error = action.payload || "Failed to confirm location";
+      })
+      .addCase(confirmImportedDate.fulfilled, (state, action) => {
+        state.importedActivity = action.payload;
+        state.error = null;
+      })
+      .addCase(confirmImportedDate.rejected, (state, action) => {
+        state.error = action.payload || "Failed to confirm date";
+      })
+      .addCase(saveImportedActivityDetails.fulfilled, (state, action) => {
+        state.importedActivity = action.payload;
+        state.error = null;
+      })
+      .addCase(saveImportedActivityDetails.rejected, (state, action) => {
+        state.error = action.payload || "Failed to save activity details";
       });
   },
 });

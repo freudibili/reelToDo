@@ -9,6 +9,7 @@ interface AnalyzeArgs {
 
 export const importService = {
   analyze: async ({ shared, userId }: AnalyzeArgs): Promise<Activity> => {
+    console.log("Analyzing shared link:", shared?.webUrl);
     const url = shared?.webUrl;
     if (!url) throw new Error("Missing URL");
 
@@ -31,4 +32,80 @@ export const importService = {
     if (!data) throw new Error("No data returned");
     return data as Activity;
   },
+};
+
+export const markActivityLocationConfirmed = async (
+  activityId: string
+): Promise<Activity> => {
+  const { data, error } = await supabase
+    .from("activities")
+    .update({
+      needs_location_confirmation: false,
+    })
+    .eq("id", activityId)
+    .select("*")
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data as Activity;
+};
+
+export const markActivityDateConfirmed = async (
+  activityId: string,
+  dateIso: string
+): Promise<Activity> => {
+  const { data, error } = await supabase
+    .from("activities")
+    .update({
+      main_date: dateIso,
+      needs_date_confirmation: false,
+    })
+    .eq("id", activityId)
+    .select("*")
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data as Activity;
+};
+
+export const updateImportedActivityDetails = async (
+  activityId: string,
+  payload: {
+    locationName: string;
+    city: string;
+    dateIso: string | null;
+  }
+): Promise<Activity> => {
+  const update: Record<string, unknown> = {
+    location_name: payload.locationName || null,
+    city: payload.city || null,
+  };
+
+  if (payload.locationName || payload.city) {
+    update.needs_location_confirmation = false;
+  }
+
+  if (payload.dateIso) {
+    update.main_date = payload.dateIso;
+    update.needs_date_confirmation = false;
+  }
+
+  const { data, error } = await supabase
+    .from("activities")
+    .update(update)
+    .eq("id", activityId)
+    .select("*")
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data as Activity;
 };
