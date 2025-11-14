@@ -56,6 +56,7 @@ const ImportScreen = () => {
   const hasAnalyzedRef = useRef(false);
   const sheetRef = useRef(null);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   const analyze = useCallback(() => {
     if (!sharedData?.webUrl || !user?.id || hasAnalyzedRef.current) return;
@@ -77,6 +78,7 @@ const ImportScreen = () => {
   useEffect(() => {
     if (activity) {
       setSheetOpen(true);
+      setHasUnsavedChanges(false);
     }
   }, [activity]);
 
@@ -104,6 +106,7 @@ const ImportScreen = () => {
           })
         );
         setSheetOpen(false);
+        setHasUnsavedChanges(false);
       },
       { cancelText: "Cancel", confirmText: "Save" }
     );
@@ -116,11 +119,17 @@ const ImportScreen = () => {
     }
     dispatch(deleteActivity(activity.id));
     setSheetOpen(false);
+    setHasUnsavedChanges(false);
   };
 
   const handleCancelSheet = () => {
     if (!activity) {
       setSheetOpen(false);
+      return;
+    }
+
+    if (!hasUnsavedChanges) {
+      discardActivity();
       return;
     }
 
@@ -190,6 +199,7 @@ const ImportScreen = () => {
             activity={activity}
             onSave={handleSaveDetails}
             onCancel={handleCancelSheet}
+            onDirtyChange={setHasUnsavedChanges}
           />
         </AppBottomSheet>
       )}

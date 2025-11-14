@@ -165,7 +165,12 @@ const activitiesSlice = createSlice({
   initialState,
   reducers: {
     activityInserted: (state, action: PayloadAction<Activity>) => {
-      state.items = [action.payload, ...state.items];
+      const idx = state.items.findIndex((a) => a.id === action.payload.id);
+      if (idx >= 0) {
+        state.items[idx] = action.payload;
+      } else {
+        state.items = [action.payload, ...state.items];
+      }
     },
     activityUpdated: (state, action: PayloadAction<Activity>) => {
       const idx = state.items.findIndex((a) => a.id === action.payload.id);

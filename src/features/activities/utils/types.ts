@@ -19,3 +19,28 @@ export interface Activity {
   needs_location_confirmation: boolean;
   needs_date_confirmation: boolean;
 }
+
+export type ActivityCategory =
+  | "outdoor-hike"
+  | "outdoor-nature-spot"
+  | "outdoor-beach"
+  | "outdoor-park"
+  | "outdoor-viewpoint"
+  | "food-cafe"
+  | "food-restaurant"
+  | "food-bar"
+  | "food-street-food"
+  | "event-market"
+  | "event-festival"
+  | "event-concert"
+  | "event-exhibition"
+  | "culture-museum"
+  | "culture-monument"
+  | "culture-architecture"
+  | "workshop-cooking"
+  | "workshop-art"
+  | "workshop-wellness"
+  | "nightlife-club"
+  | "nightlife-bar"
+  | "shopping-local"
+  | "shopping-vintage";

@@ -7,7 +7,10 @@ import {
   updateImportedActivityDetails,
 } from "../services/importService";
 import type { Activity } from "@features/activities/utils/types";
-import { activityUpdated } from "@features/activities/store/activitiesSlice";
+import {
+  activityInserted,
+  activityUpdated,
+} from "@features/activities/store/activitiesSlice";
 import { AppDispatch, RootState } from "@core/store";
 
 export interface ImportState {
@@ -27,12 +30,15 @@ const initialState: ImportState = {
 export const analyzeSharedLink = createAsyncThunk<
   Activity,
   { shared: ShareIntent; userId: string },
-  { rejectValue: string }
+  { rejectValue: string; state: RootState; dispatch: AppDispatch }
 >(
   "import/analyzeSharedLink",
-  async ({ shared, userId }, { rejectWithValue }) => {
+  async ({ shared, userId }, { rejectWithValue, dispatch }) => {
     try {
       const result = await importService.analyze({ shared, userId });
+
+      dispatch(activityInserted(result));
+
       return result as Activity;
     } catch (err) {
       const message =
@@ -97,7 +103,7 @@ export const saveImportedActivityDetails = createAsyncThunk<
         dateIso,
       });
 
-      dispatch(activityUpdated(result)); // ← totally fine
+      dispatch(activityUpdated(result));
 
       return result as Activity;
     } catch (err) {

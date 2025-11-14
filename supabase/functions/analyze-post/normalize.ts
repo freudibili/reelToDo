@@ -245,7 +245,7 @@ export const categoriesRequiringDate = new Set([
   "workshop-cooking",
   "workshop-art",
   "workshop-wellness",
-] as const);
+]);
 
 export const normalizeActivityUrl = (input: string): string => {
   const trimmed = (input || "").trim();

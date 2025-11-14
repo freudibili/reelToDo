@@ -11,6 +11,8 @@ import DateTimePicker, {
   type DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
 import type { Activity } from "@features/activities/utils/types";
+import LocationSection from "./LocationSection";
+import DateSection from "./DateSection";
 
 interface ImportDetailsSheetProps {
   activity: Activity;
@@ -20,15 +22,16 @@ interface ImportDetailsSheetProps {
     dateIso: string | null;
   }) => void;
   onCancel: () => void;
+  onDirtyChange?: (dirty: boolean) => void;
 }
 
 const ImportDetailsSheet: React.FC<ImportDetailsSheetProps> = ({
   activity,
   onSave,
   onCancel,
+  onDirtyChange,
 }) => {
-  const initialDateRaw =
-    (activity as any).main_date || (activity as any).date || null;
+  const initialDateRaw = activity.main_date || null;
   const initialDate = initialDateRaw ? new Date(initialDateRaw) : null;
 
   const [locationName, setLocationName] = useState(
@@ -39,31 +42,42 @@ const ImportDetailsSheet: React.FC<ImportDetailsSheetProps> = ({
   const [datePickerVisible, setDatePickerVisible] = useState(false);
   const [dirty, setDirty] = useState(false);
 
+  const setDirtyAndNotify = (value: boolean) => {
+    setDirty(value);
+    if (onDirtyChange) {
+      onDirtyChange(value);
+    }
+  };
+
   useEffect(() => {
     setLocationName(activity.location_name ?? "");
     setCity(activity.city ?? "");
-    const raw = (activity as any).main_date || (activity as any).date || null;
+    const raw = activity.main_date || null;
     setLocalDate(raw ? new Date(raw) : null);
-    setDirty(false);
+    setDirtyAndNotify(false);
   }, [activity.id]);
 
+  const locationLocked = activity.needs_location_confirmation === false;
+  const dateLocked = activity.needs_date_confirmation === false;
+
   const locationConfirmed = useMemo(
-    () => locationName.trim().length > 0 && city.trim().length > 0,
-    [locationName, city]
+    () =>
+      locationLocked ||
+      (locationName.trim().length > 0 && city.trim().length > 0),
+    [locationLocked, locationName, city]
   );
 
-  const dateConfirmed = useMemo(() => !!localDate, [localDate]);
+  const dateConfirmed = useMemo(
+    () => dateLocked || !!localDate,
+    [dateLocked, localDate]
+  );
 
-  const displayDateLabel = () => {
-    if (!localDate) return "Select date";
-    return localDate.toDateString();
-  };
-
-  const handleDateChange = (_event: DateTimePickerEvent, selected?: Date) => {
-    setDatePickerVisible(false);
-    if (!selected) return;
-    setLocalDate(selected);
-    setDirty(true);
+  const handleDateChange = (date: Date) => {
+    if (dateLocked) return;
+    setLocalDate(date);
+    if (!dirty) {
+      setDirtyAndNotify(true);
+    }
   };
 
   const handleSavePress = () => {
@@ -72,6 +86,22 @@ const ImportDetailsSheet: React.FC<ImportDetailsSheetProps> = ({
       city: city.trim(),
       dateIso: localDate ? localDate.toISOString() : null,
     });
+  };
+
+  const handleLocationNameChange = (value: string) => {
+    if (locationLocked) return;
+    setLocationName(value);
+    if (!dirty) {
+      setDirtyAndNotify(true);
+    }
+  };
+
+  const handleCityChange = (value: string) => {
+    if (locationLocked) return;
+    setCity(value);
+    if (!dirty) {
+      setDirtyAndNotify(true);
+    }
   };
 
   return (
@@ -92,70 +122,21 @@ const ImportDetailsSheet: React.FC<ImportDetailsSheetProps> = ({
         />
       )}
 
-      <View style={styles.section}>
-        <Text style={styles.sectionLabel}>Location</Text>
+      <LocationSection
+        locationName={locationName}
+        city={city}
+        locked={locationLocked}
+        confirmed={locationConfirmed}
+        onChangeLocationName={handleLocationNameChange}
+        onChangeCity={handleCityChange}
+      />
 
-        <TextInput
-          style={styles.input}
-          value={locationName}
-          onChangeText={(v) => {
-            setLocationName(v);
-            setDirty(true);
-          }}
-          placeholder="Place name"
-        />
-        <TextInput
-          style={styles.input}
-          value={city}
-          onChangeText={(v) => {
-            setCity(v);
-            setDirty(true);
-          }}
-          placeholder="City"
-        />
-
-        {!locationConfirmed ? (
-          <Text style={styles.warning}>⚠️ Needs location</Text>
-        ) : (
-          <Text style={styles.success}>✓ Location ready to save</Text>
-        )}
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionLabel}>Date</Text>
-
-        <View style={styles.dateRow}>
-          <Pressable
-            style={styles.dateBtn}
-            onPress={() => setDatePickerVisible(true)}
-          >
-            <Text style={styles.dateBtnText}>{displayDateLabel()}</Text>
-          </Pressable>
-        </View>
-
-        {datePickerVisible && (
-          <DateTimePicker
-            value={localDate || new Date()}
-            mode="date"
-            onChange={handleDateChange}
-          />
-        )}
-
-        {!dateConfirmed ? (
-          <Text style={styles.warning}>⚠️ Needs date</Text>
-        ) : (
-          <Text style={styles.success}>✓ Date ready to save</Text>
-        )}
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionLabel}>Confidence</Text>
-        <Text style={styles.sectionValue}>
-          {typeof activity.confidence === "number"
-            ? `${Math.round(activity.confidence * 100)}%`
-            : "—"}
-        </Text>
-      </View>
+      <DateSection
+        date={localDate}
+        locked={dateLocked}
+        confirmed={dateConfirmed}
+        onChangeDate={handleDateChange}
+      />
 
       <View style={styles.bottomButtons}>
         <Pressable style={styles.cancelBtn} onPress={onCancel}>
@@ -202,50 +183,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#777",
     marginTop: 2,
-  },
-  section: {
-    marginTop: 16,
-  },
-  sectionLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-    marginBottom: 6,
-  },
-  sectionValue: {
-    fontSize: 14,
-    color: "#333",
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 10,
-    padding: 10,
-    marginTop: 6,
-    fontSize: 14,
-  },
-  dateRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 6,
-  },
-  dateBtn: {
-    borderRadius: 999,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    backgroundColor: "#f2f2f2",
-  },
-  dateBtnText: {
-    fontSize: 14,
-  },
-  warning: {
-    marginTop: 4,
-    fontSize: 13,
-    color: "#d9534f",
-  },
-  success: {
-    marginTop: 4,
-    fontSize: 13,
-    color: "#2ecc71",
   },
   bottomButtons: {
     marginTop: 28,
