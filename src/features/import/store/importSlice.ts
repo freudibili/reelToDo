@@ -12,6 +12,7 @@ import {
   activityUpdated,
 } from "@features/activities/store/activitiesSlice";
 import { AppDispatch, RootState } from "@core/store";
+import { UpdateActivityPayload } from "../utils/types";
 
 export interface ImportState {
   loading: boolean;
@@ -85,21 +86,18 @@ export const saveImportedActivityDetails = createAsyncThunk<
   Activity,
   {
     activityId: string;
-    locationName: string;
-    city: string;
-    dateIso: string | null;
-  },
+  } & UpdateActivityPayload,
   { rejectValue: string; state: RootState; dispatch: AppDispatch }
 >(
   "import/saveImportedActivityDetails",
   async (
-    { activityId, locationName, city, dateIso },
+    { activityId, locationName, address, dateIso },
     { rejectWithValue, dispatch }
   ) => {
     try {
       const result = await updateImportedActivityDetails(activityId, {
         locationName,
-        city,
+        address,
         dateIso,
       });
 

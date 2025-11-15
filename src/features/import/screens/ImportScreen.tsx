@@ -26,6 +26,7 @@ import Screen from "@common/components/AppScreen";
 import AppBottomSheet from "@common/components/AppBottomSheet";
 import ImportDetailsSheet from "../components/ImportDetailsSheet";
 import type { Activity } from "@features/activities/utils/types";
+import { UpdateActivityPayload } from "../utils/types";
 
 const ImportScreen = () => {
   const { shared } = useLocalSearchParams();
@@ -81,11 +82,7 @@ const ImportScreen = () => {
     }
   }, [activity, error]);
 
-  const handleSaveDetails = (payload: {
-    locationName: string;
-    city: string;
-    dateIso: string | null;
-  }) => {
+  const handleSaveDetails = (payload: UpdateActivityPayload) => {
     if (!activity) return;
 
     confirm(

@@ -1,49 +1,43 @@
 import React from "react";
-import { View, Text, TextInput, Pressable, StyleSheet } from "react-native";
+import { View, Text, TextInput, StyleSheet } from "react-native";
 
 interface LocationSectionProps {
   locationName: string;
-  city: string;
-  locked: boolean;
+  address: string;
   confirmed: boolean;
-  onChangeLocationName: (value: string) => void;
-  onChangeCity: (value: string) => void;
+  onChange: (values: { locationName: string; address: string }) => void;
 }
 
 const LocationSection: React.FC<LocationSectionProps> = ({
   locationName,
-  city,
-  locked,
+  address,
   confirmed,
-  onChangeLocationName,
-  onChangeCity,
+  onChange,
 }) => {
+  const formattedAddress = [locationName, address].filter(Boolean).join(", ");
+
   return (
     <View style={styles.section}>
       <Text style={styles.sectionLabel}>Location</Text>
 
-      <TextInput
-        style={[styles.input, locked && styles.inputDisabled]}
-        value={locationName}
-        onChangeText={onChangeLocationName}
-        placeholder="Place name"
-        editable={!locked}
-      />
-
-      <TextInput
-        style={[styles.input, locked && styles.inputDisabled]}
-        value={city}
-        onChangeText={onChangeCity}
-        placeholder="City"
-        editable={!locked}
-      />
-
-      {!confirmed ? (
-        <Text style={styles.warning}>⚠️ Needs location</Text>
-      ) : locked ? (
-        <Text style={styles.success}>✓ Location confirmed</Text>
+      {confirmed ? (
+        <Text style={styles.addressText}>{formattedAddress}</Text>
       ) : (
-        <Text style={styles.success}>✓ Location ready to save</Text>
+        <>
+          <TextInput
+            style={styles.input}
+            value={locationName}
+            onChangeText={(value) => onChange({ locationName: value, address })}
+            placeholder="Place name"
+          />
+
+          <TextInput
+            style={styles.input}
+            value={address}
+            onChangeText={(value) => onChange({ locationName, address: value })}
+            placeholder="Address"
+          />
+        </>
       )}
     </View>
   );
@@ -66,18 +60,9 @@ const styles = StyleSheet.create({
     marginTop: 6,
     fontSize: 14,
   },
-  inputDisabled: {
-    backgroundColor: "#f2f2f2",
-  },
-  warning: {
-    marginTop: 4,
-    fontSize: 13,
-    color: "#d9534f",
-  },
-  success: {
-    marginTop: 4,
-    fontSize: 13,
-    color: "#2ecc71",
+  addressText: {
+    fontSize: 14,
+    marginTop: 6,
   },
 });
 

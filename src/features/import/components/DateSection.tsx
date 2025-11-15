@@ -6,16 +6,14 @@ import DateTimePicker, {
 
 interface DateSectionProps {
   date: Date | null;
-  locked: boolean;
   confirmed: boolean;
-  onChangeDate: (date: Date) => void;
+  onChange: (date: Date) => void;
 }
 
 const DateSection: React.FC<DateSectionProps> = ({
   date,
-  locked,
   confirmed,
-  onChangeDate,
+  onChange,
 }) => {
   const [pickerVisible, setPickerVisible] = useState(false);
 
@@ -26,38 +24,37 @@ const DateSection: React.FC<DateSectionProps> = ({
 
   const handleDateChange = (_e: DateTimePickerEvent, selected?: Date) => {
     setPickerVisible(false);
-    if (!selected || locked) return;
-    onChangeDate(selected);
+    if (!selected) return;
+    onChange(selected);
   };
 
   return (
     <View style={styles.section}>
       <Text style={styles.sectionLabel}>Date</Text>
 
-      <View style={styles.dateRow}>
-        <Pressable
-          style={[styles.dateBtn, locked && styles.dateBtnDisabled]}
-          onPress={() => !locked && setPickerVisible(true)}
-          disabled={locked}
-        >
-          <Text style={styles.dateBtnText}>{displayLabel()}</Text>
-        </Pressable>
-      </View>
-
-      {pickerVisible && (
-        <DateTimePicker
-          value={date || new Date()}
-          mode="date"
-          onChange={handleDateChange}
-        />
-      )}
-
-      {!confirmed ? (
-        <Text style={styles.warning}>⚠️ Needs date</Text>
-      ) : locked ? (
-        <Text style={styles.success}>✓ Date confirmed</Text>
+      {confirmed ? (
+        <Text style={styles.dateText}>{displayLabel()}</Text>
       ) : (
-        <Text style={styles.success}>✓ Date ready to save</Text>
+        <>
+          <View style={styles.dateRow}>
+            <Pressable
+              style={styles.dateBtn}
+              onPress={() => setPickerVisible(true)}
+            >
+              <Text style={styles.dateBtnText}>{displayLabel()}</Text>
+            </Pressable>
+          </View>
+
+          {pickerVisible && (
+            <DateTimePicker
+              value={date || new Date()}
+              mode="date"
+              onChange={handleDateChange}
+            />
+          )}
+
+          <Text style={styles.warning}>⚠️ Needs date</Text>
+        </>
       )}
     </View>
   );
@@ -83,21 +80,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     backgroundColor: "#f2f2f2",
   },
-  dateBtnDisabled: {
-    opacity: 0.5,
-  },
   dateBtnText: {
     fontSize: 14,
+  },
+  dateText: {
+    fontSize: 14,
+    marginTop: 6,
   },
   warning: {
     marginTop: 4,
     fontSize: 13,
     color: "#d9534f",
-  },
-  success: {
-    marginTop: 4,
-    fontSize: 13,
-    color: "#2ecc71",
   },
 });
 

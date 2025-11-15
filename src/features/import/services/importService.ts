@@ -1,6 +1,7 @@
 import { supabase } from "@config/supabase";
 import type { ShareIntent } from "expo-share-intent";
 import type { Activity } from "@features/activities/utils/types";
+import { UpdateActivityPayload } from "../utils/types";
 
 interface AnalyzeArgs {
   shared: ShareIntent;
@@ -76,18 +77,14 @@ export const markActivityDateConfirmed = async (
 
 export const updateImportedActivityDetails = async (
   activityId: string,
-  payload: {
-    locationName: string;
-    city: string;
-    dateIso: string | null;
-  }
+  payload: UpdateActivityPayload
 ): Promise<Activity> => {
   const update: Record<string, unknown> = {
     location_name: payload.locationName || null,
-    city: payload.city || null,
+    address: payload.address || null,
   };
 
-  if (payload.locationName || payload.city) {
+  if (payload.locationName || payload.address) {
     update.needs_location_confirmation = false;
   }
 

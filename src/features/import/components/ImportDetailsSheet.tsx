@@ -1,21 +1,24 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, Image, Pressable, StyleSheet } from "react-native";
 
 import type { Activity } from "@features/activities/utils/types";
 import LocationSection from "./LocationSection";
 import DateSection from "./DateSection";
 import { categoryNeedsDate } from "@features/activities/utils/activityHelper";
+import { UpdateActivityPayload } from "../utils/types";
 
 interface ImportDetailsSheetProps {
   activity: Activity;
-  onSave: (payload: {
-    locationName: string;
-    city: string;
-    dateIso: string | null;
-  }) => void;
+  onSave: (payload: UpdateActivityPayload) => void;
   onCancel: () => void;
   onDirtyChange?: (dirty: boolean) => void;
 }
+
+type DraftDetails = {
+  locationName: string;
+  address: string;
+  date: Date | null;
+};
 
 const ImportDetailsSheet: React.FC<ImportDetailsSheetProps> = ({
   activity,
@@ -23,15 +26,12 @@ const ImportDetailsSheet: React.FC<ImportDetailsSheetProps> = ({
   onCancel,
   onDirtyChange,
 }) => {
-  const initialDateRaw = activity.main_date || null;
-  const initialDate = initialDateRaw ? new Date(initialDateRaw) : null;
-
-  const [locationName, setLocationName] = useState(
-    activity.location_name ?? ""
-  );
-  const [city, setCity] = useState(activity.city ?? "");
-  const [localDate, setLocalDate] = useState<Date | null>(initialDate);
   const [dirty, setDirty] = useState(false);
+  const [draft, setDraft] = useState<DraftDetails>(() => ({
+    locationName: activity.location_name ?? "",
+    address: activity.address ?? "",
+    date: activity.main_date ? new Date(activity.main_date) : null,
+  }));
 
   const setDirtyAndNotify = (value: boolean) => {
     setDirty(value);
@@ -41,61 +41,59 @@ const ImportDetailsSheet: React.FC<ImportDetailsSheetProps> = ({
   };
 
   useEffect(() => {
-    setLocationName(activity.location_name ?? "");
-    setCity(activity.city ?? "");
-    const raw = activity.main_date || null;
-    setLocalDate(raw ? new Date(raw) : null);
+    setDraft({
+      locationName: activity.location_name ?? "",
+      address: activity.address ?? "",
+      date: activity.main_date ? new Date(activity.main_date) : null,
+    });
     setDirtyAndNotify(false);
-  }, [activity.id]);
-
-  const locationLocked = activity.needs_location_confirmation === false;
-  const dateLocked = activity.needs_date_confirmation === false;
-
-  const locationConfirmed = useMemo(
-    () =>
-      locationLocked ||
-      (locationName.trim().length > 0 && city.trim().length > 0),
-    [locationLocked, locationName, city]
-  );
-
-  const dateConfirmed = useMemo(
-    () => dateLocked || !!localDate,
-    [dateLocked, localDate]
-  );
-
-  const handleDateChange = (date: Date) => {
-    if (dateLocked) return;
-    setLocalDate(date);
-    if (!dirty) {
-      setDirtyAndNotify(true);
-    }
-  };
+  }, [
+    activity.id,
+    activity.location_name,
+    activity.address,
+    activity.main_date,
+  ]);
 
   const handleSavePress = () => {
     onSave({
-      locationName: locationName.trim(),
-      city: city.trim(),
-      dateIso: localDate ? localDate.toISOString() : null,
+      locationName: draft.locationName.trim(),
+      address: draft.address.trim(),
+      dateIso: draft.date ? draft.date.toISOString() : null,
     });
   };
 
-  const handleLocationNameChange = (value: string) => {
-    if (locationLocked) return;
-    setLocationName(value);
+  const handleLocationChange = (values: {
+    locationName: string;
+    address: string;
+  }) => {
+    setDraft((prev) => ({
+      ...prev,
+      locationName: values.locationName,
+      address: values.address,
+    }));
     if (!dirty) {
       setDirtyAndNotify(true);
     }
   };
 
-  const handleCityChange = (value: string) => {
-    if (locationLocked) return;
-    setCity(value);
+  const handleDateChange = (date: Date | null) => {
+    setDraft((prev) => ({
+      ...prev,
+      date,
+    }));
     if (!dirty) {
       setDirtyAndNotify(true);
     }
   };
 
-  const showActivity = categoryNeedsDate(activity.category);
+  const showActivityDate = categoryNeedsDate(activity.category);
+
+  const canEditLocation = !activity.needs_location_confirmation;
+  const canEditDate = !activity.needs_date_confirmation;
+  const needsDate = categoryNeedsDate(activity.category);
+
+  const hideSaveButton =
+    canEditLocation && (!needsDate || (needsDate && canEditDate));
 
   return (
     <View style={styles.sheetContent}>
@@ -116,36 +114,35 @@ const ImportDetailsSheet: React.FC<ImportDetailsSheetProps> = ({
       )}
 
       <LocationSection
-        locationName={locationName}
-        city={city}
-        locked={locationLocked}
-        confirmed={locationConfirmed}
-        onChangeLocationName={handleLocationNameChange}
-        onChangeCity={handleCityChange}
+        locationName={draft.locationName}
+        address={draft.address}
+        confirmed={!activity.needs_location_confirmation}
+        onChange={handleLocationChange}
       />
 
-      {showActivity && (
+      {showActivityDate && (
         <DateSection
-          date={localDate}
-          locked={dateLocked}
-          confirmed={dateConfirmed}
-          onChangeDate={handleDateChange}
+          date={draft.date}
+          confirmed={!activity.needs_date_confirmation}
+          onChange={handleDateChange}
         />
       )}
 
-      <View style={styles.bottomButtons}>
-        <Pressable style={styles.cancelBtn} onPress={onCancel}>
-          <Text style={styles.cancelBtnText}>Cancel</Text>
-        </Pressable>
+      {!hideSaveButton && (
+        <View style={styles.bottomButtons}>
+          <Pressable style={styles.cancelBtn} onPress={onCancel}>
+            <Text style={styles.cancelBtnText}>Cancel</Text>
+          </Pressable>
 
-        <Pressable
-          style={[styles.saveBtn, !dirty && styles.saveBtnDisabled]}
-          disabled={!dirty}
-          onPress={handleSavePress}
-        >
-          <Text style={styles.saveBtnText}>Save changes</Text>
-        </Pressable>
-      </View>
+          <Pressable
+            style={[styles.saveBtn, !dirty && styles.saveBtnDisabled]}
+            disabled={!dirty}
+            onPress={handleSavePress}
+          >
+            <Text style={styles.saveBtnText}>Save changes</Text>
+          </Pressable>
+        </View>
+      )}
     </View>
   );
 };
