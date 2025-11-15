@@ -1,18 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
-import {
-  View,
-  Text,
-  Image,
-  Pressable,
-  StyleSheet,
-  TextInput,
-} from "react-native";
-import DateTimePicker, {
-  type DateTimePickerEvent,
-} from "@react-native-community/datetimepicker";
+import { View, Text, Image, Pressable, StyleSheet } from "react-native";
+
 import type { Activity } from "@features/activities/utils/types";
 import LocationSection from "./LocationSection";
 import DateSection from "./DateSection";
+import { categoryNeedsDate } from "@features/activities/utils/activityHelper";
 
 interface ImportDetailsSheetProps {
   activity: Activity;
@@ -39,7 +31,6 @@ const ImportDetailsSheet: React.FC<ImportDetailsSheetProps> = ({
   );
   const [city, setCity] = useState(activity.city ?? "");
   const [localDate, setLocalDate] = useState<Date | null>(initialDate);
-  const [datePickerVisible, setDatePickerVisible] = useState(false);
   const [dirty, setDirty] = useState(false);
 
   const setDirtyAndNotify = (value: boolean) => {
@@ -104,6 +95,8 @@ const ImportDetailsSheet: React.FC<ImportDetailsSheetProps> = ({
     }
   };
 
+  const showActivity = categoryNeedsDate(activity.category);
+
   return (
     <View style={styles.sheetContent}>
       <View style={styles.sheetHeader}>
@@ -131,12 +124,14 @@ const ImportDetailsSheet: React.FC<ImportDetailsSheetProps> = ({
         onChangeCity={handleCityChange}
       />
 
-      <DateSection
-        date={localDate}
-        locked={dateLocked}
-        confirmed={dateConfirmed}
-        onChangeDate={handleDateChange}
-      />
+      {showActivity && (
+        <DateSection
+          date={localDate}
+          locked={dateLocked}
+          confirmed={dateConfirmed}
+          onChangeDate={handleDateChange}
+        />
+      )}
 
       <View style={styles.bottomButtons}>
         <Pressable style={styles.cancelBtn} onPress={onCancel}>

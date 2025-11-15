@@ -5,14 +5,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  StyleSheet,
-  ActivityIndicator,
-  Pressable,
-} from "react-native";
+import { View, Text, TextInput, StyleSheet, Pressable } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import type { ShareIntent } from "expo-share-intent";
 
@@ -179,15 +172,6 @@ const ImportScreen = () => {
 
       {error && <Text style={styles.error}>{error}</Text>}
 
-      {loading && (
-        <View style={styles.loaderOverlay}>
-          <View style={styles.loaderBox}>
-            <ActivityIndicator size="large" />
-            <Text style={styles.loaderText}>Analyzing your activity…</Text>
-          </View>
-        </View>
-      )}
-
       {activity && sheetOpen && (
         <AppBottomSheet
           ref={sheetRef}
@@ -244,24 +228,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   error: { color: "#c00", marginTop: 8 },
-  loaderOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.25)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  loaderBox: {
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    borderRadius: 16,
-    backgroundColor: "#fff",
-    alignItems: "center",
-  },
-  loaderText: {
-    marginTop: 8,
-    fontSize: 14,
-    color: "#333",
-  },
 });
 
 export default ImportScreen;
