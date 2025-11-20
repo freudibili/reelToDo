@@ -1,15 +1,13 @@
-import React from "react";
-import { View, Text, TextInput, StyleSheet } from "react-native";
-import LocationAutocompleteInput, {
-  type PlaceDetails,
-} from "./LocationAutocompleteInput";
+import React, { useState } from "react";
+import { View, Text, StyleSheet, Pressable } from "react-native";
+import LocationAutocompleteInput from "./LocationAutocompleteInput";
+import { PlaceDetails } from "../services/locationService";
 
 interface LocationSectionProps {
   locationName: string;
   address: string;
   confirmed: boolean;
-  onChange: (values: { locationName: string; address: string }) => void;
-  onSelectPlaceDetails?: (place: PlaceDetails) => void;
+  onChange: (place: PlaceDetails) => void;
 }
 
 const LocationSection: React.FC<LocationSectionProps> = ({
@@ -17,8 +15,9 @@ const LocationSection: React.FC<LocationSectionProps> = ({
   address,
   confirmed,
   onChange,
-  onSelectPlaceDetails,
 }) => {
+  const [editing, setEditing] = useState(false);
+
   if (confirmed) {
     const formattedAddress = [locationName, address].filter(Boolean).join(", ");
     return (
@@ -30,25 +29,46 @@ const LocationSection: React.FC<LocationSectionProps> = ({
   }
 
   const handleSelectPlace = (place: PlaceDetails) => {
-    console.log("Selected place:", place);
-    onChange({
-      locationName: place.name,
-      address: place.formattedAddress,
-    });
-    if (onSelectPlaceDetails) {
-      onSelectPlaceDetails(place);
-    }
+    onChange(place);
+    setEditing(false);
   };
+
+  const hasAddress = !!address;
+  const formattedAddress = [locationName, address].filter(Boolean).join(", ");
 
   return (
     <View style={styles.section}>
       <Text style={styles.sectionLabel}>Location</Text>
 
-      <LocationAutocompleteInput
-        value={address}
-        onChangeValue={(value) => onChange({ locationName, address: value })}
-        onSelectPlace={handleSelectPlace}
-      />
+      {!hasAddress ? (
+        <>
+          <Text style={styles.helperText}>
+            Seems we didn’t find the place for this activity.
+          </Text>
+          <Pressable style={styles.primaryBtn} onPress={() => setEditing(true)}>
+            <Text style={styles.primaryBtnText}>Edit location</Text>
+          </Pressable>
+        </>
+      ) : (
+        <>
+          <Text style={styles.helperText}>
+            This location might not be accurate. Please check it.
+          </Text>
+          <Text style={styles.previewText}>{formattedAddress}</Text>
+          <Pressable style={styles.primaryBtn} onPress={() => setEditing(true)}>
+            <Text style={styles.primaryBtnText}>Edit location</Text>
+          </Pressable>
+        </>
+      )}
+
+      {editing && (
+        <View style={styles.locationContainer}>
+          <LocationAutocompleteInput
+            initialValue={address}
+            onSelectPlace={handleSelectPlace}
+          />
+        </View>
+      )}
     </View>
   );
 };
@@ -62,17 +82,31 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginBottom: 6,
   },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 10,
-    padding: 10,
-    marginTop: 6,
-    fontSize: 14,
-  },
   addressText: {
     fontSize: 14,
     marginTop: 6,
+  },
+  helperText: {
+    fontSize: 13,
+    marginTop: 4,
+  },
+  previewText: {
+    fontSize: 14,
+    marginTop: 6,
+  },
+  primaryBtn: {
+    marginTop: 8,
+    borderRadius: 999,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    backgroundColor: "#f2f2f2",
+    alignSelf: "flex-start",
+  },
+  primaryBtnText: {
+    fontSize: 14,
+  },
+  locationContainer: {
+    marginTop: 12,
   },
 });
 

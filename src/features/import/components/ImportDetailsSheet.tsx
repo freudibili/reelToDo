@@ -5,7 +5,9 @@ import type { Activity } from "@features/activities/utils/types";
 import LocationSection from "./LocationSection";
 import DateSection from "./DateSection";
 import { categoryNeedsDate } from "@features/activities/utils/activityHelper";
-import { UpdateActivityPayload } from "../utils/types";
+
+import { PlaceDetails } from "../services/locationService";
+import type { ImportDraftDetails, UpdateActivityPayload } from "../utils/types";
 
 interface ImportDetailsSheetProps {
   activity: Activity;
@@ -14,12 +16,6 @@ interface ImportDetailsSheetProps {
   onDirtyChange?: (dirty: boolean) => void;
 }
 
-type DraftDetails = {
-  locationName: string;
-  address: string;
-  date: Date | null;
-};
-
 const ImportDetailsSheet: React.FC<ImportDetailsSheetProps> = ({
   activity,
   onSave,
@@ -27,26 +23,27 @@ const ImportDetailsSheet: React.FC<ImportDetailsSheetProps> = ({
   onDirtyChange,
 }) => {
   const [dirty, setDirty] = useState(false);
-  const [draft, setDraft] = useState<DraftDetails>(() => ({
-    locationName: activity.location_name ?? "",
-    address: activity.address ?? "",
+
+  const [draft, setDraft] = useState<ImportDraftDetails>(() => ({
+    location: null,
     date: activity.main_date ? new Date(activity.main_date) : null,
   }));
 
-  const setDirtyAndNotify = (value: boolean) => {
-    setDirty(value);
-    if (onDirtyChange) {
-      onDirtyChange(value);
+  const markDirty = () => {
+    if (!dirty) {
+      setDirty(true);
+      onDirtyChange?.(true);
     }
   };
 
   useEffect(() => {
     setDraft({
-      locationName: activity.location_name ?? "",
-      address: activity.address ?? "",
+      location: null,
       date: activity.main_date ? new Date(activity.main_date) : null,
     });
-    setDirtyAndNotify(false);
+
+    setDirty(false);
+    onDirtyChange?.(false);
   }, [
     activity.id,
     activity.location_name,
@@ -55,25 +52,19 @@ const ImportDetailsSheet: React.FC<ImportDetailsSheetProps> = ({
   ]);
 
   const handleSavePress = () => {
-    onSave({
-      locationName: draft.locationName.trim(),
-      address: draft.address.trim(),
+    const payload: UpdateActivityPayload = {
+      location: draft.location,
       dateIso: draft.date ? draft.date.toISOString() : null,
-    });
+    };
+    onSave(payload);
   };
 
-  const handleLocationChange = (values: {
-    locationName: string;
-    address: string;
-  }) => {
+  const handleLocationChange = (place: PlaceDetails) => {
     setDraft((prev) => ({
       ...prev,
-      locationName: values.locationName,
-      address: values.address,
+      location: place,
     }));
-    if (!dirty) {
-      setDirtyAndNotify(true);
-    }
+    markDirty();
   };
 
   const handleDateChange = (date: Date | null) => {
@@ -81,9 +72,7 @@ const ImportDetailsSheet: React.FC<ImportDetailsSheetProps> = ({
       ...prev,
       date,
     }));
-    if (!dirty) {
-      setDirtyAndNotify(true);
-    }
+    markDirty();
   };
 
   const showActivityDate = categoryNeedsDate(activity.category);
@@ -114,8 +103,8 @@ const ImportDetailsSheet: React.FC<ImportDetailsSheetProps> = ({
       )}
 
       <LocationSection
-        locationName={draft.locationName}
-        address={draft.address}
+        locationName={draft.location?.name ?? activity.location_name ?? ""}
+        address={draft.location?.formattedAddress ?? activity.address ?? ""}
         confirmed={!activity.needs_location_confirmation}
         onChange={handleLocationChange}
       />

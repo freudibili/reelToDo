@@ -90,14 +90,10 @@ export const saveImportedActivityDetails = createAsyncThunk<
   { rejectValue: string; state: RootState; dispatch: AppDispatch }
 >(
   "import/saveImportedActivityDetails",
-  async (
-    { activityId, locationName, address, dateIso },
-    { rejectWithValue, dispatch }
-  ) => {
+  async ({ activityId, location, dateIso }, { rejectWithValue, dispatch }) => {
     try {
       const result = await updateImportedActivityDetails(activityId, {
-        locationName,
-        address,
+        location,
         dateIso,
       });
 

@@ -1,4 +1,3 @@
-import { GOOGLE_MAPS_API_KEY } from "@common/types/constants";
 import React, { useEffect, useMemo, useState } from "react";
 import {
   View,
@@ -8,61 +7,18 @@ import {
   Text,
   StyleSheet,
 } from "react-native";
-
-interface GooglePrediction {
-  description: string;
-  place_id: string;
-}
-
-interface GoogleAutocompleteResponse {
-  status: string;
-  predictions: GooglePrediction[];
-}
-
-interface GoogleAddressComponent {
-  long_name: string;
-  short_name: string;
-  types: string[];
-}
-
-interface GooglePlaceDetailsResult {
-  name: string;
-  formatted_address: string;
-  geometry: {
-    location: {
-      lat: number;
-      lng: number;
-    };
-  };
-  address_components: GoogleAddressComponent[];
-}
-
-interface GooglePlaceDetailsResponse {
-  status: string;
-  result: GooglePlaceDetailsResult;
-}
-
-export interface PlaceDetails {
-  placeId: string;
-  description: string;
-  formattedAddress: string;
-  name: string;
-  city: string | null;
-  country: string | null;
-  latitude: number;
-  longitude: number;
-}
+import {
+  fetchPlaceSuggestions,
+  fetchPlaceDetails,
+  type GooglePrediction,
+  type PlaceDetails,
+} from "../services/locationService";
 
 interface LocationAutocompleteInputProps {
-  value: string;
-  onChangeValue: (value: string) => void;
+  initialValue?: string;
   onSelectPlace: (place: PlaceDetails) => void;
   placeholder?: string;
 }
-
-const AUTOCOMPLETE_URL =
-  "https://maps.googleapis.com/maps/api/place/autocomplete/json";
-const DETAILS_URL = "https://maps.googleapis.com/maps/api/place/details/json";
 
 const debounce = (fn: () => void, delay: number) => {
   let timeout: ReturnType<typeof setTimeout>;
@@ -72,29 +28,22 @@ const debounce = (fn: () => void, delay: number) => {
   };
 };
 
-const extractComponent = (
-  components: GoogleAddressComponent[],
-  type: string
-) => {
-  const component = components.find((c) => c.types.includes(type));
-  return component?.long_name ?? null;
-};
-
 const LocationAutocompleteInput: React.FC<LocationAutocompleteInputProps> = ({
-  value,
-  onChangeValue,
+  initialValue,
   onSelectPlace,
+  placeholder = "Address",
 }) => {
-  const apiKey = GOOGLE_MAPS_API_KEY;
-  const placeholder = "Address";
+  const [value, setValue] = useState(initialValue ?? "");
   const [suggestions, setSuggestions] = useState<GooglePrediction[]>([]);
   const [loading, setLoading] = useState(false);
 
-  console.log("API Key:", apiKey);
-
   const shouldShowSuggestions = suggestions.length > 0 && value.length > 0;
 
-  const fetchSuggestions = useMemo(
+  useEffect(() => {
+    setValue(initialValue ?? "");
+  }, [initialValue]);
+
+  const debouncedFetchSuggestions = useMemo(
     () =>
       debounce(async () => {
         const trimmed = value.trim();
@@ -105,78 +54,32 @@ const LocationAutocompleteInput: React.FC<LocationAutocompleteInputProps> = ({
 
         try {
           setLoading(true);
-          const params = new URLSearchParams({
-            input: trimmed,
-            key: apiKey,
-          });
-
-          const res = await fetch(`${AUTOCOMPLETE_URL}?${params.toString()}`);
-          console.log("Autocomplete response status:", res);
-          if (!res.ok) {
-            setSuggestions([]);
-            return;
-          }
-
-          const json = (await res.json()) as GoogleAutocompleteResponse;
-          if (json.status !== "OK") {
-            setSuggestions([]);
-            return;
-          }
-
-          setSuggestions(json.predictions);
+          const results = await fetchPlaceSuggestions(trimmed);
+          setSuggestions(results);
         } catch {
           setSuggestions([]);
         } finally {
           setLoading(false);
         }
       }, 300),
-    [apiKey, value]
+    [value]
   );
 
   useEffect(() => {
-    fetchSuggestions();
-  }, [fetchSuggestions]);
+    debouncedFetchSuggestions();
+  }, [debouncedFetchSuggestions]);
 
   const handleSelect = async (prediction: GooglePrediction) => {
     try {
       setLoading(true);
       setSuggestions([]);
 
-      const params = new URLSearchParams({
-        place_id: prediction.place_id,
-        key: apiKey,
-        fields: "name,formatted_address,geometry,address_components",
-      });
-
-      const res = await fetch(`${DETAILS_URL}?${params.toString()}`);
-
-      console.log("Place details response status:", res);
-      if (!res.ok) {
+      const place = await fetchPlaceDetails(prediction);
+      if (!place) {
         return;
       }
 
-      const json = (await res.json()) as GooglePlaceDetailsResponse;
-      if (json.status !== "OK") {
-        return;
-      }
-
-      const result = json.result;
-
-      const city = extractComponent(result.address_components, "locality");
-      const country = extractComponent(result.address_components, "country");
-
-      const place: PlaceDetails = {
-        placeId: prediction.place_id,
-        description: prediction.description,
-        formattedAddress: result.formatted_address,
-        name: result.name,
-        city,
-        country,
-        latitude: result.geometry.location.lat,
-        longitude: result.geometry.location.lng,
-      };
-
-      onChangeValue(result.formatted_address);
+      setValue(place.formattedAddress);
       onSelectPlace(place);
     } finally {
       setLoading(false);
@@ -187,7 +90,7 @@ const LocationAutocompleteInput: React.FC<LocationAutocompleteInputProps> = ({
     <View style={styles.container}>
       <TextInput
         value={value}
-        onChangeText={onChangeValue}
+        onChangeText={setValue}
         placeholder={placeholder}
         style={styles.input}
         autoCorrect={false}
@@ -234,13 +137,13 @@ const styles = StyleSheet.create({
     marginTop: 4,
     fontSize: 12,
     color: "#777",
+    minHeight: 20,
   },
   suggestionsContainer: {
     marginTop: 4,
     borderRadius: 10,
-    borderWidth: 1,
     borderColor: "#eee",
-    backgroundColor: "#fff",
+    backgroundColor: "#ddd",
     maxHeight: 180,
     overflow: "hidden",
   },

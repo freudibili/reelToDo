@@ -1,5 +1,11 @@
+import { PlaceDetails } from "../services/locationService";
+
+export type ImportDraftDetails = {
+  location: PlaceDetails | null;
+  date: Date | null;
+};
+
 export type UpdateActivityPayload = {
-  locationName: string;
-  address: string;
+  location: PlaceDetails | null;
   dateIso: string | null;
 };

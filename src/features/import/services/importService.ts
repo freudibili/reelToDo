@@ -1,7 +1,7 @@
 import { supabase } from "@config/supabase";
 import type { ShareIntent } from "expo-share-intent";
 import type { Activity } from "@features/activities/utils/types";
-import { UpdateActivityPayload } from "../utils/types";
+import type { UpdateActivityPayload } from "../utils/types";
 
 interface AnalyzeArgs {
   shared: ShareIntent;
@@ -10,7 +10,6 @@ interface AnalyzeArgs {
 
 export const importService = {
   analyze: async ({ shared, userId }: AnalyzeArgs): Promise<Activity> => {
-    console.log("Analyzing shared link:", shared?.webUrl);
     const url = shared?.webUrl;
     if (!url) throw new Error("Missing URL");
 
@@ -79,12 +78,15 @@ export const updateImportedActivityDetails = async (
   activityId: string,
   payload: UpdateActivityPayload
 ): Promise<Activity> => {
-  const update: Record<string, unknown> = {
-    location_name: payload.locationName || null,
-    address: payload.address || null,
-  };
+  const update: Record<string, unknown> = {};
 
-  if (payload.locationName || payload.address) {
+  if (payload.location) {
+    update.location_name = payload.location.name;
+    update.address = payload.location.formattedAddress;
+    update.city = payload.location.city;
+    update.country = payload.location.country;
+    update.latitude = payload.location.latitude;
+    update.longitude = payload.location.longitude;
     update.needs_location_confirmation = false;
   }
 

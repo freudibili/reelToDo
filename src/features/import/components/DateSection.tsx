@@ -16,6 +16,7 @@ const DateSection: React.FC<DateSectionProps> = ({
   onChange,
 }) => {
   const [pickerVisible, setPickerVisible] = useState(false);
+  const [editing, setEditing] = useState(false);
 
   const displayLabel = () => {
     if (!date) return "Select date";
@@ -26,24 +27,64 @@ const DateSection: React.FC<DateSectionProps> = ({
     setPickerVisible(false);
     if (!selected) return;
     onChange(selected);
+    setEditing(false);
   };
+
+  const showPicker = () => setPickerVisible(true);
+
+  if (confirmed) {
+    return (
+      <View style={styles.section}>
+        <Text style={styles.sectionLabel}>Date</Text>
+        <Text style={styles.dateText}>{displayLabel()}</Text>
+      </View>
+    );
+  }
+
+  const hasDate = !!date;
 
   return (
     <View style={styles.section}>
       <Text style={styles.sectionLabel}>Date</Text>
 
-      {confirmed ? (
-        <Text style={styles.dateText}>{displayLabel()}</Text>
+      {!hasDate ? (
+        <>
+          <Text style={styles.helperText}>
+            Seems we didn’t find a clear date for this activity.
+          </Text>
+          <Pressable
+            style={styles.primaryBtn}
+            onPress={() => {
+              setEditing(true);
+              setPickerVisible(true);
+            }}
+          >
+            <Text style={styles.primaryBtnText}>Add date</Text>
+          </Pressable>
+        </>
       ) : (
         <>
-          <View style={styles.dateRow}>
-            <Pressable
-              style={styles.dateBtn}
-              onPress={() => setPickerVisible(true)}
-            >
-              <Text style={styles.dateBtnText}>{displayLabel()}</Text>
-            </Pressable>
-          </View>
+          <Text style={styles.helperText}>
+            This date might not be accurate. Please double-check it.
+          </Text>
+          <Text style={styles.previewText}>{displayLabel()}</Text>
+          <Pressable
+            style={styles.primaryBtn}
+            onPress={() => {
+              setEditing(true);
+              setPickerVisible(true);
+            }}
+          >
+            <Text style={styles.primaryBtnText}>Edit date</Text>
+          </Pressable>
+        </>
+      )}
+
+      {editing && (
+        <>
+          <Pressable style={styles.dateBtn} onPress={showPicker}>
+            <Text style={styles.dateBtnText}>{displayLabel()}</Text>
+          </Pressable>
 
           {pickerVisible && (
             <DateTimePicker
@@ -52,8 +93,6 @@ const DateSection: React.FC<DateSectionProps> = ({
               onChange={handleDateChange}
             />
           )}
-
-          <Text style={styles.warning}>⚠️ Needs date</Text>
         </>
       )}
     </View>
@@ -69,16 +108,13 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginBottom: 6,
   },
-  dateRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 6,
-  },
   dateBtn: {
     borderRadius: 999,
     paddingVertical: 8,
     paddingHorizontal: 14,
     backgroundColor: "#f2f2f2",
+    marginTop: 6,
+    alignSelf: "flex-start",
   },
   dateBtnText: {
     fontSize: 14,
@@ -87,10 +123,24 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 6,
   },
-  warning: {
-    marginTop: 4,
+  helperText: {
     fontSize: 13,
-    color: "#d9534f",
+    marginTop: 4,
+  },
+  previewText: {
+    fontSize: 14,
+    marginTop: 6,
+  },
+  primaryBtn: {
+    marginTop: 8,
+    borderRadius: 999,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    backgroundColor: "#f2f2f2",
+    alignSelf: "flex-start",
+  },
+  primaryBtnText: {
+    fontSize: 14,
   },
 });
 
