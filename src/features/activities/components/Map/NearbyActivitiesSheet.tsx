@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 import { View, Text, StyleSheet, FlatList, Pressable } from "react-native";
 import type { Region } from "react-native-maps";
 import type { Activity } from "../../utils/types";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   activities: Activity[];
@@ -37,6 +38,7 @@ const NearbyActivitiesSheet: React.FC<Props> = ({
   category,
   onSelectActivity,
 }) => {
+  const { t } = useTranslation();
   const sorted = useMemo(() => {
     const base = category
       ? activities.filter((a) => a.category === category)
@@ -75,7 +77,7 @@ const NearbyActivitiesSheet: React.FC<Props> = ({
 
   return (
     <View>
-      <Text style={styles.title}>À proximité</Text>
+      <Text style={styles.title}>{t("activities:map.nearby")}</Text>
       <FlatList
         data={sorted}
         keyExtractor={(item) => item.activity.id}
@@ -86,7 +88,7 @@ const NearbyActivitiesSheet: React.FC<Props> = ({
           >
             <View style={styles.rowText}>
               <Text style={styles.name}>
-                {item.activity.title ?? "Sans titre"}
+                {item.activity.title ?? t("common:labels.untitled")}
               </Text>
               <Text style={styles.sub}>
                 {item.activity.location_name ?? item.activity.category ?? ""}

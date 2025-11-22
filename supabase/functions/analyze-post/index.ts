@@ -138,36 +138,6 @@ serve(async (req) => {
     source_url,
   } = normalized;
 
-  // Fallback date resolution: text parsing + OpenAI web search
-  if (!Array.isArray(dates) || dates.length === 0) {
-    const textForDates = [
-      title ?? sourceMeta.title ?? "",
-      sourceMeta.description ?? "",
-      Array.isArray(tags) ? tags.join(" ") : "",
-    ]
-      .filter(Boolean)
-      .join(" ");
-
-    const r = await resolveDatesFromText({
-      text: textForDates,
-      localeHint: "de",
-      venue: location_name ?? null,
-      city: city ?? null,
-      artists: [creator].filter((x): x is string => Boolean(x)),
-    });
-
-    if (r && Array.isArray(r.dates) && r.dates.length > 0) {
-      dates = r.dates.map((d: string) => ({
-        start: d,
-        end: null,
-        recurrence_rule: null,
-      }));
-    }
-  }
-
-  const mainDate =
-    Array.isArray(dates) && dates.length > 0 ? (dates[0].start ?? null) : null;
-
   let finalCategory = normalizeCategory(category);
   if (!finalCategory) {
     const inferred = inferCategoryFromContent({
@@ -196,6 +166,36 @@ serve(async (req) => {
     );
   }
 
+  // Fallback date resolution: text parsing + OpenAI web search (only for categories that should have a date)
+  if (categoryNeedsDate(finalCategory) && (!Array.isArray(dates) || dates.length === 0)) {
+    const textForDates = [
+      title ?? sourceMeta.title ?? "",
+      sourceMeta.description ?? "",
+      Array.isArray(tags) ? tags.join(" ") : "",
+    ]
+      .filter(Boolean)
+      .join(" ");
+
+    const r = await resolveDatesFromText({
+      text: textForDates,
+      localeHint: "de",
+      venue: location_name ?? null,
+      city: city ?? null,
+      artists: [creator].filter((x): x is string => Boolean(x)),
+    });
+
+    if (r && Array.isArray(r.dates) && r.dates.length > 0) {
+      dates = r.dates.map((d: string) => ({
+        start: d,
+        end: null,
+        recurrence_rule: null,
+      }));
+    }
+  }
+
+  const mainDate =
+    Array.isArray(dates) && dates.length > 0 ? (dates[0].start ?? null) : null;
+
   const finalTitle = generateTitle(
     finalCategory,
     location_name ?? sourceMeta.title ?? "Activity",
@@ -210,6 +210,52 @@ serve(async (req) => {
   const needsLocationConfirmation = !hasLocation || confidenceValue < 0.7;
 
   const needsDateConfirmation = categoryNeedsDate(finalCategory) && !mainDate;
+
+  // Secondary dedup: same date + city/location + overlapping title
+  if (mainDate && (city || location_name)) {
+    const titleFragment = (title ?? sourceMeta.title ?? "").slice(0, 80);
+    const titlePattern = titleFragment ? `%${titleFragment}%` : null;
+
+    let dupQuery = supabase
+      .from("activities")
+      .select("*")
+      .eq("main_date", mainDate);
+
+    if (city) dupQuery = dupQuery.ilike("city", `%${city}%`);
+    if (location_name) dupQuery = dupQuery.ilike("location_name", `%${location_name}%`);
+    if (titlePattern) dupQuery = dupQuery.ilike("title", titlePattern);
+
+    const { data: similar } = await dupQuery.limit(1).maybeSingle();
+
+    if (similar) {
+      console.log("[fn] found potential duplicate by title/city/date", similar.id);
+
+      if (userId) {
+        console.log("[fn] upserting user_activities for duplicate activity");
+        const { error: uaError } = await supabase.from("user_activities").upsert(
+          [
+            {
+              user_id: userId,
+              activity_id: similar.id,
+              is_favorite: false,
+            },
+          ],
+          {
+            onConflict: "user_id,activity_id",
+          }
+        );
+
+        if (uaError) {
+          console.log("[fn] user_activities upsert error", uaError);
+        }
+      }
+
+      return new Response(JSON.stringify(similar), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+  }
 
   const insertPayload = {
     title: finalTitle,

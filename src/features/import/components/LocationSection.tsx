@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import LocationAutocompleteInput from "./LocationAutocompleteInput";
 import { PlaceDetails } from "../services/locationService";
+import { useTranslation } from "react-i18next";
 
 interface LocationSectionProps {
   locationName: string;
@@ -16,13 +17,16 @@ const LocationSection: React.FC<LocationSectionProps> = ({
   confirmed,
   onChange,
 }) => {
+  const { t } = useTranslation();
   const [editing, setEditing] = useState(false);
 
   if (confirmed) {
     const formattedAddress = [locationName, address].filter(Boolean).join(", ");
     return (
       <View style={styles.section}>
-        <Text style={styles.sectionLabel}>Location</Text>
+        <Text style={styles.sectionLabel}>
+          {t("import:locationSection.label")}
+        </Text>
         <Text style={styles.addressText}>{formattedAddress}</Text>
       </View>
     );
@@ -38,25 +42,31 @@ const LocationSection: React.FC<LocationSectionProps> = ({
 
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionLabel}>Location</Text>
+      <Text style={styles.sectionLabel}>
+        {t("import:locationSection.label")}
+      </Text>
 
       {!hasAddress ? (
         <>
           <Text style={styles.helperText}>
-            Seems we didn’t find the place for this activity.
+            {t("import:locationSection.notFound")}
           </Text>
           <Pressable style={styles.primaryBtn} onPress={() => setEditing(true)}>
-            <Text style={styles.primaryBtnText}>Edit location</Text>
+            <Text style={styles.primaryBtnText}>
+              {t("import:locationSection.edit")}
+            </Text>
           </Pressable>
         </>
       ) : (
         <>
           <Text style={styles.helperText}>
-            This location might not be accurate. Please check it.
+            {t("import:locationSection.notAccurate")}
           </Text>
           <Text style={styles.previewText}>{formattedAddress}</Text>
           <Pressable style={styles.primaryBtn} onPress={() => setEditing(true)}>
-            <Text style={styles.primaryBtnText}>Edit location</Text>
+            <Text style={styles.primaryBtnText}>
+              {t("import:locationSection.edit")}
+            </Text>
           </Pressable>
         </>
       )}

@@ -27,12 +27,14 @@ import AppBottomSheet from "@common/components/AppBottomSheet";
 import ImportDetailsSheet from "../components/ImportDetailsSheet";
 import type { Activity } from "@features/activities/utils/types";
 import { UpdateActivityPayload } from "../utils/types";
+import { useTranslation } from "react-i18next";
 
 const ImportScreen = () => {
   const { shared } = useLocalSearchParams();
   const dispatch = useAppDispatch();
   const user = useAppSelector(selectAuthUser);
   const { confirm } = useConfirmDialog();
+  const { t } = useTranslation();
 
   const loading = useAppSelector(selectImportLoading);
   const error = useAppSelector(selectImportError);
@@ -86,8 +88,8 @@ const ImportScreen = () => {
     if (!activity) return;
 
     confirm(
-      "Save activity?",
-      "This will save this activity with the selected location and date.",
+      t("import:confirm.saveTitle"),
+      t("import:confirm.saveMessage"),
       () => {
         dispatch(
           saveImportedActivityDetails({
@@ -98,7 +100,10 @@ const ImportScreen = () => {
         setSheetOpen(false);
         setHasUnsavedChanges(false);
       },
-      { cancelText: "Cancel", confirmText: "Save" }
+      {
+        cancelText: t("common:buttons.cancel"),
+        confirmText: t("common:buttons.save"),
+      }
     );
   };
 
@@ -124,30 +129,31 @@ const ImportScreen = () => {
     }
 
     confirm(
-      "Discard activity?",
-      "If you cancel, this activity will be removed and not saved to your list.",
+      t("import:confirm.discardTitle"),
+      t("import:confirm.discardMessage"),
       () => {
         discardActivity();
       },
-      { cancelText: "Keep", confirmText: "Discard" }
+      {
+        cancelText: t("common:buttons.keep"),
+        confirmText: t("common:buttons.discard"),
+      }
     );
   };
 
   return (
     <Screen loading={loading}>
       <View style={styles.header}>
-        <Text style={styles.title}>Import activity</Text>
-        <Text style={styles.subtitle}>
-          Share a Reel, TikTok or Short to ReelToDo, we analyze it for you.
-        </Text>
+        <Text style={styles.title}>{t("import:header.title")}</Text>
+        <Text style={styles.subtitle}>{t("import:header.subtitle")}</Text>
       </View>
 
       <View style={styles.inputBlock}>
-        <Text style={styles.label}>Link</Text>
+        <Text style={styles.label}>{t("import:linkInput.label")}</Text>
         <TextInput
           style={styles.input}
           value={sharedData?.webUrl}
-          placeholder="Paste link here"
+          placeholder={t("import:linkInput.placeholder")}
           autoCapitalize="none"
           autoCorrect={false}
           editable={false}
@@ -162,7 +168,9 @@ const ImportScreen = () => {
           disabled={loading || !sharedData?.webUrl || hasAnalyzedRef.current}
         >
           <Text style={styles.analyzeBtnText}>
-            {loading ? "Analyzing..." : "Analyze"}
+            {loading
+              ? t("import:linkInput.analyzing")
+              : t("import:linkInput.analyze")}
           </Text>
         </Pressable>
       </View>

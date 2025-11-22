@@ -26,6 +26,16 @@ export const detectSource = (url: string): SourceType => {
   return "generic";
 };
 
+const fetchWithUA = async (url: string) => {
+  const res = await fetch(url, {
+    headers: {
+      "User-Agent":
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.1 Safari/605.1.15",
+    },
+  });
+  return res;
+};
+
 const decodeHtml = (value: string | null | undefined): string | null => {
   if (!value) return null;
   return value
@@ -64,7 +74,7 @@ const extractMetaFromHtml = (html: string) => {
 
 const fetchHtmlMeta = async (url: string) => {
   try {
-    const res = await fetch(url);
+    const res = await fetchWithUA(url);
     if (!res.ok) {
       console.log("[source] html fetch failed", url, res.status);
       return { title: null, description: null, image: null };
@@ -76,6 +86,39 @@ const fetchHtmlMeta = async (url: string) => {
   } catch (e) {
     console.log("[source] html fetch error", String(e));
     return { title: null, description: null, image: null };
+  }
+};
+
+const fetchOEmbed = async (
+  url: string,
+  source: SourceType
+): Promise<{ title: string | null; author: string | null; image: string | null } | null> => {
+  let endpoint: string | null = null;
+  if (source === "instagram") {
+    endpoint = `https://www.instagram.com/oembed?url=${encodeURIComponent(url)}`;
+  } else if (source === "facebook") {
+    endpoint = `https://www.facebook.com/plugins/post/oembed.json/?url=${encodeURIComponent(url)}`;
+  } else if (source === "tiktok") {
+    endpoint = `https://www.tiktok.com/oembed?url=${encodeURIComponent(url)}`;
+  }
+
+  if (!endpoint) return null;
+
+  try {
+    const res = await fetchWithUA(endpoint);
+    if (!res.ok) {
+      console.log("[source] oembed failed", source, res.status);
+      return null;
+    }
+    const json = await res.json();
+    return {
+      title: decodeHtml(json.title) ?? null,
+      author: json.author_name ?? null,
+      image: json.thumbnail_url ?? null,
+    };
+  } catch (e) {
+    console.log("[source] oembed error", source, String(e));
+    return null;
   }
 };
 
@@ -187,6 +230,20 @@ export const getSourceMetadata = async (
       publishedAt: yt.publishedAt,
     };
     console.log("[source] final youtube meta", out);
+    return out;
+  }
+
+  const oembed = await fetchOEmbed(url, source);
+  if (oembed) {
+    const out: SourceMetadata = {
+      source,
+      title: userMeta?.title ?? oembed.title,
+      description: userMeta?.description ?? null,
+      image: userMeta?.thumbnail_url ?? oembed.image,
+      author: userMeta?.author_name ?? oembed.author,
+      publishedAt: null,
+    };
+    console.log("[source] final oembed meta", out);
     return out;
   }
 

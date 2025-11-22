@@ -1,0 +1,40 @@
+{
+  "buttons": {
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "keep": "Keep",
+    "discard": "Discard",
+    "saveChanges": "Save changes",
+    "open": "Open",
+    "delete": "Delete",
+    "signOut": "Sign out"
+  },
+  "fields": {
+    "email": "Email",
+    "password": "Password",
+    "address": "Address",
+    "link": "Link"
+  },
+  "labels": {
+    "activity": "Activity",
+    "activities": "Activities",
+    "locationPending": "Location to be confirmed",
+    "locationMissing": "Location to confirm or refine",
+    "addressMissing": "Address not provided",
+    "dateMissing": "Date not provided",
+    "untitled": "Untitled"
+  },
+  "navigation": {
+    "tabs": {
+      "activities": "Activities",
+      "map": "Map",
+      "calendar": "Calendar",
+      "import": "Import",
+      "settings": "Settings"
+    }
+  },
+  "status": {
+    "searching": "Searching…"
+  }
+}

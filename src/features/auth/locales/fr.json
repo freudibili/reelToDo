@@ -1,0 +1,18 @@
+{
+  "signIn": {
+    "title": "Se connecter",
+    "submit": "Continuer",
+    "noAccount": "Pas encore de compte ?",
+    "cta": "Inscription"
+  },
+  "signUp": {
+    "title": "Créer un compte",
+    "submit": "Créer",
+    "hasAccount": "Vous avez déjà un compte ?",
+    "cta": "Connexion"
+  },
+  "errors": {
+    "signIn": "Impossible de se connecter",
+    "signUp": "Impossible de créer le compte"
+  }
+}

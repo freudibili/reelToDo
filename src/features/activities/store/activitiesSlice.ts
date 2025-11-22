@@ -6,6 +6,7 @@ import { createCalendarEventForActivity } from "../services/calendarService";
 import { Linking } from "react-native";
 import type { Activity } from "../utils/types";
 import type { AppDispatch, RootState } from "@core/store";
+import i18next from "@common/i18n/i18n";
 
 interface ActivitiesState {
   items: Activity[];
@@ -77,12 +78,14 @@ export const deleteActivity = createAsyncThunk<
 >("activities/deleteActivity", async (id, { getState, rejectWithValue }) => {
   const userId = getState().auth.user?.id;
   if (!userId) {
-    return rejectWithValue("No user authenticated");
+    return rejectWithValue(i18next.t("activities:errors.noUser"));
   }
   try {
     await ActivitiesService.deleteActivity(userId, id);
   } catch (e: any) {
-    return rejectWithValue(e.message ?? "Failed to delete");
+    return rejectWithValue(
+      e.message ?? i18next.t("activities:errors.deleteFailed")
+    );
   }
   return id;
 });
@@ -99,14 +102,14 @@ export const createActivityCalendarEvent = createAsyncThunk<
   async ({ activityId, activityDate }, { getState, rejectWithValue }) => {
     const userId = getState().auth.user?.id;
     if (!userId) {
-      return rejectWithValue("No user authenticated");
+      return rejectWithValue(i18next.t("activities:errors.noUser"));
     }
 
     const activity = getState().activities.items.find(
       (a) => a.id === activityId
     );
     if (!activity) {
-      return rejectWithValue("Activity not found");
+      return rejectWithValue(i18next.t("activities:errors.notFound"));
     }
 
     const eventId = await createCalendarEventForActivity(
@@ -115,7 +118,9 @@ export const createActivityCalendarEvent = createAsyncThunk<
       activityDate
     );
     if (!eventId) {
-      return rejectWithValue("Calendar event not created");
+      return rejectWithValue(
+        i18next.t("activities:errors.calendarCreateFailed")
+      );
     }
 
     return { activityId, calendarEventId: eventId };

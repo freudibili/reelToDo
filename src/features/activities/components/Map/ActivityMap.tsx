@@ -2,6 +2,7 @@ import React, { forwardRef, useImperativeHandle, useRef, useMemo } from "react";
 import MapView, { Marker, Region } from "react-native-maps";
 import { StyleSheet } from "react-native";
 import type { Activity } from "../../utils/types";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   activities: Activity[];
@@ -26,6 +27,7 @@ const ActivitiesMap = forwardRef<ActivitiesMapHandle, Props>(
     },
     ref
   ) => {
+    const { t } = useTranslation();
     const mapRef = useRef<MapView | null>(null);
 
     useImperativeHandle(ref, () => ({
@@ -67,7 +69,7 @@ const ActivitiesMap = forwardRef<ActivitiesMapHandle, Props>(
                 latitude: activity.latitude,
                 longitude: activity.longitude,
               }}
-              title={activity.title ?? "Activité"}
+              title={activity.title ?? t("common:labels.activity")}
               description={activity.location_name ?? activity.category ?? ""}
               onPress={() => onSelectActivity(activity)}
             />

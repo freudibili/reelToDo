@@ -13,6 +13,7 @@ import {
   type GooglePrediction,
   type PlaceDetails,
 } from "../services/locationService";
+import { useTranslation } from "react-i18next";
 
 interface LocationAutocompleteInputProps {
   initialValue?: string;
@@ -31,11 +32,14 @@ const debounce = (fn: () => void, delay: number) => {
 const LocationAutocompleteInput: React.FC<LocationAutocompleteInputProps> = ({
   initialValue,
   onSelectPlace,
-  placeholder = "Address",
+  placeholder,
 }) => {
+  const { t } = useTranslation();
   const [value, setValue] = useState(initialValue ?? "");
   const [suggestions, setSuggestions] = useState<GooglePrediction[]>([]);
   const [loading, setLoading] = useState(false);
+  const resolvedPlaceholder =
+    placeholder ?? t("import:autocomplete.placeholder");
 
   const shouldShowSuggestions = suggestions.length > 0 && value.length > 0;
 
@@ -91,13 +95,13 @@ const LocationAutocompleteInput: React.FC<LocationAutocompleteInputProps> = ({
       <TextInput
         value={value}
         onChangeText={setValue}
-        placeholder={placeholder}
+        placeholder={resolvedPlaceholder}
         style={styles.input}
         autoCorrect={false}
       />
 
       {loading && value.length > 0 && (
-        <Text style={styles.helperText}>Searching…</Text>
+        <Text style={styles.helperText}>{t("import:autocomplete.searching")}</Text>
       )}
 
       {shouldShowSuggestions && (

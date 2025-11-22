@@ -9,6 +9,7 @@ import { store, persistor } from "@core/store";
 import paperTheme from "@common/theme/paperTheme";
 import AuthGate from "@features/auth/navigation/AuthGate";
 import { useShareListener } from "@features/import/hooks/useShareListener";
+import "@common/i18n/i18n";
 
 const RootLayout = () => {
   useShareListener();

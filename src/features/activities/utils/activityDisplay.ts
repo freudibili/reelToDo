@@ -1,4 +1,5 @@
 import type { Activity } from "./types";
+import i18next from "@common/i18n/i18n";
 
 export const formatDisplayDate = (
   date: string | Date | null | undefined
@@ -9,7 +10,9 @@ export const formatDisplayDate = (
   if (!parsed || Number.isNaN(parsed.getTime())) return null;
 
   try {
-    return parsed.toLocaleDateString("fr-FR", {
+    const locale =
+      i18next.resolvedLanguage === "fr" ? "fr-FR" : "en-US";
+    return parsed.toLocaleDateString(locale, {
       day: "numeric",
       month: "short",
       year: "numeric",

@@ -14,6 +14,7 @@ import {
 
 import { PlaceDetails } from "../services/locationService";
 import type { ImportDraftDetails, UpdateActivityPayload } from "../utils/types";
+import { useTranslation } from "react-i18next";
 
 interface ImportDetailsSheetProps {
   activity: Activity;
@@ -28,6 +29,7 @@ const ImportDetailsSheet: React.FC<ImportDetailsSheetProps> = ({
   onCancel,
   onDirtyChange,
 }) => {
+  const { t } = useTranslation();
   const [dirty, setDirty] = useState(false);
 
   const [draft, setDraft] = useState<ImportDraftDetails>(() => ({
@@ -93,13 +95,13 @@ const ImportDetailsSheet: React.FC<ImportDetailsSheetProps> = ({
   const heroLocation =
     draft.location?.name ||
     formatActivityLocation(activity) ||
-    "Lieu à confirmer";
+    t("import:details.locationFallback");
   const heroDate = formatDisplayDate(draft.date ?? activity.main_date);
 
   return (
     <View style={styles.sheetContent}>
       <ActivityHero
-        title={activity.title ?? "Activité"}
+        title={activity.title ?? t("common:labels.activity")}
         category={activity.category}
         location={heroLocation}
         dateLabel={heroDate}
@@ -108,7 +110,7 @@ const ImportDetailsSheet: React.FC<ImportDetailsSheetProps> = ({
       />
 
       <ActivitySummaryHeader
-        title={activity.title ?? "Activité"}
+        title={activity.title ?? t("common:labels.activity")}
         category={activity.category}
         location={heroLocation}
         dateLabel={heroDate}
@@ -137,7 +139,9 @@ const ImportDetailsSheet: React.FC<ImportDetailsSheetProps> = ({
       {!hideSaveButton && (
         <View style={styles.bottomButtons}>
           <Pressable style={styles.cancelBtn} onPress={onCancel}>
-            <Text style={styles.cancelBtnText}>Cancel</Text>
+            <Text style={styles.cancelBtnText}>
+              {t("import:details.cancel")}
+            </Text>
           </Pressable>
 
           <Pressable
@@ -145,7 +149,9 @@ const ImportDetailsSheet: React.FC<ImportDetailsSheetProps> = ({
             disabled={!dirty}
             onPress={handleSavePress}
           >
-            <Text style={styles.saveBtnText}>Save changes</Text>
+            <Text style={styles.saveBtnText}>
+              {t("import:details.saveChanges")}
+            </Text>
           </Pressable>
         </View>
       )}

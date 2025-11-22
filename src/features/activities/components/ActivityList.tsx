@@ -10,6 +10,7 @@ import {
 import { Link } from "expo-router";
 import ActivityCard from "./ActivityCard";
 import type { Activity } from "../utils/types";
+import { useTranslation } from "react-i18next";
 
 interface CategoryGroup {
   category: string;
@@ -25,13 +26,14 @@ const ActivityList: React.FC<Props> = ({
   data,
   onSelect,
 }) => {
+  const { t } = useTranslation();
   const { width } = useWindowDimensions();
 
   if (!data || data.length === 0) {
     return (
       <View style={styles.empty}>
-        <Text>No activities yet.</Text>
-        <Text>Import one from the Import screen.</Text>
+        <Text>{t("activities:list.emptyTitle")}</Text>
+        <Text>{t("activities:list.emptySubtitle")}</Text>
       </View>
     );
   }
@@ -67,9 +69,9 @@ const ActivityList: React.FC<Props> = ({
               >
                 <Pressable style={styles.moreWrapper}>
                   <Text style={styles.moreLabel}>+{section.activities.length - 8}</Text>
-                  <Text style={styles.moreTitle}>Voir plus</Text>
-                  <Text style={styles.moreHint}>Toutes les activités</Text>
-                  <Text style={styles.moreLink}>Ouvrir</Text>
+                  <Text style={styles.moreTitle}>{t("activities:list.more.title")}</Text>
+                  <Text style={styles.moreHint}>{t("activities:list.more.hint")}</Text>
+                  <Text style={styles.moreLink}>{t("activities:list.more.open")}</Text>
                 </Pressable>
               </Link>
             ) : null}

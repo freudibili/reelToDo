@@ -90,17 +90,25 @@ const reverseGeocode = async (
   };
 };
 
+const normalizeToken = (value: string | null | undefined) =>
+  (value ?? "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
 export const geocodePlace = async (
   name: string,
-  context?: string | null
+  context?: string | null,
+  opts?: { cityHint?: string | null; countryHint?: string | null }
 ): Promise<GeocodedPlace | null> => {
   if (!GOOGLE_MAPS_API_KEY) {
     console.log("[google] no api key, skipping");
     return null;
   }
 
-  const query =
-    context && context.length > 0 ? `${name} ${context}` : (name ?? "");
+  const queryParts = [name];
+  if (context) queryParts.push(context);
+  if (opts?.cityHint) queryParts.push(opts.cityHint);
+  if (opts?.countryHint) queryParts.push(opts.countryHint);
+
+  const query = queryParts.filter(Boolean).join(" ").trim();
   const asciiQuery = toAscii(query);
 
   const json = await fetchTextSearch(asciiQuery);
@@ -131,6 +139,31 @@ export const geocodePlace = async (
     latitude: location ? Number(location.lat) : null,
     longitude: location ? Number(location.lng) : null,
   };
+
+  // reject clearly mismatching results when we have hints
+  if (opts?.cityHint) {
+    const hint = normalizeToken(opts.cityHint);
+    const got = normalizeToken(place.city);
+    if (hint && got && hint !== got) {
+      console.log("[google] city mismatch, discarding result", {
+        hint: opts.cityHint,
+        got: place.city,
+      });
+      return null;
+    }
+  }
+
+  if (opts?.countryHint) {
+    const hint = normalizeToken(opts.countryHint);
+    const got = normalizeToken(place.country);
+    if (hint && got && hint !== got) {
+      console.log("[google] country mismatch, discarding result", {
+        hint: opts.countryHint,
+        got: place.country,
+      });
+      return null;
+    }
+  }
 
   // 👇 NEW: if we have coords but still no country, try reverse geocoding
   if (place.latitude && place.longitude && !place.country) {

@@ -11,6 +11,7 @@ import {
 } from "../utils/activityDisplay";
 import { categoryNeedsDate } from "../utils/activityHelper";
 import type { Activity } from "../utils/types";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   activity: Activity | null;
@@ -31,23 +32,27 @@ const ActivityDetailsSheet: React.FC<Props> = ({
   onOpenSource,
   onAddToCalendar,
 }) => {
+  const { t } = useTranslation();
   if (!activity) return null;
 
   const dateLabel = formatDisplayDate(activity.main_date);
   const locationLabel =
-    formatActivityLocation(activity) ?? "Lieu à confirmer ou préciser";
+    formatActivityLocation(activity) ??
+    t("activities:details.locationFallback");
   const needsDate = categoryNeedsDate(activity.category);
 
   const actions: ActionRailItem[] = [
     {
       key: "favorite",
-      label: isFavorite ? "Retirer favori" : "Favori",
+      label: isFavorite
+        ? t("activities:details.actions.removeFavorite")
+        : t("activities:details.actions.favorite"),
       icon: isFavorite ? "heart" : "heart-outline",
       onPress: () => onToggleFavorite(activity),
     },
     {
       key: "maps",
-      label: "Maps",
+      label: t("activities:details.actions.maps"),
       icon: "map-marker",
       onPress: () => onOpenMaps(activity),
     },
@@ -55,7 +60,7 @@ const ActivityDetailsSheet: React.FC<Props> = ({
       ? [
           {
             key: "calendar",
-            label: "Calendrier",
+            label: t("activities:details.actions.calendar"),
             icon: "calendar",
             onPress: () => onAddToCalendar(activity),
           } as ActionRailItem,
@@ -63,14 +68,14 @@ const ActivityDetailsSheet: React.FC<Props> = ({
       : []),
     {
       key: "source",
-      label: "Source",
+      label: t("activities:details.actions.source"),
       icon: "link-variant",
       onPress: () => onOpenSource(activity),
       disabled: !activity.source_url,
     },
     {
       key: "delete",
-      label: "Supprimer",
+      label: t("activities:details.actions.delete"),
       icon: "delete-outline",
       tone: "danger" as const,
       onPress: () => onDelete(activity),
@@ -83,7 +88,7 @@ const ActivityDetailsSheet: React.FC<Props> = ({
       nestedScrollEnabled
     >
       <ActivitySummaryHeader
-        title={activity.title ?? "Activité"}
+        title={activity.title ?? t("common:labels.activity")}
         category={activity.category}
         location={locationLabel}
         dateLabel={dateLabel}
@@ -95,7 +100,7 @@ const ActivityDetailsSheet: React.FC<Props> = ({
       </View>
 
       <ActivityHero
-        title={activity.title ?? "Activité"}
+        title={activity.title ?? t("common:labels.activity")}
         category={activity.category}
         location={locationLabel}
         dateLabel={dateLabel}
@@ -103,15 +108,20 @@ const ActivityDetailsSheet: React.FC<Props> = ({
         showOverlayContent={false}
       />
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionHeaderText}>Overview</Text>
+        <Text style={styles.sectionHeaderText}>
+          {t("activities:details.overview")}
+        </Text>
         <View style={styles.sectionUnderline} />
       </View>
       <InfoRow
         icon="map-marker"
-        value={activity.address ?? "Adresse non précisée"}
+        value={activity.address ?? t("activities:details.addressMissing")}
       />
       {needsDate ? (
-        <InfoRow icon="calendar" value={dateLabel ?? "Date non précisée"} />
+        <InfoRow
+          icon="calendar"
+          value={dateLabel ?? t("activities:details.dateMissing")}
+        />
       ) : null}
     </BottomSheetScrollView>
   );

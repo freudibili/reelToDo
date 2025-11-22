@@ -1,0 +1,47 @@
+{
+  "header": {
+    "title": "Import activity",
+    "subtitle": "Share a Reel, TikTok or Short to ReelToDo, we analyze it for you."
+  },
+  "linkInput": {
+    "label": "Link",
+    "placeholder": "Paste link here",
+    "analyze": "Analyze",
+    "analyzing": "Analyzing..."
+  },
+  "confirm": {
+    "saveTitle": "Save activity?",
+    "saveMessage": "This will save this activity with the selected location and date.",
+    "discardTitle": "Discard activity?",
+    "discardMessage": "If you cancel, this activity will be removed and not saved to your list."
+  },
+  "details": {
+    "locationFallback": "Location to confirm",
+    "saveChanges": "Save changes",
+    "cancel": "Cancel"
+  },
+  "locationSection": {
+    "label": "Location",
+    "notFound": "Seems we didn’t find the place for this activity.",
+    "notAccurate": "This location might not be accurate. Please check it.",
+    "edit": "Edit location"
+  },
+  "dateSection": {
+    "label": "Date",
+    "select": "Select date",
+    "notFound": "Seems we didn’t find a clear date for this activity.",
+    "notAccurate": "This date might not be accurate. Please double-check it.",
+    "add": "Add date",
+    "edit": "Edit date"
+  },
+  "autocomplete": {
+    "placeholder": "Address",
+    "searching": "Searching…"
+  },
+  "errors": {
+    "analyze": "Unable to analyze link",
+    "location": "Failed to confirm location",
+    "date": "Failed to confirm date",
+    "saveDetails": "Unable to save activity details"
+  }
+}

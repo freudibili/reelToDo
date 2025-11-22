@@ -1,0 +1,18 @@
+{
+  "signIn": {
+    "title": "Sign in",
+    "submit": "Continue",
+    "noAccount": "No account?",
+    "cta": "Sign up"
+  },
+  "signUp": {
+    "title": "Create account",
+    "submit": "Create",
+    "hasAccount": "Already have an account?",
+    "cta": "Sign in"
+  },
+  "errors": {
+    "signIn": "Unable to sign in",
+    "signUp": "Unable to sign up"
+  }
+}

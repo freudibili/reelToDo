@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@config/supabase";
+import i18next from "@common/i18n/i18n";
 
 type AuthState = {
   session: Session | null;
@@ -84,7 +85,8 @@ const authSlice = createSlice({
       })
       .addCase(signInWithPassword.rejected, (state, action) => {
         state.loading = false;
-        state.error = (action.payload as string) ?? "Unable to sign in";
+        state.error =
+          (action.payload as string) ?? i18next.t("auth:errors.signIn");
       })
       .addCase(signUpWithPassword.pending, (state) => {
         state.loading = true;
@@ -97,7 +99,8 @@ const authSlice = createSlice({
       })
       .addCase(signUpWithPassword.rejected, (state, action) => {
         state.loading = false;
-        state.error = (action.payload as string) ?? "Unable to sign up";
+        state.error =
+          (action.payload as string) ?? i18next.t("auth:errors.signUp");
       })
       .addCase(signOut.pending, (state) => {
         state.loading = true;

@@ -4,10 +4,12 @@ import { useDispatch, useSelector } from "react-redux";
 import { signOut } from "@features/auth/store/authSlice";
 import { selectAuthUser } from "@features/auth/store/authSelectors";
 import type { AppDispatch } from "@core/store";
+import { useTranslation } from "react-i18next";
 
 const HomeScreen = () => {
   const dispatch = useDispatch<AppDispatch>();
   const user = useSelector(selectAuthUser);
+  const { t } = useTranslation();
 
   const onLogout = () => {
     dispatch(signOut());
@@ -15,10 +17,12 @@ const HomeScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Welcome 👋</Text>
+      <Text style={styles.title}>{t("home:welcome")}</Text>
       {user?.email ? <Text style={styles.subtitle}>{user.email}</Text> : null}
       <TouchableOpacity style={styles.button} onPress={onLogout}>
-        <Text style={styles.buttonText}>Sign out</Text>
+        <Text style={styles.buttonText}>
+          {t("common:buttons.signOut")}
+        </Text>
       </TouchableOpacity>
     </View>
   );

@@ -12,11 +12,13 @@ import { signInWithPassword } from "../store/authSlice";
 import { selectAuthLoading, selectAuthError } from "../store/authSelectors";
 import type { AppDispatch } from "@core/store";
 import { Link } from "expo-router";
+import { useTranslation } from "react-i18next";
 
 const SignInScreen = () => {
   const dispatch = useDispatch<AppDispatch>();
   const loading = useSelector(selectAuthLoading);
   const error = useSelector(selectAuthError);
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -27,20 +29,20 @@ const SignInScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Sign in</Text>
+      <Text style={styles.title}>{t("auth:signIn.title")}</Text>
       {error ? <Text style={styles.error}>{error}</Text> : null}
       <TextInput
         style={styles.input}
         autoCapitalize="none"
         keyboardType="email-address"
-        placeholder="Email"
+        placeholder={t("common:fields.email")}
         value={email}
         onChangeText={setEmail}
       />
       <TextInput
         style={styles.input}
         secureTextEntry
-        placeholder="Password"
+        placeholder={t("common:fields.password")}
         value={password}
         onChangeText={setPassword}
       />
@@ -52,13 +54,15 @@ const SignInScreen = () => {
         {loading ? (
           <ActivityIndicator />
         ) : (
-          <Text style={styles.buttonText}>Continue</Text>
+          <Text style={styles.buttonText}>
+            {t("auth:signIn.submit")}
+          </Text>
         )}
       </TouchableOpacity>
       <View style={styles.footer}>
-        <Text style={styles.footerText}>No account?</Text>
+        <Text style={styles.footerText}>{t("auth:signIn.noAccount")}</Text>
         <Link href="/auth/signup" style={styles.link}>
-          Sign up
+          {t("auth:signIn.cta")}
         </Link>
       </View>
     </View>

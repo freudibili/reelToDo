@@ -13,6 +13,7 @@ import {
 } from "@features/activities/store/activitiesSlice";
 import { AppDispatch, RootState } from "@core/store";
 import { UpdateActivityPayload } from "../utils/types";
+import i18next from "@common/i18n/i18n";
 
 export interface ImportState {
   loading: boolean;
@@ -47,7 +48,7 @@ export const analyzeSharedLink = createAsyncThunk<
           ? err.message
           : typeof err === "string"
             ? err
-            : "Unable to analyze link";
+            : i18next.t("import:errors.analyze");
       return rejectWithValue(message);
     }
   }
@@ -62,7 +63,7 @@ export const confirmImportedLocation = createAsyncThunk<
     const updated = await markActivityLocationConfirmed(activityId);
     return updated;
   } catch (error) {
-    return rejectWithValue("Failed to confirm location");
+    return rejectWithValue(i18next.t("import:errors.location"));
   }
 });
 
@@ -77,7 +78,7 @@ export const confirmImportedDate = createAsyncThunk<
       const updated = await markActivityDateConfirmed(activityId, date);
       return updated;
     } catch (error) {
-      return rejectWithValue("Failed to confirm date");
+      return rejectWithValue(i18next.t("import:errors.date"));
     }
   }
 );
@@ -106,7 +107,7 @@ export const saveImportedActivityDetails = createAsyncThunk<
           ? err.message
           : typeof err === "string"
             ? err
-            : "Unable to save activity details";
+            : i18next.t("import:errors.saveDetails");
       return rejectWithValue(message);
     }
   }
@@ -131,28 +132,31 @@ const importSlice = createSlice({
       })
       .addCase(analyzeSharedLink.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload ?? "Unable to analyze link";
+        state.error =
+          action.payload ?? i18next.t("import:errors.analyze");
       })
       .addCase(confirmImportedLocation.fulfilled, (state, action) => {
         state.importedActivity = action.payload;
         state.error = null;
       })
       .addCase(confirmImportedLocation.rejected, (state, action) => {
-        state.error = action.payload || "Failed to confirm location";
+        state.error =
+          action.payload || i18next.t("import:errors.location");
       })
       .addCase(confirmImportedDate.fulfilled, (state, action) => {
         state.importedActivity = action.payload;
         state.error = null;
       })
       .addCase(confirmImportedDate.rejected, (state, action) => {
-        state.error = action.payload || "Failed to confirm date";
+        state.error = action.payload || i18next.t("import:errors.date");
       })
       .addCase(saveImportedActivityDetails.fulfilled, (state, action) => {
         state.importedActivity = action.payload;
         state.error = null;
       })
       .addCase(saveImportedActivityDetails.rejected, (state, action) => {
-        state.error = action.payload || "Failed to save activity details";
+        state.error =
+          action.payload || i18next.t("import:errors.saveDetails");
       });
   },
 });

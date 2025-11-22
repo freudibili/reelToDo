@@ -1,0 +1,56 @@
+{
+  "header": "Activités",
+  "list": {
+    "emptyTitle": "Pas encore d'activités.",
+    "emptySubtitle": "Importe-en une depuis l'écran Import.",
+    "more": {
+      "title": "Voir plus",
+      "hint": "Toutes les activités",
+      "open": "Ouvrir"
+    }
+  },
+  "confirmDelete": {
+    "title": "Supprimer cette activité ?",
+    "description": "Cette action est définitive.",
+    "confirm": "Supprimer",
+    "cancel": "Annuler"
+  },
+  "details": {
+    "overview": "Présentation",
+    "locationFallback": "Lieu à confirmer ou à préciser",
+    "addressMissing": "Adresse non précisée",
+    "dateMissing": "Date non précisée",
+    "actions": {
+      "favorite": "Favori",
+      "removeFavorite": "Retirer favori",
+      "maps": "Maps",
+      "calendar": "Calendrier",
+      "source": "Source",
+      "delete": "Supprimer"
+    }
+  },
+  "category": {
+    "subtitle_one": "{{count}} activité",
+    "subtitle_other": "{{count}} activités",
+    "empty": "Aucune activité pour cette catégorie.",
+    "fallbackTitle": "Activités"
+  },
+  "map": {
+    "permissionDeniedTitle": "Permission refusée",
+    "permissionDeniedMessage": "Impossible d'accéder à votre position.",
+    "all": "Toutes",
+    "nearby": "À proximité"
+  },
+  "calendar": {
+    "comingSoon": "Calendrier à venir 📅"
+  },
+  "card": {
+    "untitled": "Activité"
+  },
+  "errors": {
+    "noUser": "Aucun utilisateur connecté",
+    "deleteFailed": "Impossible de supprimer l'activité",
+    "notFound": "Activité introuvable",
+    "calendarCreateFailed": "Événement calendrier non créé"
+  }
+}

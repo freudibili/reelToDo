@@ -25,10 +25,12 @@ import { useAppDispatch, useAppSelector } from "@core/store/hook";
 import { useConfirmDialog } from "@common/hooks/useConfirmDialog";
 import Screen from "@common/components/AppScreen";
 import AppBottomSheet from "@common/components/AppBottomSheet";
+import { useTranslation } from "react-i18next";
 
 const ActivitiesScreen = () => {
   const dispatch = useAppDispatch();
   const { confirm } = useConfirmDialog();
+  const { t } = useTranslation();
   const grouped = useAppSelector(activitiesSelectors.groupedByCategory);
   const loading = useAppSelector(activitiesSelectors.loading);
   const initialized = useAppSelector(activitiesSelectors.initialized);
@@ -71,21 +73,24 @@ const ActivitiesScreen = () => {
   const handleDelete = useCallback(
     (activity: Activity) => {
       confirm(
-        "Supprimer cette activité ?",
-        "Cette action est définitive.",
+        t("activities:confirmDelete.title"),
+        t("activities:confirmDelete.description"),
         () => {
           dispatch(deleteActivity(activity.id));
           handleClose();
         },
-        { cancelText: "Annuler", confirmText: "Supprimer" }
+        {
+          cancelText: t("activities:confirmDelete.cancel"),
+          confirmText: t("activities:confirmDelete.confirm"),
+        }
       );
     },
-    [confirm, dispatch]
+    [confirm, dispatch, t]
   );
 
   return (
     <Screen loading={loading && !initialized}>
-      <Text style={styles.header}>Activities</Text>
+      <Text style={styles.header}>{t("activities:header")}</Text>
 
       <ActivityList
         data={grouped}

@@ -5,6 +5,7 @@ import {
   inferCategoryFromContent,
 } from "./normalize.ts";
 import { geocodePlace } from "./googlePlaces.ts";
+import { categoryNeedsDate, resolveDatesFromText } from "./datesResolver.ts";
 
 const cleanTitle = (raw: string | null): string | null => {
   if (!raw) return null;
@@ -223,34 +224,44 @@ Respond strictly in JSON format only.
     "other";
 
   // minimal: compute a fallback date from plain text if model didn't give one
-
   let resolvedDateFromText: string | null = null;
-  try {
-    const textForDates = [
-      meta.title ?? "",
-      meta.description ?? "",
-      Array.isArray(parsed.tags) ? parsed.tags.join(" ") : "",
-    ]
-      .filter(Boolean)
-      .join(" ");
+  if (categoryNeedsDate(fallbackCategory)) {
+    try {
+      const textForDates = [
+        meta.title ?? "",
+        meta.description ?? "",
+        Array.isArray(parsed.tags) ? parsed.tags.join(" ") : "",
+      ]
+        .filter(Boolean)
+        .join(" ");
 
-    const dateInfo = await resolveDatesFromText({
-      text: textForDates,
-      localeHint: "en",
-      venue: parsed.location_name ?? null,
-      city: parsed.city ?? null,
-      artists: [parsed.creator, meta.author].filter((x): x is string =>
-        Boolean(x)
-      ),
-    });
+      const dateInfo = await resolveDatesFromText({
+        text: textForDates,
+        localeHint: "en",
+        venue: parsed.location_name ?? null,
+        city: parsed.city ?? null,
+        artists: [parsed.creator, meta.author].filter((x): x is string =>
+          Boolean(x)
+        ),
+      });
 
-    if (dateInfo?.main_date) {
-      resolvedDateFromText = dateInfo.main_date;
+      if (dateInfo?.main_date) {
+        resolvedDateFromText = dateInfo.main_date;
+      }
+    } catch (err) {
+      console.log("[ai] date fallback failed", err);
     }
-  } catch {}
+  }
+
+  const geocodeContext = [parsed.city, parsed.country].filter(Boolean).join(" ");
 
   const resolvedLocation = (await geocodePlace(
-    parsed.location_name ?? parsed.address ?? meta.title ?? ""
+    parsed.location_name ?? parsed.address ?? meta.title ?? "",
+    geocodeContext || null,
+    {
+      cityHint: parsed.city ?? null,
+      countryHint: parsed.country ?? null,
+    }
   )) ?? {
     location_name: parsed.location_name ?? null,
     address: parsed.address ?? null,

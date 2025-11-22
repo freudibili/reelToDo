@@ -1,0 +1,56 @@
+{
+  "header": "Activities",
+  "list": {
+    "emptyTitle": "No activities yet.",
+    "emptySubtitle": "Import one from the Import screen.",
+    "more": {
+      "title": "See more",
+      "hint": "All activities",
+      "open": "Open"
+    }
+  },
+  "confirmDelete": {
+    "title": "Delete this activity?",
+    "description": "This action cannot be undone.",
+    "confirm": "Delete",
+    "cancel": "Cancel"
+  },
+  "details": {
+    "overview": "Overview",
+    "locationFallback": "Location to confirm or refine",
+    "addressMissing": "Address not provided",
+    "dateMissing": "Date not provided",
+    "actions": {
+      "favorite": "Favorite",
+      "removeFavorite": "Remove favorite",
+      "maps": "Maps",
+      "calendar": "Calendar",
+      "source": "Source",
+      "delete": "Delete"
+    }
+  },
+  "category": {
+    "subtitle_one": "{{count}} activity",
+    "subtitle_other": "{{count}} activities",
+    "empty": "No activities for this category.",
+    "fallbackTitle": "Activities"
+  },
+  "map": {
+    "permissionDeniedTitle": "Permission denied",
+    "permissionDeniedMessage": "Unable to access your location.",
+    "all": "All",
+    "nearby": "Nearby"
+  },
+  "calendar": {
+    "comingSoon": "Calendar coming soon 📅"
+  },
+  "card": {
+    "untitled": "Activity"
+  },
+  "errors": {
+    "noUser": "No user authenticated",
+    "deleteFailed": "Failed to delete activity",
+    "notFound": "Activity not found",
+    "calendarCreateFailed": "Calendar event not created"
+  }
+}

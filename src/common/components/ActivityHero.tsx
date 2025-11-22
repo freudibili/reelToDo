@@ -6,6 +6,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { useTranslation } from "react-i18next";
 
 interface ActivityHeroProps {
   title: string;
@@ -28,14 +29,21 @@ const ActivityHero: React.FC<ActivityHeroProps> = ({
   onToggleFavorite,
   showOverlayContent = true,
 }) => {
+  const { t } = useTranslation();
+  const fallbackTitle = t("labels.activity");
+  const displayTitle = title || fallbackTitle;
+  const displayCategory = category || fallbackTitle;
   const chips = [location, dateLabel].filter(Boolean) as string[];
-  const initial = title?.trim()?.[0]?.toUpperCase() ?? "A";
+  const initial =
+    title?.trim()?.[0]?.toUpperCase() ||
+    fallbackTitle?.trim()?.[0]?.toUpperCase() ||
+    "A";
 
   const renderHeroContent = () => (
     <View style={styles.overlayContent}>
-      <Text style={styles.category}>{category || "Activité"}</Text>
+      <Text style={styles.category}>{displayCategory}</Text>
       <Text style={styles.title} numberOfLines={2}>
-        {title || "Activité"}
+        {displayTitle}
       </Text>
       {chips.length > 0 ? (
         <View style={styles.chipRow}>

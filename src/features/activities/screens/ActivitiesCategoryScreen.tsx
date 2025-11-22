@@ -17,6 +17,7 @@ import type { Activity } from "../utils/types";
 import { useConfirmDialog } from "@common/hooks/useConfirmDialog";
 import Screen, { ScreenHeader } from "@common/components/AppScreen";
 import AppBottomSheet from "@common/components/AppBottomSheet";
+import { useTranslation } from "react-i18next";
 
 const ActivitiesCategoryScreen = () => {
   const { category: categoryParam } = useLocalSearchParams<{
@@ -30,6 +31,7 @@ const ActivitiesCategoryScreen = () => {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const { confirm } = useConfirmDialog();
+  const { t } = useTranslation();
   const categorySelector = useMemo(
     () => activitiesSelectors.byCategory(category),
     [category]
@@ -67,16 +69,19 @@ const ActivitiesCategoryScreen = () => {
   const handleDelete = useCallback(
     (activity: Activity) => {
       confirm(
-        "Supprimer cette activité ?",
-        "Cette action est définitive.",
+        t("activities:confirmDelete.title"),
+        t("activities:confirmDelete.description"),
         () => {
           dispatch(deleteActivity(activity.id));
           handleClose();
         },
-        { cancelText: "Annuler", confirmText: "Supprimer" }
+        {
+          cancelText: t("activities:confirmDelete.cancel"),
+          confirmText: t("activities:confirmDelete.confirm"),
+        }
       );
     },
-    [confirm, dispatch]
+    [confirm, dispatch, t]
   );
 
   const categoryLabel =
@@ -85,8 +90,10 @@ const ActivitiesCategoryScreen = () => {
   return (
     <Screen>
       <ScreenHeader
-        title={categoryLabel || "Activities"}
-        subtitle={`${activities.length} activités`}
+        title={categoryLabel || t("activities:category.fallbackTitle")}
+        subtitle={t("activities:category.subtitle", {
+          count: activities.length,
+        })}
         onBackPress={() => router.back()}
         compact
       />
@@ -103,7 +110,7 @@ const ActivitiesCategoryScreen = () => {
 
         {activities.length === 0 && (
           <View style={styles.empty}>
-            <Text>Aucune activité pour cette catégorie.</Text>
+            <Text>{t("activities:category.empty")}</Text>
           </View>
         )}
       </ScrollView>

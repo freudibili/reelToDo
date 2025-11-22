@@ -1,8 +1,11 @@
 import React from "react";
 import { Tabs } from "expo-router";
 import { Icon } from "react-native-paper";
+import { useTranslation } from "react-i18next";
 
 const TabsLayout = () => {
+  const { t } = useTranslation();
+
   return (
     <Tabs
       screenOptions={{
@@ -14,7 +17,7 @@ const TabsLayout = () => {
       <Tabs.Screen
         name="activities"
         options={{
-          title: "Activities",
+          title: t("navigation.tabs.activities"),
           tabBarIcon: ({ color, size }) => (
             <Icon source="pine-tree" color={color} size={size} />
           ),
@@ -23,7 +26,7 @@ const TabsLayout = () => {
       <Tabs.Screen
         name="activities-map"
         options={{
-          title: "Map",
+          title: t("navigation.tabs.map"),
           tabBarIcon: ({ color, size }) => (
             <Icon source="map" color={color} size={size} />
           ),
@@ -32,7 +35,7 @@ const TabsLayout = () => {
       <Tabs.Screen
         name="activities-calendar"
         options={{
-          title: "Calendar",
+          title: t("navigation.tabs.calendar"),
           tabBarIcon: ({ color, size }) => (
             <Icon source="calendar-month" color={color} size={size} />
           ),
@@ -41,7 +44,7 @@ const TabsLayout = () => {
       <Tabs.Screen
         name="import"
         options={{
-          title: "Import",
+          title: t("navigation.tabs.import"),
           tabBarIcon: ({ color, size }) => (
             <Icon source="link-variant" color={color} size={size} />
           ),
@@ -50,7 +53,7 @@ const TabsLayout = () => {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Settings",
+          title: t("navigation.tabs.settings"),
           tabBarIcon: ({ color, size }) => (
             <Icon source="cog-outline" color={color} size={size} />
           ),

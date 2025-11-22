@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, StyleSheet, ViewStyle } from "react-native";
+import { useTranslation } from "react-i18next";
 
 interface ActivitySummaryHeaderProps {
   title: string;
@@ -16,12 +17,14 @@ const ActivitySummaryHeader: React.FC<ActivitySummaryHeaderProps> = ({
   dateLabel,
   style,
 }) => {
+  const { t } = useTranslation();
+  const displayTitle = title || t("labels.activity");
   const metaLine = [category, location].filter(Boolean).join(" • ");
 
   return (
     <View style={[styles.container, style]}>
       <Text style={styles.title} numberOfLines={2}>
-        {title || "Activité"}
+        {displayTitle}
       </Text>
       {metaLine ? (
         <Text style={styles.meta} numberOfLines={2}>

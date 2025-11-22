@@ -33,10 +33,12 @@ import type { Activity } from "../utils/types";
 import { useConfirmDialog } from "@common/hooks/useConfirmDialog";
 import Screen from "@common/components/AppScreen";
 import AppBottomSheet from "@common/components/AppBottomSheet";
+import { useTranslation } from "react-i18next";
 
 const ActivitiesMapScreen = () => {
   const dispatch = useAppDispatch();
   const { confirm } = useConfirmDialog();
+  const { t } = useTranslation();
   const loading = useAppSelector(activitiesSelectors.loading);
   const initialized = useAppSelector(activitiesSelectors.initialized);
   const activities = useAppSelector(activitiesSelectors.items);
@@ -56,8 +58,8 @@ const ActivitiesMapScreen = () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
         Alert.alert(
-          "Permission refusée",
-          "Impossible d'accéder à votre position."
+          t("activities:map.permissionDeniedTitle"),
+          t("activities:map.permissionDeniedMessage")
         );
         return;
       }
@@ -73,7 +75,7 @@ const ActivitiesMapScreen = () => {
     };
 
     requestLocation().catch(() => {});
-  }, []);
+  }, [t]);
 
   const initialRegion = useMemo<Region>(() => {
     if (userRegion) return userRegion;
@@ -126,16 +128,19 @@ const ActivitiesMapScreen = () => {
   const handleDelete = useCallback(
     (activity: Activity) => {
       confirm(
-        "Supprimer cette activité ?",
-        "Cette action est définitive.",
+        t("activities:confirmDelete.title"),
+        t("activities:confirmDelete.description"),
         () => {
           dispatch(deleteActivity(activity.id));
           handleCloseSheet();
         },
-        { cancelText: "Annuler", confirmText: "Supprimer" }
+        {
+          cancelText: t("activities:confirmDelete.cancel"),
+          confirmText: t("activities:confirmDelete.confirm"),
+        }
       );
     },
-    [confirm, dispatch, handleCloseSheet]
+    [confirm, dispatch, handleCloseSheet, t]
   );
 
   const handleToggleFavorite = useCallback(
@@ -212,16 +217,16 @@ const ActivitiesMapScreen = () => {
           <Pressable
             onPress={() => handleCategoryChange(null)}
             style={[styles.chip, category === null && styles.chipActive]}
-          >
-            <Text
-              style={[
-                styles.chipText,
-                category === null && styles.chipTextActive,
-              ]}
             >
-              All
-            </Text>
-          </Pressable>
+              <Text
+                style={[
+                  styles.chipText,
+                  category === null && styles.chipTextActive,
+                ]}
+              >
+                {t("activities:map.all")}
+              </Text>
+            </Pressable>
           {categories.map((cat) => (
             <Pressable
               key={cat}

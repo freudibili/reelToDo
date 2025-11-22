@@ -1,0 +1,47 @@
+{
+  "header": {
+    "title": "Importer une activité",
+    "subtitle": "Partage un Reel, TikTok ou Short vers ReelToDo, on analyse pour toi."
+  },
+  "linkInput": {
+    "label": "Lien",
+    "placeholder": "Colle le lien ici",
+    "analyze": "Analyser",
+    "analyzing": "Analyse en cours..."
+  },
+  "confirm": {
+    "saveTitle": "Enregistrer l'activité ?",
+    "saveMessage": "Cela enregistrera l'activité avec le lieu et la date sélectionnés.",
+    "discardTitle": "Supprimer l'activité ?",
+    "discardMessage": "Si tu annules, l'activité sera supprimée et ne sera pas ajoutée à ta liste."
+  },
+  "details": {
+    "locationFallback": "Lieu à confirmer",
+    "saveChanges": "Enregistrer les modifications",
+    "cancel": "Annuler"
+  },
+  "locationSection": {
+    "label": "Lieu",
+    "notFound": "On n'a pas trouvé le lieu de cette activité.",
+    "notAccurate": "Ce lieu peut ne pas être exact. Merci de vérifier.",
+    "edit": "Modifier le lieu"
+  },
+  "dateSection": {
+    "label": "Date",
+    "select": "Sélectionner une date",
+    "notFound": "On n'a pas identifié clairement la date de cette activité.",
+    "notAccurate": "Cette date peut être inexacte. Merci de vérifier.",
+    "add": "Ajouter une date",
+    "edit": "Modifier la date"
+  },
+  "autocomplete": {
+    "placeholder": "Adresse",
+    "searching": "Recherche…"
+  },
+  "errors": {
+    "analyze": "Impossible d'analyser le lien",
+    "location": "Échec de la confirmation du lieu",
+    "date": "Échec de la confirmation de la date",
+    "saveDetails": "Impossible d'enregistrer les détails de l'activité"
+  }
+}

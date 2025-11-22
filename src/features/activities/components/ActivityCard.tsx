@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Image, Pressable } from "react-native";
 import { Icon } from "react-native-paper";
 import { formatActivityLocation, formatDisplayDate } from "../utils/activityDisplay";
 import type { Activity } from "../utils/types";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   activity: Activity;
@@ -13,6 +14,7 @@ const ActivityCard: React.FC<Props> = ({
   activity,
   onPress,
 }) => {
+  const { t } = useTranslation();
   const locationLabel = formatActivityLocation(activity);
   const dateLabel = formatDisplayDate(activity.main_date);
 
@@ -26,7 +28,7 @@ const ActivityCard: React.FC<Props> = ({
         )}
         <View style={styles.titleOverlay}>
           <Text style={styles.title} numberOfLines={2} ellipsizeMode="tail">
-            {activity.title ?? "Activity"}
+            {activity.title ?? t("activities:card.untitled")}
           </Text>
           {locationLabel ? (
             <View style={styles.metaRow}>

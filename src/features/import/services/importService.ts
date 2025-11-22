@@ -2,6 +2,7 @@ import { supabase } from "@config/supabase";
 import type { ShareIntent } from "expo-share-intent";
 import type { Activity } from "@features/activities/utils/types";
 import type { UpdateActivityPayload } from "../utils/types";
+import i18next from "@common/i18n/i18n";
 
 interface AnalyzeArgs {
   shared: ShareIntent;
@@ -11,7 +12,7 @@ interface AnalyzeArgs {
 export const importService = {
   analyze: async ({ shared, userId }: AnalyzeArgs): Promise<Activity> => {
     const url = shared?.webUrl;
-    if (!url) throw new Error("Missing URL");
+    if (!url) throw new Error(i18next.t("import:errors.analyze"));
 
     const metadata = shared?.meta
       ? {
@@ -29,7 +30,7 @@ export const importService = {
     });
 
     if (error) throw new Error(error.message);
-    if (!data) throw new Error("No data returned");
+    if (!data) throw new Error(i18next.t("import:errors.analyze"));
     return data as Activity;
   },
 };

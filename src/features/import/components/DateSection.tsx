@@ -3,6 +3,8 @@ import { View, Text, Pressable, StyleSheet } from "react-native";
 import DateTimePicker, {
   type DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
+import { useTranslation } from "react-i18next";
+import { formatDisplayDate } from "@features/activities/utils/activityDisplay";
 
 interface DateSectionProps {
   date: Date | null;
@@ -15,12 +17,13 @@ const DateSection: React.FC<DateSectionProps> = ({
   confirmed,
   onChange,
 }) => {
+  const { t } = useTranslation();
   const [pickerVisible, setPickerVisible] = useState(false);
   const [editing, setEditing] = useState(false);
 
   const displayLabel = () => {
-    if (!date) return "Select date";
-    return date.toDateString();
+    if (!date) return t("import:dateSection.select");
+    return formatDisplayDate(date) ?? date.toDateString();
   };
 
   const handleDateChange = (_e: DateTimePickerEvent, selected?: Date) => {
@@ -35,7 +38,7 @@ const DateSection: React.FC<DateSectionProps> = ({
   if (confirmed) {
     return (
       <View style={styles.section}>
-        <Text style={styles.sectionLabel}>Date</Text>
+        <Text style={styles.sectionLabel}>{t("import:dateSection.label")}</Text>
         <Text style={styles.dateText}>{displayLabel()}</Text>
       </View>
     );
@@ -45,12 +48,12 @@ const DateSection: React.FC<DateSectionProps> = ({
 
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionLabel}>Date</Text>
+      <Text style={styles.sectionLabel}>{t("import:dateSection.label")}</Text>
 
       {!hasDate ? (
         <>
           <Text style={styles.helperText}>
-            Seems we didn’t find a clear date for this activity.
+            {t("import:dateSection.notFound")}
           </Text>
           <Pressable
             style={styles.primaryBtn}
@@ -59,13 +62,15 @@ const DateSection: React.FC<DateSectionProps> = ({
               setPickerVisible(true);
             }}
           >
-            <Text style={styles.primaryBtnText}>Add date</Text>
+            <Text style={styles.primaryBtnText}>
+              {t("import:dateSection.add")}
+            </Text>
           </Pressable>
         </>
       ) : (
         <>
           <Text style={styles.helperText}>
-            This date might not be accurate. Please double-check it.
+            {t("import:dateSection.notAccurate")}
           </Text>
           <Text style={styles.previewText}>{displayLabel()}</Text>
           <Pressable
@@ -75,7 +80,9 @@ const DateSection: React.FC<DateSectionProps> = ({
               setPickerVisible(true);
             }}
           >
-            <Text style={styles.primaryBtnText}>Edit date</Text>
+            <Text style={styles.primaryBtnText}>
+              {t("import:dateSection.edit")}
+            </Text>
           </Pressable>
         </>
       )}
