@@ -1,17 +1,19 @@
 import React from "react";
 import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
   StyleSheet,
   View,
-  ActivityIndicator,
   ViewStyle,
-  Text,
-  ScrollView,
 } from "react-native";
+import { BottomTabBarHeightContext } from "@react-navigation/bottom-tabs";
 import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
-import { IconButton } from "react-native-paper";
+import ScreenHeader, { type ScreenHeaderProps } from "./ScreenHeader";
 
 interface AppScreenProps {
   children: React.ReactNode;
@@ -22,151 +24,159 @@ interface AppScreenProps {
   loading?: boolean;
   scrollable?: boolean;
   footer?: React.ReactNode;
-}
-
-export interface ScreenHeaderProps {
-  title: string;
-  subtitle?: string;
-  eyebrow?: string;
+  headerTitle?: string;
+  headerSubtitle?: string;
+  headerEyebrow?: string;
+  headerRight?: React.ReactNode;
   onBackPress?: () => void;
-  right?: React.ReactNode;
-  compact?: boolean;
+  headerCompact?: boolean;
+  headerComponent?: React.ReactNode;
+  keyboardOffset?: number;
+  alignToTabBar?: boolean;
+  flushBottom?: boolean;
 }
-
-export const ScreenHeader: React.FC<ScreenHeaderProps> = ({
-  title,
-  subtitle,
-  eyebrow,
-  onBackPress,
-  right,
-  compact = false,
-}) => {
-  const titleStyle = compact ? styles.headerTitleCompact : styles.headerTitle;
-  const wrapperStyle = compact ? styles.headerCompact : styles.header;
-  return (
-    <View style={wrapperStyle}>
-      {onBackPress ? (
-        <IconButton
-          icon="chevron-left"
-          size={24}
-          onPress={onBackPress}
-          style={styles.backButton}
-        />
-      ) : (
-        <View style={styles.backPlaceholder} />
-      )}
-      <View style={styles.headerText}>
-        {eyebrow ? <Text style={styles.eyebrow}>{eyebrow}</Text> : null}
-        <Text style={titleStyle}>{title}</Text>
-        {subtitle ? (
-          <Text
-            style={[
-              styles.headerSubtitle,
-              compact && styles.headerSubtitleCompact,
-            ]}
-          >
-            {subtitle}
-          </Text>
-        ) : null}
-      </View>
-      <View style={styles.headerRight}>{right}</View>
-    </View>
-  );
-};
 
 const AppScreen: React.FC<AppScreenProps> = ({
   children,
   style,
   noPadding = false,
   backgroundColor = "#fff",
-  withBottomInset = false,
+  withBottomInset = true,
   loading = false,
   scrollable = false,
   footer,
+  headerTitle,
+  headerSubtitle,
+  headerEyebrow,
+  headerRight,
+  onBackPress,
+  headerCompact = false,
+  headerComponent,
+  keyboardOffset,
+  alignToTabBar = true,
+  flushBottom = false,
 }) => {
   const insets = useSafeAreaInsets();
-  const paddingStyle = noPadding ? null : styles.contentPadding;
+  const tabBarHeight = React.useContext(BottomTabBarHeightContext) ?? 0;
+
+  const hasTabBar = tabBarHeight > 0;
+  const bottomBase = alignToTabBar
+    ? hasTabBar
+      ? 0
+      : insets.bottom
+    : insets.bottom;
+  const bottomGutter = withBottomInset ? bottomBase : 0;
+  const horizontalPadding = noPadding ? 0 : 12;
+  const verticalPadding = noPadding ? 0 : 4;
+  const contentBottomPadding = flushBottom
+    ? bottomGutter
+    : (noPadding ? 0 : 20) + bottomGutter + (footer ? 12 : 0);
+  const footerPaddingBottom = bottomGutter + (noPadding ? 8 : 12);
+
+  const keyboardVerticalOffset = keyboardOffset ?? insets.top;
+
+  const renderHeader =
+    headerComponent ||
+    (headerTitle ? (
+      <ScreenHeader
+        title={headerTitle}
+        subtitle={headerSubtitle}
+        eyebrow={headerEyebrow}
+        onBackPress={onBackPress}
+        right={headerRight}
+        compact={headerCompact}
+      />
+    ) : null);
 
   const content = scrollable ? (
     <ScrollView
       style={styles.scroll}
-      contentContainerStyle={[paddingStyle, styles.scrollContent]}
+      contentContainerStyle={[
+        styles.scrollContent,
+        {
+          paddingTop: verticalPadding,
+          paddingHorizontal: horizontalPadding,
+          paddingBottom: contentBottomPadding,
+        },
+      ]}
+      keyboardShouldPersistTaps="handled"
+      keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
       showsVerticalScrollIndicator={false}
     >
+      {renderHeader}
       {children}
     </ScrollView>
   ) : (
-    <View style={[styles.inner, paddingStyle]}>{children}</View>
+    <View
+      style={[
+        styles.inner,
+        {
+          paddingTop: verticalPadding,
+          paddingHorizontal: horizontalPadding,
+          paddingBottom: contentBottomPadding,
+        },
+      ]}
+    >
+      {renderHeader}
+      {children}
+    </View>
   );
 
   return (
     <SafeAreaView
-      style={[
-        styles.container,
-        {
-          backgroundColor,
-          paddingTop: insets.top,
-          marginBottom: withBottomInset ? 0 : -insets.bottom,
-        },
-        noPadding && { paddingHorizontal: 0 },
-        style,
-      ]}
+      style={[styles.safeArea, { backgroundColor }]}
+      edges={["top", "left", "right"]}
     >
-      <View style={styles.contentArea}>{content}</View>
+      <KeyboardAvoidingView
+        style={styles.keyboard}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={keyboardVerticalOffset}
+      >
+        <View style={[styles.container, style]}>
+          <View style={styles.contentArea}>{content}</View>
 
-      {footer ? <View style={[styles.footer]}>{footer}</View> : null}
+          {footer ? (
+            <View
+              style={[
+                styles.footer,
+                {
+                  paddingHorizontal: horizontalPadding,
+                  paddingBottom: footerPaddingBottom,
+                },
+              ]}
+            >
+              {footer}
+            </View>
+          ) : null}
 
-      {loading && (
-        <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" color="#000" />
+          {loading && (
+            <View style={styles.loadingOverlay}>
+              <ActivityIndicator size="large" color="#000" />
+            </View>
+          )}
         </View>
-      )}
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
+  keyboard: {
+    flex: 1,
+  },
   container: {
     flex: 1,
   },
   contentArea: {
     flex: 1,
   },
-  contentPadding: { paddingHorizontal: 12, paddingBottom: 20 },
   scroll: { flex: 1 },
-  scrollContent: { flexGrow: 1, paddingTop: 4 },
-  inner: { flex: 1, paddingTop: 4 },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  headerCompact: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 6,
-  },
-  backButton: {
-    marginLeft: -8,
-    marginRight: 4,
-  },
-  backPlaceholder: {
-    width: 40,
-  },
-  headerText: { flex: 1 },
-  eyebrow: {
-    color: "#9aa0ad",
-    fontSize: 11,
-    letterSpacing: 0.3,
-    textTransform: "none",
-  },
-  headerTitle: { fontSize: 20, fontWeight: "600", color: "#1a1a1a" },
-  headerTitleCompact: { fontSize: 18, fontWeight: "600", color: "#1a1a1a" },
-  headerSubtitle: { marginTop: 2, color: "#8a8f98" },
-  headerSubtitleCompact: { fontSize: 12.5, color: "#8a8f98" },
-  headerRight: { minWidth: 40, alignItems: "flex-end" },
+  scrollContent: { flexGrow: 1 },
+  inner: { flex: 1 },
   footer: {
-    paddingHorizontal: 12,
     borderTopColor: "#e2e8f0",
     backgroundColor: "#fff",
   },
@@ -178,4 +188,6 @@ const styles = StyleSheet.create({
   },
 });
 
+export { ScreenHeader };
+export type { ScreenHeaderProps };
 export default AppScreen;

@@ -16,14 +16,24 @@ const UserSettingsHeader: React.FC<Props> = ({
   onPress,
 }) => {
   return (
-    <TouchableOpacity style={styles.container} onPress={onPress} activeOpacity={0.85}>
-      <Avatar.Icon size={56} icon="account-circle" style={styles.avatar} />
+    <TouchableOpacity
+      style={styles.container}
+      onPress={onPress}
+      activeOpacity={0.9}
+    >
+      <Avatar.Icon
+        size={56}
+        icon="account-circle"
+        style={styles.avatar}
+        color="#e2e8f0"
+      />
       <View style={styles.info}>
+        <Text style={styles.eyebrow}>Profil</Text>
         <Text style={styles.name}>{name}</Text>
         {email ? <Text style={styles.meta}>{email}</Text> : null}
         {address ? <Text style={styles.meta}>{address}</Text> : null}
       </View>
-      <Icon source="chevron-right" size={22} color="#9ca3af" />
+      <Icon source="chevron-right" size={22} color="#cbd5e1" />
     </TouchableOpacity>
   );
 };
@@ -33,30 +43,33 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     padding: 14,
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    shadowColor: "#000",
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 2,
-    marginBottom: 16,
+    backgroundColor: "#0f172a",
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: "#0b1220",
+    marginBottom: 18,
   },
   avatar: {
-    backgroundColor: "#f1f5f9",
+    backgroundColor: "rgba(255,255,255,0.1)",
   },
   info: {
     flex: 1,
     marginHorizontal: 12,
   },
+  eyebrow: {
+    color: "#94a3b8",
+    fontSize: 12,
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+  },
   name: {
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: "700",
-    color: "#0f172a",
+    color: "#e2e8f0",
   },
   meta: {
     marginTop: 2,
-    color: "#6b7280",
+    color: "#cbd5e1",
   },
 });
 

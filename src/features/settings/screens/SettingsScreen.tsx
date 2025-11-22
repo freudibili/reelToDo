@@ -58,7 +58,12 @@ const SettingsScreen = () => {
   };
 
   return (
-    <AppScreen scrollable loading={loading}>
+    <AppScreen
+      scrollable
+      loading={loading}
+      backgroundColor="#f1f5f9"
+      withBottomInset
+    >
       <ScreenHeader
         title={t("settings:title")}
         subtitle={t("settings:subtitle")}
@@ -128,13 +133,10 @@ const SettingsScreen = () => {
 const styles = StyleSheet.create({
   footer: {
     marginTop: 12,
-    backgroundColor: "#fff",
-    borderRadius: 14,
-    shadowColor: "#000",
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 2,
+    backgroundColor: "#f8fafc",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
     overflow: "hidden",
   },
 });

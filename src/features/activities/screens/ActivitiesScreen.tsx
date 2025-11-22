@@ -5,7 +5,6 @@ import React, {
   useMemo,
   useCallback,
 } from "react";
-import { Text, StyleSheet } from "react-native";
 import {
   fetchActivities,
   startActivitiesListener,
@@ -89,9 +88,11 @@ const ActivitiesScreen = () => {
   );
 
   return (
-    <Screen loading={loading && !initialized}>
-      <Text style={styles.header}>{t("activities:header")}</Text>
-
+    <Screen
+      loading={loading && !initialized}
+      flushBottom
+      headerTitle={t("activities:header")}
+    >
       <ActivityList data={grouped} onSelect={handleSelect} />
 
       {sheetVisible && (
@@ -126,9 +127,5 @@ const ActivitiesScreen = () => {
     </Screen>
   );
 };
-
-const styles = StyleSheet.create({
-  header: { fontSize: 22, fontWeight: "600", marginBottom: 12 },
-});
 
 export default ActivitiesScreen;

@@ -2,17 +2,24 @@ import React from "react";
 import { Tabs } from "expo-router";
 import { Icon } from "react-native-paper";
 import { useTranslation } from "react-i18next";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const TabsLayout = () => {
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
 
   return (
     <Tabs
       initialRouteName="activities"
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: "#000",
-        tabBarInactiveTintColor: "#888",
+        tabBarActiveTintColor: "#0f172a",
+        tabBarInactiveTintColor: "#94a3b8",
+        tabBarStyle: {
+          height: 68 + insets.bottom,
+          paddingTop: 10,
+          paddingBottom: Math.max(insets.bottom, 12),
+        },
       }}
     >
       <Tabs.Screen

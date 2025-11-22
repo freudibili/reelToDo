@@ -1,6 +1,12 @@
 import React from "react";
-import { View, StyleSheet } from "react-native";
-import { List } from "react-native-paper";
+import {
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  Text,
+  GestureResponderEvent,
+} from "react-native";
+import { Icon } from "react-native-paper";
 
 type Tone = "default" | "danger";
 
@@ -8,7 +14,7 @@ interface Props {
   title: string;
   description?: string;
   icon?: string;
-  onPress?: () => void;
+  onPress?: (event: GestureResponderEvent) => void;
   right?: React.ReactNode;
   tone?: Tone;
 }
@@ -22,50 +28,74 @@ const SettingsListItem: React.FC<Props> = ({
   tone = "default",
 }) => {
   const titleStyle = tone === "danger" ? styles.dangerTitle : undefined;
-  const iconColor = tone === "danger" ? "#b91c1c" : "#111827";
-
-  const renderRight = () => {
-    if (!right && !onPress) return null;
-    return (
-      <View style={styles.right}>
-        {right}
-        {onPress ? <List.Icon icon="chevron-right" color="#9ca3af" /> : null}
-      </View>
-    );
-  };
+  const iconColor = tone === "danger" ? "#b91c1c" : "#0f172a";
+  const iconBg =
+    tone === "danger" ? "rgba(185,28,28,0.08)" : "rgba(15,23,42,0.06)";
 
   return (
-    <List.Item
-      title={title}
-      description={description}
-      titleStyle={[styles.title, titleStyle]}
-      descriptionNumberOfLines={2}
-      left={(props) => (
-        <List.Icon {...props} icon={icon} color={iconColor} />
-      )}
-      right={renderRight}
+    <TouchableOpacity
       style={styles.item}
+      activeOpacity={0.85}
       onPress={onPress}
-    />
+      disabled={!onPress}
+    >
+      <View style={[styles.iconPill, { backgroundColor: iconBg }]}>
+        <Icon source={icon} size={20} color={iconColor} />
+      </View>
+
+      <View style={styles.textBlock}>
+        <Text style={[styles.title, titleStyle]}>{title}</Text>
+        {description ? (
+          <Text style={styles.description} numberOfLines={2}>
+            {description}
+          </Text>
+        ) : null}
+      </View>
+
+      <View style={styles.right}>
+        {right}
+        {onPress ? <Icon source="chevron-right" size={20} color="#94a3b8" /> : null}
+      </View>
+    </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
   item: {
-    paddingVertical: 6,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 14,
+    paddingVertical: 12,
   },
   title: {
-    color: "#111827",
+    color: "#0f172a",
     fontWeight: "600",
+    fontSize: 16,
   },
   dangerTitle: {
     color: "#b91c1c",
   },
+  description: {
+    color: "#6b7280",
+    marginTop: 2,
+    fontSize: 13,
+  },
+  textBlock: {
+    flex: 1,
+    marginLeft: 12,
+  },
   right: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
-    paddingRight: 4,
+    gap: 10,
+    paddingLeft: 8,
+  },
+  iconPill: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });
 

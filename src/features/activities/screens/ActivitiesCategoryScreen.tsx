@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useRef, useState } from "react";
-import { View, Text, StyleSheet, ScrollView } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useAppDispatch, useAppSelector } from "@core/store/hook";
 import { activitiesSelectors } from "../store/activitiesSelectors";
@@ -15,7 +15,7 @@ import ActivityCard from "../components/ActivityCard";
 import ActivityDetailsSheet from "../components/ActivityDetailsSheet";
 import type { Activity } from "../utils/types";
 import { useConfirmDialog } from "@common/hooks/useConfirmDialog";
-import Screen, { ScreenHeader } from "@common/components/AppScreen";
+import Screen from "@common/components/AppScreen";
 import AppBottomSheet from "@common/components/AppBottomSheet";
 import { useTranslation } from "react-i18next";
 
@@ -88,17 +88,17 @@ const ActivitiesCategoryScreen = () => {
     category?.charAt(0).toUpperCase() + category?.slice(1).toLowerCase();
 
   return (
-    <Screen>
-      <ScreenHeader
-        title={categoryLabel || t("activities:category.fallbackTitle")}
-        subtitle={t("activities:category.subtitle", {
-          count: activities.length,
-        })}
-        onBackPress={() => router.back()}
-        compact
-      />
-
-      <ScrollView contentContainerStyle={styles.list}>
+    <Screen
+      scrollable
+      flushBottom
+      headerTitle={categoryLabel || t("activities:category.fallbackTitle")}
+      headerSubtitle={t("activities:category.subtitle", {
+        count: activities.length,
+      })}
+      onBackPress={() => router.back()}
+      headerCompact
+    >
+      <View style={styles.list}>
         {activities.map((activity) => (
           <View key={activity.id} style={styles.cardSpacer}>
             <ActivityCard activity={activity} onPress={handleSelect} />
@@ -110,7 +110,7 @@ const ActivitiesCategoryScreen = () => {
             <Text>{t("activities:category.empty")}</Text>
           </View>
         )}
-      </ScrollView>
+      </View>
 
       {sheetVisible && (
         <AppBottomSheet
@@ -147,7 +147,7 @@ const ActivitiesCategoryScreen = () => {
 
 const styles = StyleSheet.create({
   list: {
-    paddingBottom: 32,
+    paddingBottom: 12,
     flexDirection: "row",
     flexWrap: "wrap",
     marginHorizontal: -6,
