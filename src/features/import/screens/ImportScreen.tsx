@@ -19,12 +19,17 @@ import {
   analyzeSharedLink,
   saveImportedActivityDetails,
 } from "@features/import/store/importSlice";
-import { deleteActivity } from "@features/activities/store/activitiesSlice";
+import {
+  deleteActivity,
+  fetchActivities,
+} from "@features/activities/store/activitiesSlice";
 import { useAppDispatch, useAppSelector } from "@core/store/hook";
 import { useConfirmDialog } from "@common/hooks/useConfirmDialog";
 import Screen from "@common/components/AppScreen";
 import AppBottomSheet from "@common/components/AppBottomSheet";
-import ImportDetailsSheet from "../components/ImportDetailsSheet";
+import ImportDetailsSheet, {
+  type ImportDetailsSheetHandle,
+} from "../components/ImportDetailsSheet";
 import type { Activity } from "@features/activities/utils/types";
 import { UpdateActivityPayload } from "../utils/types";
 import { useTranslation } from "react-i18next";
@@ -51,6 +56,7 @@ const ImportScreen = () => {
 
   const hasAnalyzedRef = useRef(false);
   const sheetRef = useRef(null);
+  const detailsRef = useRef<ImportDetailsSheetHandle>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
@@ -74,7 +80,7 @@ const ImportScreen = () => {
   useEffect(() => {
     if (activity) {
       setSheetOpen(true);
-      setHasUnsavedChanges(false);
+      setHasUnsavedChanges(true);
     }
   }, [activity]);
 
@@ -107,12 +113,17 @@ const ImportScreen = () => {
     );
   };
 
-  const discardActivity = () => {
+  const handleSavePress = useCallback(() => {
+    detailsRef.current?.save();
+  }, []);
+
+  const discardActivity = async () => {
     if (!activity) {
       setSheetOpen(false);
       return;
     }
-    dispatch(deleteActivity(activity.id));
+    await dispatch(deleteActivity(activity.id));
+    await dispatch(fetchActivities());
     setSheetOpen(false);
     setHasUnsavedChanges(false);
   };
@@ -123,22 +134,22 @@ const ImportScreen = () => {
       return;
     }
 
-    if (!hasUnsavedChanges) {
-      discardActivity();
+    if (hasUnsavedChanges) {
+      confirm(
+        t("import:confirm.discardTitle"),
+        t("import:confirm.discardMessage"),
+        () => {
+          void discardActivity();
+        },
+        {
+          cancelText: t("common:buttons.keep"),
+          confirmText: t("common:buttons.discard"),
+        }
+      );
       return;
     }
 
-    confirm(
-      t("import:confirm.discardTitle"),
-      t("import:confirm.discardMessage"),
-      () => {
-        discardActivity();
-      },
-      {
-        cancelText: t("common:buttons.keep"),
-        confirmText: t("common:buttons.discard"),
-      }
-    );
+    setSheetOpen(false);
   };
 
   return (
@@ -183,8 +194,32 @@ const ImportScreen = () => {
           index={0}
           snapPoints={["75%"]}
           onClose={handleCancelSheet}
+          scrollable
+          footer={
+            <View style={styles.sheetFooter}>
+              <Pressable style={styles.cancelBtn} onPress={handleCancelSheet}>
+                <Text style={styles.cancelBtnText}>
+                  {t("import:details.cancel")}
+                </Text>
+              </Pressable>
+
+              <Pressable
+                style={[
+                  styles.saveBtn,
+                  !hasUnsavedChanges && styles.saveBtnDisabled,
+                ]}
+                disabled={!hasUnsavedChanges}
+                onPress={handleSavePress}
+              >
+                <Text style={styles.saveBtnText}>
+                  {t("import:details.saveChanges")}
+                </Text>
+              </Pressable>
+            </View>
+          }
         >
           <ImportDetailsSheet
+            ref={detailsRef}
             activity={activity}
             onSave={handleSaveDetails}
             onCancel={handleCancelSheet}
@@ -233,6 +268,35 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   error: { color: "#c00", marginTop: 8 },
+  sheetFooter: {
+    paddingTop: 10,
+    paddingHorizontal: 12,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  cancelBtn: {
+    paddingVertical: 12,
+    paddingHorizontal: 18,
+  },
+  cancelBtnText: {
+    fontSize: 14,
+    color: "#64748b",
+  },
+  saveBtn: {
+    paddingVertical: 12,
+    paddingHorizontal: 22,
+    borderRadius: 12,
+    backgroundColor: "#0f172a",
+  },
+  saveBtnDisabled: {
+    backgroundColor: "#cbd5e1",
+  },
+  saveBtnText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#fff",
+  },
 });
 
 export default ImportScreen;

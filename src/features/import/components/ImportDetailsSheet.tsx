@@ -1,12 +1,17 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, Pressable, StyleSheet } from "react-native";
+import React, {
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useState,
+} from "react";
+import { View, Text, StyleSheet } from "react-native";
 
 import type { Activity } from "@features/activities/utils/types";
+import ActivityHero from "@common/components/ActivityHero";
+import ActivitySummaryHeader from "@common/components/ActivitySummaryHeader";
 import LocationSection from "./LocationSection";
 import DateSection from "./DateSection";
 import { categoryNeedsDate } from "@features/activities/utils/activityHelper";
-import ActivityHero from "@common/components/ActivityHero";
-import ActivitySummaryHeader from "@common/components/ActivitySummaryHeader";
 import {
   formatActivityLocation,
   formatDisplayDate,
@@ -23,15 +28,16 @@ interface ImportDetailsSheetProps {
   onDirtyChange?: (dirty: boolean) => void;
 }
 
-const ImportDetailsSheet: React.FC<ImportDetailsSheetProps> = ({
-  activity,
-  onSave,
-  onCancel,
-  onDirtyChange,
-}) => {
+export interface ImportDetailsSheetHandle {
+  save: () => void;
+}
+
+const ImportDetailsSheet = React.forwardRef<
+  ImportDetailsSheetHandle,
+  ImportDetailsSheetProps
+>(({ activity, onSave, onCancel: _onCancel, onDirtyChange }, ref) => {
   const { t } = useTranslation();
   const [dirty, setDirty] = useState(false);
-
   const [draft, setDraft] = useState<ImportDraftDetails>(() => ({
     location: null,
     date: activity.main_date ? new Date(activity.main_date) : null,
@@ -50,8 +56,8 @@ const ImportDetailsSheet: React.FC<ImportDetailsSheetProps> = ({
       date: activity.main_date ? new Date(activity.main_date) : null,
     });
 
-    setDirty(false);
-    onDirtyChange?.(false);
+    setDirty(true);
+    onDirtyChange?.(true);
   }, [
     activity.id,
     activity.location_name,
@@ -59,13 +65,17 @@ const ImportDetailsSheet: React.FC<ImportDetailsSheetProps> = ({
     activity.main_date,
   ]);
 
-  const handleSavePress = () => {
+  const handleSavePress = useCallback(() => {
     const payload: UpdateActivityPayload = {
       location: draft.location,
       dateIso: draft.date ? draft.date.toISOString() : null,
     };
     onSave(payload);
-  };
+  }, [draft, onSave]);
+
+  useImperativeHandle(ref, () => ({
+    save: handleSavePress,
+  }));
 
   const handleLocationChange = (place: PlaceDetails) => {
     setDraft((prev) => ({
@@ -85,21 +95,27 @@ const ImportDetailsSheet: React.FC<ImportDetailsSheetProps> = ({
 
   const showActivityDate = categoryNeedsDate(activity.category);
 
-  const canEditLocation = !activity.needs_location_confirmation;
-  const canEditDate = !activity.needs_date_confirmation;
-  const needsDate = categoryNeedsDate(activity.category);
-
-  const hideSaveButton =
-    canEditLocation && (!needsDate || (needsDate && canEditDate));
-
   const heroLocation =
     draft.location?.name ||
     formatActivityLocation(activity) ||
     t("import:details.locationFallback");
   const heroDate = formatDisplayDate(draft.date ?? activity.main_date);
+  const locationInfo =
+    draft.location?.formattedAddress ??
+    formatActivityLocation(activity) ??
+    t("import:details.locationFallback");
+  const dateInfo = heroDate ?? t("activities:details.dateMissing");
 
   return (
-    <View style={styles.sheetContent}>
+    <View style={styles.container}>
+      <ActivitySummaryHeader
+        title={activity.title ?? t("common:labels.activity")}
+        category={activity.category}
+        location={heroLocation}
+        dateLabel={heroDate}
+        style={styles.headerBlock}
+      />
+
       <ActivityHero
         title={activity.title ?? t("common:labels.activity")}
         category={activity.category}
@@ -109,100 +125,57 @@ const ImportDetailsSheet: React.FC<ImportDetailsSheetProps> = ({
         showOverlayContent={false}
       />
 
-      <ActivitySummaryHeader
-        title={activity.title ?? t("common:labels.activity")}
-        category={activity.category}
-        location={heroLocation}
-        dateLabel={heroDate}
-        style={styles.headerBlock}
-      />
-
-      <View style={styles.sectionCard}>
-        <LocationSection
-          locationName={draft.location?.name ?? activity.location_name ?? ""}
-          address={
-            draft.location?.formattedAddress ?? activity.address ?? ""
-          }
-          confirmed={!activity.needs_location_confirmation}
-          onChange={handleLocationChange}
-        />
-
-        {showActivityDate && (
-          <DateSection
-            date={draft.date}
-            confirmed={!activity.needs_date_confirmation}
-            onChange={handleDateChange}
-          />
-        )}
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionHeaderText}>Info</Text>
+        <View style={styles.sectionUnderline} />
       </View>
 
-      {!hideSaveButton && (
-        <View style={styles.bottomButtons}>
-          <Pressable style={styles.cancelBtn} onPress={onCancel}>
-            <Text style={styles.cancelBtnText}>
-              {t("import:details.cancel")}
-            </Text>
-          </Pressable>
+      <LocationSection
+        infoValue={locationInfo}
+        locationName={draft.location?.name ?? activity.location_name ?? ""}
+        address={draft.location?.formattedAddress ?? activity.address ?? ""}
+        confirmed={!activity.needs_location_confirmation}
+        onChange={handleLocationChange}
+      />
 
-          <Pressable
-            style={[styles.saveBtn, !dirty && styles.saveBtnDisabled]}
-            disabled={!dirty}
-            onPress={handleSavePress}
-          >
-            <Text style={styles.saveBtnText}>
-              {t("import:details.saveChanges")}
-            </Text>
-          </Pressable>
-        </View>
-      )}
+      {showActivityDate ? (
+        <DateSection
+          infoValue={dateInfo}
+          date={draft.date}
+          confirmed={!activity.needs_date_confirmation}
+          onChange={handleDateChange}
+        />
+      ) : null}
     </View>
   );
-};
+});
+
+ImportDetailsSheet.displayName = "ImportDetailsSheet";
 
 const styles = StyleSheet.create({
-  sheetContent: {
-    paddingBottom: 20,
-    paddingHorizontal: 12,
-    gap: 10,
-  },
-  sectionCard: {
-    marginTop: 2,
-    backgroundColor: "#f8fafc",
-    borderRadius: 14,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-    gap: 10,
+  container: {
+    paddingVertical: 8,
+    gap: 12,
   },
   headerBlock: {
-    paddingHorizontal: 2,
+    paddingHorizontal: 4,
   },
-  bottomButtons: {
-    marginTop: 14,
-    flexDirection: "row",
-    justifyContent: "space-between",
+  sectionHeader: {
+    marginTop: 4,
+    marginBottom: 2,
+    paddingHorizontal: 12,
   },
-  cancelBtn: {
-    paddingVertical: 10,
-    paddingHorizontal: 18,
-  },
-  cancelBtnText: {
-    fontSize: 14,
-    color: "#64748b",
-  },
-  saveBtn: {
-    paddingVertical: 12,
-    paddingHorizontal: 22,
-    borderRadius: 12,
-    backgroundColor: "#0f172a",
-  },
-  saveBtnDisabled: {
-    backgroundColor: "#cbd5e1",
-  },
-  saveBtnText: {
+  sectionHeaderText: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#fff",
+    color: "#0f172a",
+  },
+  sectionUnderline: {
+    marginTop: 4,
+    height: 2,
+    width: 40,
+    backgroundColor: "#0f172a",
+    borderRadius: 999,
   },
 });
 

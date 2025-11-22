@@ -266,6 +266,7 @@ const ActivitiesMapScreen = () => {
         index={sheetIndex}
         snapPoints={snapPoints}
         onClose={handleCloseSheet}
+        scrollable={mode === "details"}
       >
         {mode === "list" ? (
           <NearbyActivitiesSheet

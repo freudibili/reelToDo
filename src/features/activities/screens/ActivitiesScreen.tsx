@@ -103,6 +103,7 @@ const ActivitiesScreen = () => {
           index={1}
           snapPoints={snapPoints}
           onClose={handleClose}
+          scrollable
         >
           <ActivityDetailsSheet
             activity={selected}

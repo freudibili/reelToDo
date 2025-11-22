@@ -1,75 +1,74 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import LocationAutocompleteInput from "./LocationAutocompleteInput";
 import { PlaceDetails } from "../services/locationService";
 import { useTranslation } from "react-i18next";
+import InfoRow from "@features/activities/components/InfoRow";
 
 interface LocationSectionProps {
+  infoValue: string;
   locationName: string;
   address: string;
   confirmed: boolean;
   onChange: (place: PlaceDetails) => void;
+  editRequest?: number;
 }
 
 const LocationSection: React.FC<LocationSectionProps> = ({
+  infoValue,
   locationName,
   address,
   confirmed,
   onChange,
+  editRequest = 0,
 }) => {
   const { t } = useTranslation();
   const [editing, setEditing] = useState(false);
+  const lastEditRequestRef = useRef(editRequest);
 
-  if (confirmed) {
-    const formattedAddress = [locationName, address].filter(Boolean).join(", ");
-    return (
-      <View style={styles.section}>
-        <Text style={styles.sectionLabel}>
-          {t("import:locationSection.label")}
-        </Text>
-        <Text style={styles.addressText}>{formattedAddress}</Text>
-      </View>
-    );
-  }
+  const hasAddress = !!address;
+  const needsConfirmation = !confirmed || !hasAddress;
 
   const handleSelectPlace = (place: PlaceDetails) => {
     onChange(place);
     setEditing(false);
   };
 
-  const hasAddress = !!address;
-  const formattedAddress = [locationName, address].filter(Boolean).join(", ");
+  useEffect(() => {
+    if (editRequest !== lastEditRequestRef.current) {
+      setEditing(true);
+      lastEditRequestRef.current = editRequest;
+    }
+  }, [editRequest]);
+
+  useEffect(() => {
+    setEditing(false);
+  }, [locationName, address, confirmed]);
 
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionLabel}>
-        {t("import:locationSection.label")}
-      </Text>
+      <InfoRow icon="map-marker" value={infoValue} />
 
-      {!hasAddress ? (
-        <>
-          <Text style={styles.helperText}>
-            {t("import:locationSection.notFound")}
-          </Text>
-          <Pressable style={styles.primaryBtn} onPress={() => setEditing(true)}>
-            <Text style={styles.primaryBtnText}>
-              {t("import:locationSection.edit")}
-            </Text>
-          </Pressable>
-        </>
+      {needsConfirmation ? (
+        <Text style={styles.helperText}>
+          {hasAddress
+            ? t("import:locationSection.notAccurate")
+            : t("import:locationSection.notFound")}
+        </Text>
       ) : (
-        <>
-          <Text style={styles.helperText}>
-            {t("import:locationSection.notAccurate")}
-          </Text>
-          <Text style={styles.previewText}>{formattedAddress}</Text>
-          <Pressable style={styles.primaryBtn} onPress={() => setEditing(true)}>
-            <Text style={styles.primaryBtnText}>
-              {t("import:locationSection.edit")}
-            </Text>
-          </Pressable>
-        </>
+        <Text style={styles.helperText}>
+          {t("import:locationSection.confirmed")}
+        </Text>
       )}
+
+      <Pressable
+        style={styles.primaryBtn}
+        onPress={() => setEditing((prev) => !prev)}
+      >
+        <Text style={styles.primaryBtnText}>
+          {t("import:locationSection.edit")}
+        </Text>
+      </Pressable>
 
       {editing && (
         <View style={styles.locationContainer}>
@@ -86,37 +85,41 @@ const LocationSection: React.FC<LocationSectionProps> = ({
 const styles = StyleSheet.create({
   section: {
     marginTop: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    backgroundColor: "#f1f5f9",
+    borderRadius: 12,
   },
   sectionLabel: {
     fontSize: 14,
     fontWeight: "600",
     marginBottom: 6,
   },
-  addressText: {
-    fontSize: 14,
-    marginTop: 6,
-  },
   helperText: {
     fontSize: 13,
-    marginTop: 4,
+    marginTop: 2,
+    color: "#475569",
   },
   previewText: {
     fontSize: 14,
     marginTop: 6,
+    color: "#0f172a",
   },
   primaryBtn: {
-    marginTop: 8,
+    marginTop: 10,
     borderRadius: 999,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    backgroundColor: "#f2f2f2",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    backgroundColor: "#0f172a",
     alignSelf: "flex-start",
   },
   primaryBtnText: {
-    fontSize: 14,
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#fff",
   },
   locationContainer: {
-    marginTop: 12,
+    marginTop: 14,
   },
 });
 

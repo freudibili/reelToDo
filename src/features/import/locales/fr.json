@@ -24,7 +24,8 @@
     "label": "Lieu",
     "notFound": "On n'a pas trouvé le lieu de cette activité.",
     "notAccurate": "Ce lieu peut ne pas être exact. Merci de vérifier.",
-    "edit": "Modifier le lieu"
+    "edit": "Modifier le lieu",
+    "confirmed": "Lieu confirmé. Tu peux toujours l'ajuster si besoin."
   },
   "dateSection": {
     "label": "Date",
@@ -32,7 +33,8 @@
     "notFound": "On n'a pas identifié clairement la date de cette activité.",
     "notAccurate": "Cette date peut être inexacte. Merci de vérifier.",
     "add": "Ajouter une date",
-    "edit": "Modifier la date"
+    "edit": "Modifier la date",
+    "confirmed": "Date confirmée. Tu peux toujours l'ajuster si besoin."
   },
   "autocomplete": {
     "placeholder": "Adresse",

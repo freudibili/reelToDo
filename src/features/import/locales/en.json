@@ -24,7 +24,8 @@
     "label": "Location",
     "notFound": "Seems we didn’t find the place for this activity.",
     "notAccurate": "This location might not be accurate. Please check it.",
-    "edit": "Edit location"
+    "edit": "Edit location",
+    "confirmed": "Address confirmed. You can still adjust it if needed."
   },
   "dateSection": {
     "label": "Date",
@@ -32,7 +33,8 @@
     "notFound": "Seems we didn’t find a clear date for this activity.",
     "notAccurate": "This date might not be accurate. Please double-check it.",
     "add": "Add date",
-    "edit": "Edit date"
+    "edit": "Edit date",
+    "confirmed": "Date confirmed. You can still adjust it if needed."
   },
   "autocomplete": {
     "placeholder": "Address",

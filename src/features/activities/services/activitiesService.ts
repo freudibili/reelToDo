@@ -73,12 +73,20 @@ export const ActivitiesService = {
   },
 
   async deleteActivity(userId: string, activityId: string) {
-    const { error } = await supabase
+    const { error: linkError } = await supabase
       .from("user_activities")
       .delete()
       .eq("user_id", userId)
       .eq("activity_id", activityId);
 
-    if (error) throw error;
+    if (linkError) throw linkError;
+
+    const { error: activityError } = await supabase
+      .from("activities")
+      .delete()
+      .eq("id", activityId)
+      .eq("user_id", userId);
+
+    if (activityError) throw activityError;
   },
 };

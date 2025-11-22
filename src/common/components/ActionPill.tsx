@@ -35,7 +35,9 @@ const ActionPill: React.FC<ActionPillProps> = ({
       <Icon
         source={icon}
         size={18}
-        color={tone === "danger" ? "#b91c1c" : disabled ? "#94a3b8" : "#0f172a"}
+        color={
+          tone === "danger" ? "#b91c1c" : disabled ? "#94a3b8" : "#075985"
+        }
       />
       <Text
         style={[
@@ -61,9 +63,9 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     paddingVertical: 10,
     paddingHorizontal: 14,
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
+    backgroundColor: "#e0f2fe",
+    borderWidth: 1.5,
+    borderColor: "#bae6fd",
     minWidth: 120,
   },
   actionContent: {
@@ -72,13 +74,13 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   actionBtnText: {
-    color: "#0f172a",
+    color: "#075985",
     fontWeight: "700",
     fontSize: 13,
   },
   dangerBtn: {
-    backgroundColor: "#fff5f5",
-    borderWidth: 1,
+    backgroundColor: "#fef2f2",
+    borderWidth: 1.5,
     borderColor: "#fecdd3",
   },
   dangerBtnText: {

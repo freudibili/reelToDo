@@ -137,6 +137,7 @@ const importSlice = createSlice({
       })
       .addCase(confirmImportedLocation.fulfilled, (state, action) => {
         state.importedActivity = action.payload;
+        state.activity = action.payload;
         state.error = null;
       })
       .addCase(confirmImportedLocation.rejected, (state, action) => {
@@ -145,6 +146,7 @@ const importSlice = createSlice({
       })
       .addCase(confirmImportedDate.fulfilled, (state, action) => {
         state.importedActivity = action.payload;
+        state.activity = action.payload;
         state.error = null;
       })
       .addCase(confirmImportedDate.rejected, (state, action) => {
@@ -152,6 +154,7 @@ const importSlice = createSlice({
       })
       .addCase(saveImportedActivityDetails.fulfilled, (state, action) => {
         state.importedActivity = action.payload;
+        state.activity = action.payload;
         state.error = null;
       })
       .addCase(saveImportedActivityDetails.rejected, (state, action) => {

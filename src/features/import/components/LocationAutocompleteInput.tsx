@@ -1,12 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import {
-  View,
-  TextInput,
-  FlatList,
-  Pressable,
-  Text,
-  StyleSheet,
-} from "react-native";
+import { View, TextInput, Pressable, Text, StyleSheet, ScrollView } from "react-native";
 import {
   fetchPlaceSuggestions,
   fetchPlaceDetails,
@@ -106,19 +99,17 @@ const LocationAutocompleteInput: React.FC<LocationAutocompleteInputProps> = ({
 
       {shouldShowSuggestions && (
         <View style={styles.suggestionsContainer}>
-          <FlatList
-            keyboardShouldPersistTaps="handled"
-            data={suggestions}
-            keyExtractor={(item) => item.place_id}
-            renderItem={({ item }) => (
+          <ScrollView nestedScrollEnabled keyboardShouldPersistTaps="handled">
+            {suggestions.map((item) => (
               <Pressable
+                key={item.place_id}
                 style={styles.suggestionItem}
                 onPress={() => handleSelect(item)}
               >
                 <Text style={styles.suggestionText}>{item.description}</Text>
               </Pressable>
-            )}
-          />
+            ))}
+          </ScrollView>
         </View>
       )}
     </View>

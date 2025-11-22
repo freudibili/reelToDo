@@ -7,7 +7,11 @@ import {
   ViewStyle,
   Platform,
 } from "react-native";
-import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
+import BottomSheet, {
+  BottomSheetView,
+  BottomSheetScrollView,
+} from "@gorhom/bottom-sheet";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface AppBottomSheetProps {
   index: number;
@@ -15,10 +19,52 @@ interface AppBottomSheetProps {
   onClose: () => void;
   children: React.ReactNode;
   style?: ViewStyle;
+  contentStyle?: ViewStyle;
+  footer?: React.ReactNode;
+  scrollable?: boolean;
 }
 
 const AppBottomSheet = React.forwardRef<BottomSheet, AppBottomSheetProps>(
-  ({ index, snapPoints, onClose, children, style }, ref) => {
+  (
+    {
+      index,
+      snapPoints,
+      onClose,
+      children,
+      style,
+      contentStyle,
+      footer,
+      scrollable = false,
+    },
+    ref
+  ) => {
+    const insets = useSafeAreaInsets();
+    const bottomSpacing = Math.max(insets.bottom, 8);
+
+    const content = scrollable ? (
+      <BottomSheetScrollView
+        style={styles.scroll}
+        contentContainerStyle={[
+          styles.inner,
+          contentStyle,
+          { paddingBottom: footer ? 16 : bottomSpacing + 16 },
+        ]}
+        nestedScrollEnabled
+      >
+        {children}
+      </BottomSheetScrollView>
+    ) : (
+      <View
+        style={[
+          styles.inner,
+          contentStyle,
+          { paddingBottom: footer ? 12 : bottomSpacing + 12 },
+        ]}
+      >
+        {children}
+      </View>
+    );
+
     return (
       <BottomSheet
         ref={ref}
@@ -35,7 +81,17 @@ const AppBottomSheet = React.forwardRef<BottomSheet, AppBottomSheetProps>(
           <Pressable style={styles.closeBtn} onPress={onClose}>
             <Text style={styles.closeText}>×</Text>
           </Pressable>
-          <View style={styles.inner}>{children}</View>
+          {content}
+          {footer ? (
+            <View
+              style={[
+                styles.footer,
+                { paddingBottom: bottomSpacing + 4 },
+              ]}
+            >
+              {footer}
+            </View>
+          ) : null}
         </BottomSheetView>
       </BottomSheet>
     );
@@ -76,10 +132,19 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     overflow: "hidden",
   },
+  scroll: {
+    flex: 1,
+  },
   inner: {
     paddingHorizontal: 16,
     paddingTop: 8,
-    paddingBottom: 24,
+  },
+  footer: {
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: "#e2e8f0",
+    backgroundColor: "#fff",
   },
   closeBtn: {
     position: "absolute",

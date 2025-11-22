@@ -101,10 +101,7 @@ const ActivitiesCategoryScreen = () => {
       <ScrollView contentContainerStyle={styles.list}>
         {activities.map((activity) => (
           <View key={activity.id} style={styles.cardSpacer}>
-            <ActivityCard
-              activity={activity}
-              onPress={handleSelect}
-            />
+            <ActivityCard activity={activity} onPress={handleSelect} />
           </View>
         ))}
 
@@ -121,6 +118,7 @@ const ActivitiesCategoryScreen = () => {
           index={1}
           snapPoints={snapPoints}
           onClose={handleClose}
+          scrollable
         >
           <ActivityDetailsSheet
             activity={selected}
