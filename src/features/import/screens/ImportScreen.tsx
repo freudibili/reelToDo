@@ -6,7 +6,7 @@ import React, {
   useState,
 } from "react";
 import { View, Text, TextInput, StyleSheet, Pressable } from "react-native";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import type { ShareIntent } from "expo-share-intent";
 
 import { selectAuthUser } from "@features/auth/store/authSelectors";
@@ -26,16 +26,17 @@ import {
 import { useAppDispatch, useAppSelector } from "@core/store/hook";
 import { useConfirmDialog } from "@common/hooks/useConfirmDialog";
 import Screen from "@common/components/AppScreen";
-import AppBottomSheet from "@common/components/AppBottomSheet";
-import ImportDetailsSheet, {
-  type ImportDetailsSheetHandle,
-} from "../components/ImportDetailsSheet";
+import ImportDetailsForm, {
+  type ImportDetailsFormHandle,
+} from "../components/ImportDetailsForm";
+import ImportFooter from "../components/ImportFooter";
 import type { Activity } from "@features/activities/utils/types";
 import { UpdateActivityPayload } from "../utils/types";
 import { useTranslation } from "react-i18next";
 
 const ImportScreen = () => {
   const { shared } = useLocalSearchParams();
+  const router = useRouter();
   const dispatch = useAppDispatch();
   const user = useAppSelector(selectAuthUser);
   const { confirm } = useConfirmDialog();
@@ -55,9 +56,7 @@ const ImportScreen = () => {
   }, [shared]);
 
   const hasAnalyzedRef = useRef(false);
-  const sheetRef = useRef(null);
-  const detailsRef = useRef<ImportDetailsSheetHandle>(null);
-  const [sheetOpen, setSheetOpen] = useState(false);
+  const detailsRef = useRef<ImportDetailsFormHandle>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   const analyze = useCallback(() => {
@@ -79,7 +78,6 @@ const ImportScreen = () => {
 
   useEffect(() => {
     if (activity) {
-      setSheetOpen(true);
       setHasUnsavedChanges(true);
     }
   }, [activity]);
@@ -102,9 +100,10 @@ const ImportScreen = () => {
             activityId: activity.id,
             ...payload,
           })
-        );
-        setSheetOpen(false);
-        setHasUnsavedChanges(false);
+        ).finally(() => {
+          setHasUnsavedChanges(false);
+          router.replace("/");
+        });
       },
       {
         cancelText: t("common:buttons.cancel"),
@@ -119,18 +118,16 @@ const ImportScreen = () => {
 
   const discardActivity = async () => {
     if (!activity) {
-      setSheetOpen(false);
       return;
     }
     await dispatch(deleteActivity(activity.id));
     await dispatch(fetchActivities());
-    setSheetOpen(false);
     setHasUnsavedChanges(false);
+    router.replace("/");
   };
 
-  const handleCancelSheet = () => {
+  const handleCancelDetails = () => {
     if (!activity) {
-      setSheetOpen(false);
       return;
     }
 
@@ -149,89 +146,52 @@ const ImportScreen = () => {
       return;
     }
 
-    setSheetOpen(false);
+    void discardActivity();
   };
 
   return (
-    <Screen loading={loading}>
-      <View style={styles.header}>
-        <Text style={styles.title}>{t("import:header.title")}</Text>
-        <Text style={styles.subtitle}>{t("import:header.subtitle")}</Text>
-      </View>
-
-      <View style={styles.inputBlock}>
-        <Text style={styles.label}>{t("import:linkInput.label")}</Text>
-        <TextInput
-          style={styles.input}
-          value={sharedData?.webUrl}
-          placeholder={t("import:linkInput.placeholder")}
-          autoCapitalize="none"
-          autoCorrect={false}
-          editable={false}
-        />
-        <Pressable
-          style={[
-            styles.analyzeBtn,
-            (loading || !sharedData?.webUrl || hasAnalyzedRef.current) &&
-              styles.analyzeBtnDisabled,
-          ]}
-          onPress={analyze}
-          disabled={loading || !sharedData?.webUrl || hasAnalyzedRef.current}
-        >
-          <Text style={styles.analyzeBtnText}>
-            {loading
-              ? t("import:linkInput.analyzing")
-              : t("import:linkInput.analyze")}
-          </Text>
-        </Pressable>
-      </View>
-
-      {error && <Text style={styles.error}>{error}</Text>}
-
-      {activity && sheetOpen && (
-        <AppBottomSheet
-          ref={sheetRef}
-          index={0}
-          snapPoints={["75%"]}
-          onClose={handleCancelSheet}
-          scrollable
-          footer={
-            <View style={styles.sheetFooter}>
-              <Pressable style={styles.cancelBtn} onPress={handleCancelSheet}>
-                <Text style={styles.cancelBtnText}>
-                  {t("import:details.cancel")}
-                </Text>
-              </Pressable>
-
-              <Pressable
-                style={[
-                  styles.saveBtn,
-                  !hasUnsavedChanges && styles.saveBtnDisabled,
-                ]}
-                disabled={!hasUnsavedChanges}
-                onPress={handleSavePress}
-              >
-                <Text style={styles.saveBtnText}>
-                  {t("import:details.saveChanges")}
-                </Text>
-              </Pressable>
-            </View>
-          }
-        >
-          <ImportDetailsSheet
-            ref={detailsRef}
-            activity={activity}
-            onSave={handleSaveDetails}
-            onCancel={handleCancelSheet}
-            onDirtyChange={setHasUnsavedChanges}
+    <Screen
+      loading={loading}
+      scrollable
+      footer={
+        activity ? (
+          <ImportFooter
+            disabled={!hasUnsavedChanges}
+            onCancel={handleCancelDetails}
+            onSave={handleSavePress}
           />
-        </AppBottomSheet>
-      )}
+        ) : null
+      }
+    >
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>{t("import:header.title")}</Text>
+          <Text style={styles.subtitle}>{t("import:header.subtitle")}</Text>
+        </View>
+
+        {error && <Text style={styles.error}>{error}</Text>}
+
+        {activity ? (
+          <View style={styles.detailsCard}>
+            <ImportDetailsForm
+              ref={detailsRef}
+              activity={activity}
+              onSave={handleSaveDetails}
+              onCancel={handleCancelDetails}
+              onDirtyChange={setHasUnsavedChanges}
+            />
+          </View>
+        ) : null}
+      </View>
     </Screen>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    paddingBottom: 24,
+    gap: 10,
+  },
   header: {
     marginBottom: 16,
   },
@@ -268,34 +228,18 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   error: { color: "#c00", marginTop: 8 },
-  sheetFooter: {
-    paddingTop: 10,
-    paddingHorizontal: 12,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  cancelBtn: {
-    paddingVertical: 12,
-    paddingHorizontal: 18,
-  },
-  cancelBtnText: {
-    fontSize: 14,
-    color: "#64748b",
-  },
-  saveBtn: {
-    paddingVertical: 12,
-    paddingHorizontal: 22,
-    borderRadius: 12,
-    backgroundColor: "#0f172a",
-  },
-  saveBtnDisabled: {
-    backgroundColor: "#cbd5e1",
-  },
-  saveBtnText: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#fff",
+  detailsCard: {
+    marginTop: 12,
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
   },
 });
 

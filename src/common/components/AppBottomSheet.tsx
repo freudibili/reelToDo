@@ -20,7 +20,6 @@ interface AppBottomSheetProps {
   children: React.ReactNode;
   style?: ViewStyle;
   contentStyle?: ViewStyle;
-  footer?: React.ReactNode;
   scrollable?: boolean;
 }
 
@@ -33,7 +32,6 @@ const AppBottomSheet = React.forwardRef<BottomSheet, AppBottomSheetProps>(
       children,
       style,
       contentStyle,
-      footer,
       scrollable = false,
     },
     ref
@@ -47,7 +45,7 @@ const AppBottomSheet = React.forwardRef<BottomSheet, AppBottomSheetProps>(
         contentContainerStyle={[
           styles.inner,
           contentStyle,
-          { paddingBottom: footer ? 16 : bottomSpacing + 16 },
+          { paddingBottom: bottomSpacing + 16 },
         ]}
         nestedScrollEnabled
       >
@@ -58,7 +56,7 @@ const AppBottomSheet = React.forwardRef<BottomSheet, AppBottomSheetProps>(
         style={[
           styles.inner,
           contentStyle,
-          { paddingBottom: footer ? 12 : bottomSpacing + 12 },
+          { paddingBottom: bottomSpacing + 12 },
         ]}
       >
         {children}
@@ -81,17 +79,7 @@ const AppBottomSheet = React.forwardRef<BottomSheet, AppBottomSheetProps>(
           <Pressable style={styles.closeBtn} onPress={onClose}>
             <Text style={styles.closeText}>×</Text>
           </Pressable>
-          {content}
-          {footer ? (
-            <View
-              style={[
-                styles.footer,
-                { paddingBottom: bottomSpacing + 4 },
-              ]}
-            >
-              {footer}
-            </View>
-          ) : null}
+          <View style={styles.body}>{content}</View>
         </BottomSheetView>
       </BottomSheet>
     );
@@ -131,6 +119,10 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 16,
     paddingBottom: 12,
     overflow: "hidden",
+    flex: 1,
+  },
+  body: {
+    flex: 1,
   },
   scroll: {
     flex: 1,
@@ -138,13 +130,6 @@ const styles = StyleSheet.create({
   inner: {
     paddingHorizontal: 16,
     paddingTop: 8,
-  },
-  footer: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: "#e2e8f0",
-    backgroundColor: "#fff",
   },
   closeBtn: {
     position: "absolute",

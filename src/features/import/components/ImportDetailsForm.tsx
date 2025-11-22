@@ -21,20 +21,20 @@ import { PlaceDetails } from "../services/locationService";
 import type { ImportDraftDetails, UpdateActivityPayload } from "../utils/types";
 import { useTranslation } from "react-i18next";
 
-interface ImportDetailsSheetProps {
+interface ImportDetailsFormProps {
   activity: Activity;
   onSave: (payload: UpdateActivityPayload) => void;
   onCancel: () => void;
   onDirtyChange?: (dirty: boolean) => void;
 }
 
-export interface ImportDetailsSheetHandle {
+export interface ImportDetailsFormHandle {
   save: () => void;
 }
 
-const ImportDetailsSheet = React.forwardRef<
-  ImportDetailsSheetHandle,
-  ImportDetailsSheetProps
+const ImportDetailsForm = React.forwardRef<
+  ImportDetailsFormHandle,
+  ImportDetailsFormProps
 >(({ activity, onSave, onCancel: _onCancel, onDirtyChange }, ref) => {
   const { t } = useTranslation();
   const [dirty, setDirty] = useState(false);
@@ -150,7 +150,7 @@ const ImportDetailsSheet = React.forwardRef<
   );
 });
 
-ImportDetailsSheet.displayName = "ImportDetailsSheet";
+ImportDetailsForm.displayName = "ImportDetailsForm";
 
 const styles = StyleSheet.create({
   container: {
@@ -179,4 +179,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ImportDetailsSheet;
+export default ImportDetailsForm;

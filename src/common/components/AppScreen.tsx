@@ -5,6 +5,7 @@ import {
   ActivityIndicator,
   ViewStyle,
   Text,
+  ScrollView,
 } from "react-native";
 import {
   SafeAreaView,
@@ -19,6 +20,8 @@ interface AppScreenProps {
   backgroundColor?: string;
   withBottomInset?: boolean;
   loading?: boolean;
+  scrollable?: boolean;
+  footer?: React.ReactNode;
 }
 
 export interface ScreenHeaderProps {
@@ -53,10 +56,15 @@ export const ScreenHeader: React.FC<ScreenHeaderProps> = ({
         <View style={styles.backPlaceholder} />
       )}
       <View style={styles.headerText}>
-    {eyebrow ? <Text style={styles.eyebrow}>{eyebrow}</Text> : null}
+        {eyebrow ? <Text style={styles.eyebrow}>{eyebrow}</Text> : null}
         <Text style={titleStyle}>{title}</Text>
         {subtitle ? (
-          <Text style={[styles.headerSubtitle, compact && styles.headerSubtitleCompact]}>
+          <Text
+            style={[
+              styles.headerSubtitle,
+              compact && styles.headerSubtitleCompact,
+            ]}
+          >
             {subtitle}
           </Text>
         ) : null}
@@ -73,8 +81,23 @@ const AppScreen: React.FC<AppScreenProps> = ({
   backgroundColor = "#fff",
   withBottomInset = false,
   loading = false,
+  scrollable = false,
+  footer,
 }) => {
   const insets = useSafeAreaInsets();
+  const paddingStyle = noPadding ? null : styles.contentPadding;
+
+  const content = scrollable ? (
+    <ScrollView
+      style={styles.scroll}
+      contentContainerStyle={[paddingStyle, styles.scrollContent]}
+      showsVerticalScrollIndicator={false}
+    >
+      {children}
+    </ScrollView>
+  ) : (
+    <View style={[styles.inner, paddingStyle]}>{children}</View>
+  );
 
   return (
     <SafeAreaView
@@ -89,7 +112,10 @@ const AppScreen: React.FC<AppScreenProps> = ({
         style,
       ]}
     >
-      {children}
+      <View style={styles.contentArea}>{content}</View>
+
+      {footer ? <View style={[styles.footer]}>{footer}</View> : null}
+
       {loading && (
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size="large" color="#000" />
@@ -102,8 +128,14 @@ const AppScreen: React.FC<AppScreenProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 16,
   },
+  contentArea: {
+    flex: 1,
+  },
+  contentPadding: { paddingHorizontal: 12 },
+  scroll: { flex: 1 },
+  scrollContent: { flexGrow: 1, paddingTop: 4 },
+  inner: { flex: 1, paddingTop: 4 },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -122,12 +154,22 @@ const styles = StyleSheet.create({
     width: 40,
   },
   headerText: { flex: 1 },
-  eyebrow: { color: "#9aa0ad", fontSize: 11, letterSpacing: 0.3, textTransform: "none" },
+  eyebrow: {
+    color: "#9aa0ad",
+    fontSize: 11,
+    letterSpacing: 0.3,
+    textTransform: "none",
+  },
   headerTitle: { fontSize: 20, fontWeight: "600", color: "#1a1a1a" },
   headerTitleCompact: { fontSize: 18, fontWeight: "600", color: "#1a1a1a" },
   headerSubtitle: { marginTop: 2, color: "#8a8f98" },
   headerSubtitleCompact: { fontSize: 12.5, color: "#8a8f98" },
   headerRight: { minWidth: 40, alignItems: "flex-end" },
+  footer: {
+    paddingHorizontal: 12,
+    borderTopColor: "#e2e8f0",
+    backgroundColor: "#fff",
+  },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
     justifyContent: "center",
