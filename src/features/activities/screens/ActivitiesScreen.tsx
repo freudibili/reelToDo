@@ -36,7 +36,7 @@ const ActivitiesScreen = () => {
   const [selected, setSelected] = useState<Activity | null>(null);
   const [sheetVisible, setSheetVisible] = useState(false);
   const sheetRef = useRef(null);
-  const snapPoints = useMemo(() => ["25%", "50%"], []);
+  const snapPoints = useMemo(() => ["25%", "60%", "90%"], []);
 
   useEffect(() => {
     dispatch(fetchActivities());
@@ -90,8 +90,6 @@ const ActivitiesScreen = () => {
       <ActivityList
         data={grouped}
         onSelect={handleSelect}
-        favoriteIds={favoriteIds}
-        onToggleFavorite={handleToggleFavorite}
       />
 
       {sheetVisible && (

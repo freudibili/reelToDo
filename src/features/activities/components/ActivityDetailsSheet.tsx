@@ -1,12 +1,15 @@
 import React from "react";
+import { StyleSheet, Text, View } from "react-native";
+import { BottomSheetScrollView } from "@gorhom/bottom-sheet";
+import ActivityHero from "@common/components/ActivityHero";
+import ActivitySummaryHeader from "@common/components/ActivitySummaryHeader";
+import ActionRail, { type ActionRailItem } from "@common/components/ActionRail";
+import ActionPill from "@common/components/ActionPill";
 import {
-  View,
-  Text,
-  StyleSheet,
-  ImageBackground,
-  ScrollView,
-  Pressable,
-} from "react-native";
+  formatActivityLocation,
+  formatDisplayDate,
+} from "../utils/activityDisplay";
+import { categoryNeedsDate } from "../utils/activityHelper";
 import type { Activity } from "../utils/types";
 
 interface Props {
@@ -30,184 +33,168 @@ const ActivityDetailsSheet: React.FC<Props> = ({
 }) => {
   if (!activity) return null;
 
+  const dateLabel = formatDisplayDate(activity.main_date);
+  const locationLabel =
+    formatActivityLocation(activity) ?? "Lieu à confirmer ou préciser";
+  const needsDate = categoryNeedsDate(activity.category);
+
+  const actions: ActionRailItem[] = [
+    {
+      key: "favorite",
+      label: isFavorite ? "Retirer favori" : "Favori",
+      icon: isFavorite ? "heart" : "heart-outline",
+      onPress: () => onToggleFavorite(activity),
+    },
+    {
+      key: "maps",
+      label: "Maps",
+      icon: "map-marker",
+      onPress: () => onOpenMaps(activity),
+    },
+    ...(needsDate
+      ? [
+          {
+            key: "calendar",
+            label: "Calendrier",
+            icon: "calendar",
+            onPress: () => onAddToCalendar(activity),
+          } as ActionRailItem,
+        ]
+      : []),
+    {
+      key: "source",
+      label: "Source",
+      icon: "link-variant",
+      onPress: () => onOpenSource(activity),
+      disabled: !activity.source_url,
+    },
+    {
+      key: "delete",
+      label: "Supprimer",
+      icon: "delete-outline",
+      tone: "danger" as const,
+      onPress: () => onDelete(activity),
+    },
+  ];
+
   return (
-    <ScrollView contentContainerStyle={styles.scrollContent}>
-      <View style={styles.headerBlock}>
-        <Text style={styles.title}>{activity.title ?? "Activité"}</Text>
-        <Text style={styles.meta}>{activity.category ?? "—"}</Text>
-        <Text style={styles.meta}>{activity.location_name ?? "—"}</Text>
-      </View>
-      {activity.image_url ? (
-        <ImageBackground
-          source={{ uri: activity.image_url }}
-          style={styles.headerImage}
-        >
-          <View style={styles.imageOverlay} />
-          <Pressable
-            style={styles.circleBtn}
-            onPress={() => onToggleFavorite(activity)}
-          >
-            <Text style={styles.circleBtnText}>{isFavorite ? "♥" : "♡"}</Text>
-          </Pressable>
-        </ImageBackground>
-      ) : (
-        <View style={styles.headerPlaceholder}>
-          <Text style={styles.headerPlaceholderText}>
-            {activity.title?.slice(0, 1).toUpperCase() ?? "A"}
-          </Text>
-          <Pressable
-            style={styles.circleBtn}
-            onPress={() => onToggleFavorite(activity)}
-          >
-            <Text style={styles.circleBtnText}>{isFavorite ? "♥" : "♡"}</Text>
-          </Pressable>
-        </View>
-      )}
+    <BottomSheetScrollView
+      contentContainerStyle={styles.scrollContent}
+      nestedScrollEnabled
+    >
+      <ActivitySummaryHeader
+        title={activity.title ?? "Activité"}
+        category={activity.category}
+        location={locationLabel}
+        dateLabel={dateLabel}
+        style={styles.headerBlock}
+      />
 
-      <View style={styles.block}>
-        <Text style={styles.label}>Lieu</Text>
-        <Text style={styles.value}>{activity.location_name ?? "—"}</Text>
-        {activity.address ? (
-          <Text style={styles.value}>{activity.address}</Text>
-        ) : null}
+      <View style={styles.actionsRailWrapper}>
+        <ActionRail actions={actions} />
       </View>
 
-      <View style={styles.block}>
-        <Text style={styles.label}>Tags</Text>
-        <Text style={styles.value}>
-          {Array.isArray(activity.tags) && activity.tags.length
-            ? activity.tags.join(", ")
-            : "—"}
-        </Text>
+      <ActivityHero
+        title={activity.title ?? "Activité"}
+        category={activity.category}
+        location={locationLabel}
+        dateLabel={dateLabel}
+        imageUrl={activity.image_url}
+        showOverlayContent={false}
+      />
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionHeaderText}>Overview</Text>
+        <View style={styles.sectionUnderline} />
       </View>
-
-      <View style={styles.footer}>
-        <Pressable
-          style={styles.footerBtn}
-          onPress={() => onOpenMaps(activity)}
-        >
-          <Text style={styles.footerBtnText}>Ouvrir Maps</Text>
-        </Pressable>
-        <Pressable
-          style={[styles.footerBtn, !activity.source_url && styles.disabled]}
-          onPress={() => onOpenSource(activity)}
-          disabled={!activity.source_url}
-        >
-          <Text style={styles.footerBtnText}>Voir la source</Text>
-        </Pressable>
-        <Pressable
-          style={styles.footerBtn}
-          onPress={() => onAddToCalendar(activity)}
-        >
-          <Text style={styles.footerBtnText}>Calendrier</Text>
-        </Pressable>
-        <Pressable style={styles.deleteBtn} onPress={() => onDelete(activity)}>
-          <Text style={styles.deleteText}>🗑</Text>
-        </Pressable>
-      </View>
-    </ScrollView>
+      <InfoRow
+        icon="map-marker"
+        value={activity.address ?? "Adresse non précisée"}
+      />
+      {needsDate ? (
+        <InfoRow icon="calendar" value={dateLabel ?? "Date non précisée"} />
+      ) : null}
+    </BottomSheetScrollView>
   );
 };
+
+const InfoRow: React.FC<{ icon: string; value: string }> = ({
+  icon,
+  value,
+}) => (
+  <View style={styles.infoRow}>
+    <ActionPill
+      icon={icon}
+      label=""
+      onPress={() => {}}
+      style={styles.infoIcon}
+      textStyle={styles.hiddenText}
+    />
+    <Text style={styles.infoValue}>{value}</Text>
+  </View>
+);
 
 export default ActivityDetailsSheet;
 
 const styles = StyleSheet.create({
   scrollContent: {
-    paddingBottom: 12,
+    paddingBottom: 18,
+    gap: 10,
   },
   headerBlock: {
-    width: "60%",
+    paddingHorizontal: 4,
   },
-  headerImage: {
-    height: 160,
-    borderRadius: 18,
-    overflow: "hidden",
-    marginTop: 16,
+  sectionHeader: {
+    marginTop: 4,
+    marginBottom: 2,
   },
-  imageOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.2)",
+  sectionHeaderText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#0f172a",
   },
-  circleBtn: {
-    position: "absolute",
-    top: 14,
-    right: 14,
-    backgroundColor: "rgba(0,0,0,0.4)",
-    height: 32,
-    width: 32,
-    borderRadius: 999,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  circleBtnText: {
-    color: "#fff",
-    fontSize: 16,
-  },
-  headerPlaceholder: {
-    height: 150,
+  sectionUnderline: {
+    marginTop: 4,
+    height: 2,
+    width: 70,
     backgroundColor: "#0f172a",
-    marginBottom: 14,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 16,
+    borderRadius: 999,
   },
-  headerPlaceholderText: {
-    color: "#fff",
-    fontSize: 40,
-    fontWeight: "700",
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#0f172a",
-  },
-  meta: {
-    marginTop: 3,
-    color: "#64748b",
-  },
-  creator: {
-    marginTop: 3,
-    color: "#0f172a",
-  },
-  block: {
-    marginTop: 14,
-  },
-  label: {
-    fontWeight: "600",
-    marginBottom: 4,
-    color: "#0f172a",
-  },
-  value: {
-    color: "#1f2937",
-  },
-  footer: {
+  infoRow: {
     flexDirection: "row",
-    gap: 10,
-    marginTop: 24,
+    alignItems: "center",
+    gap: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    backgroundColor: "#f1f5f9",
+    borderRadius: 12,
   },
-  footerBtn: {
+  infoIcon: {
+    paddingVertical: 0,
+    paddingHorizontal: 0,
+    minWidth: 32,
+    backgroundColor: "transparent",
+    borderWidth: 0,
+  },
+  infoValue: {
+    fontSize: 14,
+    color: "#0f172a",
     flex: 1,
-    backgroundColor: "#0f172a",
-    borderRadius: 999,
-    paddingVertical: 11,
-    alignItems: "center",
   },
-  footerBtnText: {
-    color: "#fff",
-    fontWeight: "600",
+  hiddenText: { display: "none" },
+  subtle: {
+    fontSize: 12,
+    color: "#475569",
   },
-  disabled: {
-    opacity: 0.5,
+  muted: {
+    fontSize: 12,
+    color: "#94a3b8",
   },
-  deleteBtn: {
-    width: 44,
-    borderRadius: 999,
-    backgroundColor: "#dc2626",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  deleteText: {
-    color: "#fff",
+  link: {
+    fontSize: 14,
+    color: "#0f172a",
     fontWeight: "700",
+  },
+  actionsRailWrapper: {
+    marginTop: 6,
   },
 });

@@ -19,11 +19,13 @@ import Screen, { ScreenHeader } from "@common/components/AppScreen";
 import AppBottomSheet from "@common/components/AppBottomSheet";
 
 const ActivitiesCategoryScreen = () => {
-  const { category: categoryParam } = useLocalSearchParams<{ category?: string }>();
+  const { category: categoryParam } = useLocalSearchParams<{
+    category?: string;
+  }>();
   const category =
     typeof categoryParam === "string"
       ? categoryParam
-      : categoryParam?.[0] ?? "other";
+      : (categoryParam?.[0] ?? "other");
 
   const dispatch = useAppDispatch();
   const router = useRouter();
@@ -38,7 +40,7 @@ const ActivitiesCategoryScreen = () => {
   const [selected, setSelected] = useState<Activity | null>(null);
   const [sheetVisible, setSheetVisible] = useState(false);
   const sheetRef = useRef(null);
-  const snapPoints = useMemo(() => ["25%", "50%"], []);
+  const snapPoints = useMemo(() => ["25%", "60%", "90%"], []);
 
   const handleSelect = useCallback((activity: Activity) => {
     setSelected(activity);
@@ -95,8 +97,6 @@ const ActivitiesCategoryScreen = () => {
             <ActivityCard
               activity={activity}
               onPress={handleSelect}
-              isFavorite={favoriteIds.includes(activity.id)}
-              onToggleFavorite={handleToggleFavorite}
             />
           </View>
         ))}

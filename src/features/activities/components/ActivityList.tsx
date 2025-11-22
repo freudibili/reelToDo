@@ -19,15 +19,11 @@ interface CategoryGroup {
 interface Props {
   data: CategoryGroup[];
   onSelect: (activity: Activity) => void;
-  favoriteIds: string[];
-  onToggleFavorite: (id: string) => void;
 }
 
 const ActivityList: React.FC<Props> = ({
   data,
   onSelect,
-  favoriteIds,
-  onToggleFavorite,
 }) => {
   const { width } = useWindowDimensions();
 
@@ -58,8 +54,6 @@ const ActivityList: React.FC<Props> = ({
                 <ActivityCard
                   activity={activity}
                   onPress={onSelect}
-                  isFavorite={favoriteIds.includes(activity.id)}
-                  onToggleFavorite={onToggleFavorite}
                 />
               </View>
             ))}

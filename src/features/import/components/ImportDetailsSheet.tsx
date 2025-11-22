@@ -1,10 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, Image, Pressable, StyleSheet } from "react-native";
+import { View, Text, Pressable, StyleSheet } from "react-native";
 
 import type { Activity } from "@features/activities/utils/types";
 import LocationSection from "./LocationSection";
 import DateSection from "./DateSection";
 import { categoryNeedsDate } from "@features/activities/utils/activityHelper";
+import ActivityHero from "@common/components/ActivityHero";
+import ActivitySummaryHeader from "@common/components/ActivitySummaryHeader";
+import {
+  formatActivityLocation,
+  formatDisplayDate,
+} from "@features/activities/utils/activityDisplay";
 
 import { PlaceDetails } from "../services/locationService";
 import type { ImportDraftDetails, UpdateActivityPayload } from "../utils/types";
@@ -84,38 +90,49 @@ const ImportDetailsSheet: React.FC<ImportDetailsSheetProps> = ({
   const hideSaveButton =
     canEditLocation && (!needsDate || (needsDate && canEditDate));
 
+  const heroLocation =
+    draft.location?.name ||
+    formatActivityLocation(activity) ||
+    "Lieu à confirmer";
+  const heroDate = formatDisplayDate(draft.date ?? activity.main_date);
+
   return (
     <View style={styles.sheetContent}>
-      <View style={styles.sheetHeader}>
-        <Text style={styles.sheetTitle}>{activity.title}</Text>
-        <Text style={styles.sheetCategory}>{activity.category}</Text>
-        {activity.creator && (
-          <Text style={styles.sheetCreator}>by {activity.creator}</Text>
-        )}
-      </View>
-
-      {activity.image_url && (
-        <Image
-          source={{ uri: activity.image_url }}
-          style={styles.sheetImage}
-          resizeMode="cover"
-        />
-      )}
-
-      <LocationSection
-        locationName={draft.location?.name ?? activity.location_name ?? ""}
-        address={draft.location?.formattedAddress ?? activity.address ?? ""}
-        confirmed={!activity.needs_location_confirmation}
-        onChange={handleLocationChange}
+      <ActivityHero
+        title={activity.title ?? "Activité"}
+        category={activity.category}
+        location={heroLocation}
+        dateLabel={heroDate}
+        imageUrl={activity.image_url}
+        showOverlayContent={false}
       />
 
-      {showActivityDate && (
-        <DateSection
-          date={draft.date}
-          confirmed={!activity.needs_date_confirmation}
-          onChange={handleDateChange}
+      <ActivitySummaryHeader
+        title={activity.title ?? "Activité"}
+        category={activity.category}
+        location={heroLocation}
+        dateLabel={heroDate}
+        style={styles.headerBlock}
+      />
+
+      <View style={styles.sectionCard}>
+        <LocationSection
+          locationName={draft.location?.name ?? activity.location_name ?? ""}
+          address={
+            draft.location?.formattedAddress ?? activity.address ?? ""
+          }
+          confirmed={!activity.needs_location_confirmation}
+          onChange={handleLocationChange}
         />
-      )}
+
+        {showActivityDate && (
+          <DateSection
+            date={draft.date}
+            confirmed={!activity.needs_date_confirmation}
+            onChange={handleDateChange}
+          />
+        )}
+      </View>
 
       {!hideSaveButton && (
         <View style={styles.bottomButtons}>
@@ -138,58 +155,47 @@ const ImportDetailsSheet: React.FC<ImportDetailsSheetProps> = ({
 
 const styles = StyleSheet.create({
   sheetContent: {
-    paddingBottom: 40,
-    paddingHorizontal: 4,
+    paddingBottom: 20,
+    paddingHorizontal: 12,
+    gap: 10,
   },
-  sheetImage: {
-    width: "100%",
-    height: 200,
-    borderRadius: 16,
-    marginBottom: 16,
-    backgroundColor: "#eee",
-  },
-  sheetHeader: {
-    marginBottom: 16,
-  },
-  sheetTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-  },
-  sheetCategory: {
-    fontSize: 14,
-    color: "#666",
+  sectionCard: {
     marginTop: 2,
+    backgroundColor: "#f8fafc",
+    borderRadius: 14,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    gap: 10,
   },
-  sheetCreator: {
-    fontSize: 13,
-    color: "#777",
-    marginTop: 2,
+  headerBlock: {
+    paddingHorizontal: 2,
   },
   bottomButtons: {
-    marginTop: 28,
+    marginTop: 14,
     flexDirection: "row",
     justifyContent: "space-between",
   },
   cancelBtn: {
     paddingVertical: 10,
-    paddingHorizontal: 16,
+    paddingHorizontal: 18,
   },
   cancelBtnText: {
-    fontSize: 15,
-    color: "#666",
+    fontSize: 14,
+    color: "#64748b",
   },
   saveBtn: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 999,
-    backgroundColor: "#000",
+    paddingVertical: 12,
+    paddingHorizontal: 22,
+    borderRadius: 12,
+    backgroundColor: "#0f172a",
   },
   saveBtnDisabled: {
-    backgroundColor: "#bbb",
+    backgroundColor: "#cbd5e1",
   },
   saveBtnText: {
-    fontSize: 15,
-    fontWeight: "600",
+    fontSize: 14,
+    fontWeight: "700",
     color: "#fff",
   },
 });

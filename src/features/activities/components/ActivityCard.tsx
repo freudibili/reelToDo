@@ -1,21 +1,21 @@
 import React from "react";
 import { View, Text, StyleSheet, Image, Pressable } from "react-native";
-import { IconButton } from "react-native-paper";
+import { Icon } from "react-native-paper";
+import { formatActivityLocation, formatDisplayDate } from "../utils/activityDisplay";
 import type { Activity } from "../utils/types";
 
 interface Props {
   activity: Activity;
   onPress: (activity: Activity) => void;
-  isFavorite: boolean;
-  onToggleFavorite: (id: string) => void;
 }
 
 const ActivityCard: React.FC<Props> = ({
   activity,
   onPress,
-  isFavorite,
-  onToggleFavorite,
 }) => {
+  const locationLabel = formatActivityLocation(activity);
+  const dateLabel = formatDisplayDate(activity.main_date);
+
   return (
     <Pressable style={styles.card} onPress={() => onPress(activity)}>
       <View style={styles.imageWrapper}>
@@ -25,20 +25,26 @@ const ActivityCard: React.FC<Props> = ({
           <View style={styles.imagePlaceholder} />
         )}
         <View style={styles.titleOverlay}>
-          <Text
-            style={styles.title}
-            numberOfLines={2}
-            ellipsizeMode="tail"
-          >
+          <Text style={styles.title} numberOfLines={2} ellipsizeMode="tail">
             {activity.title ?? "Activity"}
           </Text>
+          {locationLabel ? (
+            <View style={styles.metaRow}>
+              <Icon source="map-marker" size={14} color="#d1d5db" />
+              <Text style={styles.metaText} numberOfLines={1} ellipsizeMode="tail">
+                {locationLabel}
+              </Text>
+            </View>
+          ) : null}
+          {dateLabel ? (
+            <View style={styles.metaRow}>
+              <Icon source="calendar" size={14} color="#d1d5db" />
+              <Text style={styles.metaText} numberOfLines={1} ellipsizeMode="tail">
+                {dateLabel}
+              </Text>
+            </View>
+          ) : null}
         </View>
-        <IconButton
-          icon={isFavorite ? "heart" : "heart-outline"}
-          size={20}
-          onPress={() => onToggleFavorite(activity.id)}
-          style={styles.favoriteBtn}
-        />
       </View>
     </Pressable>
   );
@@ -65,18 +71,24 @@ const styles = StyleSheet.create({
     bottom: 0,
     paddingHorizontal: 14,
     paddingVertical: 10,
-    backgroundColor: "rgba(0,0,0,0.35)",
-  },
-  favoriteBtn: {
-    position: "absolute",
-    top: 6,
-    right: 6,
-    backgroundColor: "rgba(0,0,0,0.4)",
+    backgroundColor: "rgba(0,0,0,0.38)",
+    gap: 6,
   },
   title: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "700",
     color: "#fff",
+    lineHeight: 20,
+  },
+  metaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  metaText: {
+    color: "#e5e7eb",
+    fontSize: 13,
+    flexShrink: 1,
   },
 });
 

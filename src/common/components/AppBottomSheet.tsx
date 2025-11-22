@@ -26,7 +26,8 @@ const AppBottomSheet = React.forwardRef<BottomSheet, AppBottomSheetProps>(
         snapPoints={snapPoints}
         enablePanDownToClose
         onClose={onClose}
-        enableOverDrag={false}
+        enableOverDrag
+        handleIndicatorStyle={styles.handleIndicator}
         backgroundStyle={styles.sheetBackground}
         handleStyle={styles.handle}
       >
@@ -64,6 +65,9 @@ const styles = StyleSheet.create({
   },
   handle: {
     backgroundColor: "transparent",
+  },
+  handleIndicator: {
+    backgroundColor: "#e2e8f0",
   },
   content: {
     backgroundColor: "#fff",
