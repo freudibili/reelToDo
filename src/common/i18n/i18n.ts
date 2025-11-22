@@ -5,33 +5,33 @@ import commonEn from "./locales/common.en.json";
 import commonFr from "./locales/common.fr.json";
 import authEn from "@features/auth/locales/en.json";
 import authFr from "@features/auth/locales/fr.json";
-import homeEn from "@features/home/locales/en.json";
-import homeFr from "@features/home/locales/fr.json";
 import activitiesEn from "@features/activities/locales/en.json";
 import activitiesFr from "@features/activities/locales/fr.json";
 import importEn from "@features/import/locales/en.json";
 import importFr from "@features/import/locales/fr.json";
+import settingsEn from "@features/settings/locales/en.json";
+import settingsFr from "@features/settings/locales/fr.json";
 
 i18next.use(initReactI18next).init({
   resources: {
     en: {
       common: commonEn,
       auth: authEn,
-      home: homeEn,
       activities: activitiesEn,
       import: importEn,
+      settings: settingsEn,
     },
     fr: {
       common: commonFr,
       auth: authFr,
-      home: homeFr,
       activities: activitiesFr,
       import: importFr,
+      settings: settingsFr,
     },
   },
   lng: "fr", // default language
   fallbackLng: "en",
-  ns: ["common", "auth", "home", "activities", "import"],
+  ns: ["common", "auth", "activities", "import", "settings"],
   defaultNS: "common",
   interpolation: {
     escapeValue: false, // React already does escaping

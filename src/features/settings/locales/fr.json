@@ -1,0 +1,108 @@
+{
+  "title": "Paramètres",
+  "subtitle": "Maîtrisez votre profil et votre expérience.",
+  "placeholders": {
+    "guest": "Explorateur ReelToDo",
+    "address": "Ajoutez votre adresse pour personnaliser vos idées"
+  },
+  "sections": {
+    "account": "Compte",
+    "safety": "Sécurité & aide"
+  },
+  "items": {
+    "profile": "Profil et adresse",
+    "profileSubtitle": "Nom, email et adresse",
+    "notifications": "Notifications",
+    "notificationsSubtitle": "Rappels et mises à jour",
+    "preferences": "Préférences",
+    "preferencesSubtitle": "Langue, thème, unités",
+    "privacy": "Confidentialité et sécurité",
+    "privacySubtitle": "Contrôlez vos données et permissions",
+    "support": "Aide et support",
+    "supportSubtitle": "Contactez-nous ou signalez un souci",
+    "about": "À propos de ReelToDo",
+    "aboutSubtitle": "Version et feuille de route"
+  },
+  "actions": {
+    "signOut": "Se déconnecter"
+  },
+  "profile": {
+    "title": "Profil",
+    "subtitle": "Gardez vos informations à jour.",
+    "fullName": "Nom complet",
+    "email": "Email",
+    "address": "Adresse",
+    "helper": "Nous utilisons ces informations pour personnaliser vos expériences et vous aider."
+  },
+  "notifications": {
+    "title": "Notifications",
+    "subtitle": "Choisissez ce que nous devons vous envoyer.",
+    "activityReminders": "Rappels d'activités",
+    "activityRemindersDesc": "Recevez des alertes pour vos plans à venir.",
+    "tips": "Conseils voyage",
+    "tipsDesc": "Inspiration ponctuelle selon vos favoris.",
+    "product": "Mises à jour produit",
+    "productDesc": "Nouvelles fonctionnalités et sorties.",
+    "security": "Alertes de sécurité",
+    "securityDesc": "Notifications de connexion, appareil ou confidentialité."
+  },
+  "preferences": {
+    "title": "Préférences",
+    "subtitle": "Réglez la langue, le thème et les unités.",
+    "language": {
+      "title": "Langue",
+      "system": "Comme l'appareil",
+      "en": "Anglais",
+      "fr": "Français"
+    },
+    "distance": {
+      "title": "Unités de distance",
+      "km": "Kilomètres",
+      "mi": "Miles"
+    },
+    "theme": {
+      "title": "Thème",
+      "system": "Système",
+      "light": "Clair",
+      "dark": "Sombre"
+    }
+  },
+  "privacy": {
+    "title": "Confidentialité & sécurité",
+    "subtitle": "Nous gardons vos données en sécurité et sous votre contrôle.",
+    "dataControl": "Propriété des données",
+    "dataControlDesc": "Exportez ou supprimez vos données de compte à tout moment.",
+    "location": "Utilisation de la localisation",
+    "locationDesc": "Nous utilisons votre position uniquement pour améliorer les suggestions proches.",
+    "backup": "Sauvegarde cloud",
+    "backupDesc": "Vos activités restent synchronisées de façon sécurisée.",
+    "noteTitle": "Besoin d'un changement ?",
+    "noteText": "Dites-nous si vous souhaitez ajuster la conservation, exporter un rapport complet ou supprimer votre compte."
+  },
+  "support": {
+    "title": "Aide et support",
+    "subtitle": "Nous répondons généralement sous un jour ouvré.",
+    "chat": "Écrire au support",
+    "chatDesc": "Ouvrir un email vers notre équipe.",
+    "issue": "Signaler un problème",
+    "issueDesc": "Un bug ou une activité incorrecte ? Expliquez-nous.",
+    "feedback": "Partager un avis",
+    "feedbackDesc": "Aidez-nous à prioriser les prochaines évolutions.",
+    "errorTitle": "Impossible d'ouvrir l'email",
+    "error": "Vous pouvez écrire à support@reeltodo.app depuis votre messagerie."
+  },
+  "about": {
+    "title": "À propos de ReelToDo",
+    "subtitle": "Les infos essentielles sur l'app.",
+    "version": "Version",
+    "build": "Build",
+    "roadmapTitle": "Feuille de route",
+    "roadmap": "Nous travaillons sur une découverte plus intelligente, des listes collaboratives et un meilleur mode hors ligne."
+  },
+  "errors": {
+    "load": "Impossible de charger vos paramètres",
+    "profile": "Impossible de mettre à jour le profil",
+    "notifications": "Impossible d'enregistrer les notifications",
+    "preferences": "Impossible de mettre à jour les préférences"
+  }
+}

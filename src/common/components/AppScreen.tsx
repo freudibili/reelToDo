@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
   contentArea: {
     flex: 1,
   },
-  contentPadding: { paddingHorizontal: 12 },
+  contentPadding: { paddingHorizontal: 12, paddingBottom: 20 },
   scroll: { flex: 1 },
   scrollContent: { flexGrow: 1, paddingTop: 4 },
   inner: { flex: 1, paddingTop: 4 },

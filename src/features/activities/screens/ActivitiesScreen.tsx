@@ -92,10 +92,7 @@ const ActivitiesScreen = () => {
     <Screen loading={loading && !initialized}>
       <Text style={styles.header}>{t("activities:header")}</Text>
 
-      <ActivityList
-        data={grouped}
-        onSelect={handleSelect}
-      />
+      <ActivityList data={grouped} onSelect={handleSelect} />
 
       {sheetVisible && (
         <AppBottomSheet

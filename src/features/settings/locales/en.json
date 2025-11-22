@@ -1,0 +1,108 @@
+{
+  "title": "Settings",
+  "subtitle": "Control your profile and experience.",
+  "placeholders": {
+    "guest": "ReelToDo explorer",
+    "address": "Add your address to personalize plans"
+  },
+  "sections": {
+    "account": "Account",
+    "safety": "Safety & Support"
+  },
+  "items": {
+    "profile": "Profile & address",
+    "profileSubtitle": "Name, email and address",
+    "notifications": "Notifications",
+    "notificationsSubtitle": "Reminders and updates",
+    "preferences": "Preferences",
+    "preferencesSubtitle": "Language, theme, units",
+    "privacy": "Privacy & security",
+    "privacySubtitle": "Control data and permissions",
+    "support": "Help & support",
+    "supportSubtitle": "Contact, report an issue",
+    "about": "About ReelToDo",
+    "aboutSubtitle": "Version and roadmap"
+  },
+  "actions": {
+    "signOut": "Sign out"
+  },
+  "profile": {
+    "title": "Profile",
+    "subtitle": "Keep your details up to date.",
+    "fullName": "Full name",
+    "email": "Email",
+    "address": "Address",
+    "helper": "We use this info to personalize your experiences and support."
+  },
+  "notifications": {
+    "title": "Notifications",
+    "subtitle": "Choose what we should send you.",
+    "activityReminders": "Activity reminders",
+    "activityRemindersDesc": "Get nudges for upcoming saved plans.",
+    "tips": "Travel tips",
+    "tipsDesc": "Occasional inspiration based on your favorites.",
+    "product": "Product updates",
+    "productDesc": "News about new features and releases.",
+    "security": "Security alerts",
+    "securityDesc": "Login, device or privacy notifications."
+  },
+  "preferences": {
+    "title": "Preferences",
+    "subtitle": "Adjust language, theme and distance units.",
+    "language": {
+      "title": "Language",
+      "system": "Match device",
+      "en": "English",
+      "fr": "Français"
+    },
+    "distance": {
+      "title": "Distance units",
+      "km": "Kilometers",
+      "mi": "Miles"
+    },
+    "theme": {
+      "title": "Theme",
+      "system": "System",
+      "light": "Light",
+      "dark": "Dark"
+    }
+  },
+  "privacy": {
+    "title": "Privacy & security",
+    "subtitle": "We keep your data safe and under your control.",
+    "dataControl": "Data ownership",
+    "dataControlDesc": "Export or delete your account data anytime from here.",
+    "location": "Location usage",
+    "locationDesc": "We only use your location to improve suggestions nearby.",
+    "backup": "Cloud backup",
+    "backupDesc": "Your activities stay synced securely across devices.",
+    "noteTitle": "Need a change?",
+    "noteText": "Let us know if you want to adjust data retention, export a full report or remove your account."
+  },
+  "support": {
+    "title": "Help & support",
+    "subtitle": "We usually respond within one business day.",
+    "chat": "Message support",
+    "chatDesc": "Open an email to our support team.",
+    "issue": "Report an issue",
+    "issueDesc": "Spotted a bug or incorrect activity? Tell us.",
+    "feedback": "Share feedback",
+    "feedbackDesc": "Help shape what we build next.",
+    "errorTitle": "Unable to open mail",
+    "error": "You can email support@reeltodo.app from your mail app."
+  },
+  "about": {
+    "title": "About ReelToDo",
+    "subtitle": "The essentials about your app.",
+    "version": "Version",
+    "build": "Build",
+    "roadmapTitle": "Roadmap",
+    "roadmap": "We are focusing on smarter discovery, collaborative lists and richer offline support."
+  },
+  "errors": {
+    "load": "Unable to load your settings",
+    "profile": "Unable to update profile",
+    "notifications": "Unable to save notification preferences",
+    "preferences": "Unable to update preferences"
+  }
+}

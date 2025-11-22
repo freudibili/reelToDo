@@ -8,12 +8,19 @@ const TabsLayout = () => {
 
   return (
     <Tabs
+      initialRouteName="activities"
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: "#000",
         tabBarInactiveTintColor: "#888",
       }}
     >
+      <Tabs.Screen
+        name="index"
+        options={{
+          href: null,
+        }}
+      />
       <Tabs.Screen
         name="activities"
         options={{
@@ -42,16 +49,7 @@ const TabsLayout = () => {
         }}
       />
       <Tabs.Screen
-        name="import"
-        options={{
-          title: t("navigation.tabs.import"),
-          tabBarIcon: ({ color, size }) => (
-            <Icon source="link-variant" color={color} size={size} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="index"
+        name="settings"
         options={{
           title: t("navigation.tabs.settings"),
           tabBarIcon: ({ color, size }) => (

@@ -22,10 +22,7 @@ interface Props {
   onSelect: (activity: Activity) => void;
 }
 
-const ActivityList: React.FC<Props> = ({
-  data,
-  onSelect,
-}) => {
+const ActivityList: React.FC<Props> = ({ data, onSelect }) => {
   const { t } = useTranslation();
   const { width } = useWindowDimensions();
 
@@ -51,12 +48,12 @@ const ActivityList: React.FC<Props> = ({
             {section.activities.slice(0, 8).map((activity) => (
               <View
                 key={activity.id}
-                style={[styles.cardWrapper, { width: Math.min(width * 0.62, 250) }]}
+                style={[
+                  styles.cardWrapper,
+                  { width: Math.min(width * 0.62, 250) },
+                ]}
               >
-                <ActivityCard
-                  activity={activity}
-                  onPress={onSelect}
-                />
+                <ActivityCard activity={activity} onPress={onSelect} />
               </View>
             ))}
             {section.activities.length > 8 ? (
@@ -68,10 +65,18 @@ const ActivityList: React.FC<Props> = ({
                 asChild
               >
                 <Pressable style={styles.moreWrapper}>
-                  <Text style={styles.moreLabel}>+{section.activities.length - 8}</Text>
-                  <Text style={styles.moreTitle}>{t("activities:list.more.title")}</Text>
-                  <Text style={styles.moreHint}>{t("activities:list.more.hint")}</Text>
-                  <Text style={styles.moreLink}>{t("activities:list.more.open")}</Text>
+                  <Text style={styles.moreLabel}>
+                    +{section.activities.length - 8}
+                  </Text>
+                  <Text style={styles.moreTitle}>
+                    {t("activities:list.more.title")}
+                  </Text>
+                  <Text style={styles.moreHint}>
+                    {t("activities:list.more.hint")}
+                  </Text>
+                  <Text style={styles.moreLink}>
+                    {t("activities:list.more.open")}
+                  </Text>
                 </Pressable>
               </Link>
             ) : null}
@@ -84,7 +89,7 @@ const ActivityList: React.FC<Props> = ({
 
 const styles = StyleSheet.create({
   scrollContent: {
-    paddingBottom: 40,
+    paddingBottom: 20,
   },
   section: {
     marginBottom: 20,
