@@ -18,6 +18,13 @@ const config: ExpoConfig = {
   ios: {
     supportsTablet: true,
     bundleIdentifier: "com.fredericstudio.reeltodo",
+    infoPlist: {
+      CFBundleURLTypes: [
+        {
+          CFBundleURLSchemes: ["reeltodo"],
+        },
+      ],
+    },
   },
   android: {
     package: "com.fredericstudio.reeltodo",
