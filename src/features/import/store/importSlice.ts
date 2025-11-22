@@ -37,7 +37,14 @@ export const analyzeSharedLink = createAsyncThunk<
   "import/analyzeSharedLink",
   async ({ shared, userId }, { rejectWithValue, dispatch }) => {
     try {
-      const result = await importService.analyze({ shared, userId });
+      let result = await importService.analyze({ shared, userId });
+
+      if (!("user_id" in result) || !result.user_id) {
+        const ownership = await importService.ensureOwner(result.id, userId);
+        if (ownership?.user_id) {
+          result = { ...result, user_id: ownership.user_id } as Activity;
+        }
+      }
 
       dispatch(activityInserted(result));
 

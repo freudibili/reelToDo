@@ -19,9 +19,10 @@ import {
   analyzeSharedLink,
   saveImportedActivityDetails,
 } from "@features/import/store/importSlice";
+import { resetImport } from "@features/import/store/importSlice";
 import {
-  deleteActivity,
   fetchActivities,
+  cancelActivity,
 } from "@features/activities/store/activitiesSlice";
 import { useAppDispatch, useAppSelector } from "@core/store/hook";
 import { useConfirmDialog } from "@common/hooks/useConfirmDialog";
@@ -120,10 +121,14 @@ const ImportScreen = () => {
     if (!activity) {
       return;
     }
-    await dispatch(deleteActivity(activity.id));
-    await dispatch(fetchActivities());
-    setHasUnsavedChanges(false);
-    router.replace("/");
+    try {
+      await dispatch(cancelActivity(activity.id)).unwrap();
+      await dispatch(fetchActivities());
+    } finally {
+      dispatch(resetImport());
+      setHasUnsavedChanges(false);
+      router.replace("/");
+    }
   };
 
   const handleCancelDetails = () => {

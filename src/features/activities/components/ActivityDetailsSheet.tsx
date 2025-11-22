@@ -1,5 +1,6 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
+import { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import ActivityHero from "@common/components/ActivityHero";
 import ActivitySummaryHeader from "@common/components/ActivitySummaryHeader";
 import ActionRail, { type ActionRailItem } from "@common/components/ActionRail";
@@ -80,7 +81,10 @@ const ActivityDetailsSheet: React.FC<Props> = ({
   ];
 
   return (
-    <View style={styles.container}>
+    <BottomSheetScrollView
+      contentContainerStyle={styles.scrollContent}
+      nestedScrollEnabled
+    >
       <ActivitySummaryHeader
         title={activity.title ?? t("common:labels.activity")}
         category={activity.category}
@@ -117,15 +121,15 @@ const ActivityDetailsSheet: React.FC<Props> = ({
           value={dateLabel ?? t("activities:details.dateMissing")}
         />
       ) : null}
-    </View>
+    </BottomSheetScrollView>
   );
 };
 
 export default ActivityDetailsSheet;
 
 const styles = StyleSheet.create({
-  container: {
-    paddingVertical: 8,
+  scrollContent: {
+    paddingBottom: 18,
     gap: 10,
   },
   headerBlock: {

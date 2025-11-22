@@ -89,4 +89,33 @@ export const ActivitiesService = {
 
     if (activityError) throw activityError;
   },
+
+  async cancelActivity(userId: string, activityId: string) {
+    // Claim ownership if not yet set
+    await supabase
+      .from("activities")
+      .update({ user_id: userId })
+      .eq("id", activityId)
+      .is("user_id", null);
+
+    // Remove user linkage
+    const { error: linkError } = await supabase
+      .from("user_activities")
+      .delete()
+      .eq("user_id", userId)
+      .eq("activity_id", activityId);
+    if (linkError) throw linkError;
+
+    // Remove the activity, but only if the user owns it
+    const { error: activityError, count } = await supabase
+      .from("activities")
+      .delete({ count: "exact" })
+      .eq("id", activityId)
+      .eq("user_id", userId);
+    if (activityError) throw activityError;
+    // If nothing deleted, surface explicit error for caller
+    if (!count) {
+      throw new Error("Activity not owned by user or already deleted");
+    }
+  },
 };

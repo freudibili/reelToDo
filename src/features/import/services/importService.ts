@@ -33,6 +33,26 @@ export const importService = {
     if (!data) throw new Error(i18next.t("import:errors.analyze"));
     return data as Activity;
   },
+
+  ensureOwner: async (
+    activityId: string,
+    userId: string
+  ): Promise<{ user_id: string } | null> => {
+    const { data, error } = await supabase
+      .from("activities")
+      .update({ user_id: userId })
+      .eq("id", activityId)
+      .is("user_id", null)
+      .select("user_id")
+      .single();
+
+    if (error && error.code !== "PGRST116") {
+      // PGRST116 = No rows updated; ignore when already owned
+      throw error;
+    }
+
+    return data ?? null;
+  },
 };
 
 export const markActivityLocationConfirmed = async (

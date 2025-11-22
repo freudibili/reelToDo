@@ -71,6 +71,19 @@ serve(async (req) => {
   if (existing) {
     console.log("[fn] already exists, returning existing id", existing.id);
 
+    if (userId && !existing.user_id) {
+      const { error: claimError } = await supabase
+        .from("activities")
+        .update({ user_id: userId })
+        .eq("id", existing.id)
+        .is("user_id", null);
+      if (claimError) {
+        console.log("[fn] ownership claim failed", claimError);
+      } else {
+        existing.user_id = userId;
+      }
+    }
+
     if (userId) {
       console.log("[fn] upserting user_activities for existing activity");
       const { error: uaError } = await supabase.from("user_activities").upsert(
@@ -274,6 +287,7 @@ serve(async (req) => {
     confidence: typeof confidence === "number" ? confidence : 0.9,
     needs_location_confirmation: needsLocationConfirmation,
     needs_date_confirmation: needsDateConfirmation,
+    user_id: userId ?? null,
   };
 
   console.log("[fn] insertPayload", insertPayload);

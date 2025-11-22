@@ -90,6 +90,25 @@ export const deleteActivity = createAsyncThunk<
   return id;
 });
 
+export const cancelActivity = createAsyncThunk<
+  string,
+  string,
+  { state: RootState; rejectValue: string }
+>("activities/cancelActivity", async (id, { getState, rejectWithValue }) => {
+  const userId = getState().auth.user?.id;
+  if (!userId) {
+    return rejectWithValue(i18next.t("activities:errors.noUser"));
+  }
+  try {
+    await ActivitiesService.cancelActivity(userId, id);
+  } catch (e: any) {
+    return rejectWithValue(
+      e.message ?? i18next.t("activities:errors.deleteFailed")
+    );
+  }
+  return id;
+});
+
 export const createActivityCalendarEvent = createAsyncThunk<
   { activityId: string; calendarEventId: string },
   {
@@ -221,6 +240,11 @@ const activitiesSlice = createSlice({
       state.favoriteIds = state.favoriteIds.filter((x) => x !== id);
     });
     builder.addCase(deleteActivity.fulfilled, (state, action) => {
+      const id = action.payload;
+      state.items = state.items.filter((a) => a.id !== id);
+      state.favoriteIds = state.favoriteIds.filter((x) => x !== id);
+    });
+    builder.addCase(cancelActivity.fulfilled, (state, action) => {
       const id = action.payload;
       state.items = state.items.filter((a) => a.id !== id);
       state.favoriteIds = state.favoriteIds.filter((x) => x !== id);
