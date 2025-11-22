@@ -24,6 +24,15 @@ const ActivityCard: React.FC<Props> = ({
         ) : (
           <View style={styles.imagePlaceholder} />
         )}
+        <View style={styles.titleOverlay}>
+          <Text
+            style={styles.title}
+            numberOfLines={2}
+            ellipsizeMode="tail"
+          >
+            {activity.title ?? "Activity"}
+          </Text>
+        </View>
         <IconButton
           icon={isFavorite ? "heart" : "heart-outline"}
           size={20}
@@ -31,47 +40,44 @@ const ActivityCard: React.FC<Props> = ({
           style={styles.favoriteBtn}
         />
       </View>
-      <View style={styles.cardContent}>
-        <Text style={styles.title}>{activity.title ?? "Activity"}</Text>
-        <Text style={styles.meta}>
-          {activity.category ?? "—"} ·{" "}
-          {activity.city ?? activity.location_name ?? "—"}
-        </Text>
-        {activity.creator ? (
-          <Text style={styles.creator}>by {activity.creator}</Text>
-        ) : null}
-      </View>
     </Pressable>
   );
 };
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#fff",
     borderRadius: 12,
-    marginBottom: 12,
     overflow: "hidden",
-    borderWidth: 1,
-    borderColor: "#eee",
+    backgroundColor: "#0f0f0f",
   },
   imageWrapper: {
     width: "100%",
-    height: 180,
-    backgroundColor: "#eee",
+    height: 150,
+    backgroundColor: "#111",
     position: "relative",
   },
   image: { width: "100%", height: "100%" },
-  imagePlaceholder: { width: "100%", height: "100%", backgroundColor: "#ddd" },
+  imagePlaceholder: { width: "100%", height: "100%", backgroundColor: "#333" },
+  titleOverlay: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    backgroundColor: "rgba(0,0,0,0.35)",
+  },
   favoriteBtn: {
     position: "absolute",
     top: 6,
     right: 6,
-    backgroundColor: "rgba(255,255,255,0.9)",
+    backgroundColor: "rgba(0,0,0,0.4)",
   },
-  cardContent: { padding: 12 },
-  title: { fontSize: 16, fontWeight: "600" },
-  meta: { marginTop: 4, color: "#666" },
-  creator: { marginTop: 4, color: "#333" },
+  title: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#fff",
+  },
 });
 
 export default ActivityCard;

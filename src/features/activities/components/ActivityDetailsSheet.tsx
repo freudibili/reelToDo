@@ -30,20 +30,12 @@ const ActivityDetailsSheet: React.FC<Props> = ({
 }) => {
   if (!activity) return null;
 
-  const metaLocation =
-    activity.city ||
-    activity.location_name ||
-    activity.address ||
-    activity.country ||
-    "—";
-
   return (
     <ScrollView contentContainerStyle={styles.scrollContent}>
       <View style={styles.headerBlock}>
         <Text style={styles.title}>{activity.title ?? "Activité"}</Text>
-        <Text style={styles.meta}>
-          {activity.category ?? "—"} · {metaLocation}
-        </Text>
+        <Text style={styles.meta}>{activity.category ?? "—"}</Text>
+        <Text style={styles.meta}>{activity.location_name ?? "—"}</Text>
       </View>
       {activity.image_url ? (
         <ImageBackground
@@ -78,12 +70,6 @@ const ActivityDetailsSheet: React.FC<Props> = ({
         {activity.address ? (
           <Text style={styles.value}>{activity.address}</Text>
         ) : null}
-        {activity.city ? (
-          <Text style={styles.value}>{activity.city}</Text>
-        ) : null}
-        {activity.country ? (
-          <Text style={styles.value}>{activity.country}</Text>
-        ) : null}
       </View>
 
       <View style={styles.block}>
@@ -91,15 +77,6 @@ const ActivityDetailsSheet: React.FC<Props> = ({
         <Text style={styles.value}>
           {Array.isArray(activity.tags) && activity.tags.length
             ? activity.tags.join(", ")
-            : "—"}
-        </Text>
-      </View>
-
-      <View style={styles.block}>
-        <Text style={styles.label}>Confiance</Text>
-        <Text style={styles.value}>
-          {activity.confidence
-            ? `${Math.round(activity.confidence * 100)}%`
             : "—"}
         </Text>
       </View>
