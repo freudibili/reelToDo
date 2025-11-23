@@ -1,4 +1,5 @@
-import { youtubeApiKey } from "./deps.ts";
+import { normalizeActivityUrl } from "./normalize.ts";
+import { facebookAppToken, youtubeApiKey } from "./deps.ts";
 
 export type SourceType =
   | "instagram"
@@ -19,21 +20,59 @@ export interface SourceMetadata {
 export const detectSource = (url: string): SourceType => {
   const lower = url.toLowerCase();
   if (lower.includes("instagram.com")) return "instagram";
-  if (lower.includes("facebook.com")) return "facebook";
+  if (
+    lower.includes("facebook.com") ||
+    lower.includes("fb.watch") ||
+    lower.includes("fb.com") ||
+    lower.includes("fb.me")
+  ) {
+    return "facebook";
+  }
   if (lower.includes("tiktok.com")) return "tiktok";
   if (lower.includes("youtube.com") || lower.includes("youtu.be"))
     return "youtube";
   return "generic";
 };
 
-const fetchWithUA = async (url: string) => {
+const fetchWithUA = async (url: string, init: RequestInit = {}) => {
+  const headers = new Headers(init.headers ?? {});
+  headers.set(
+    "User-Agent",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.1 Safari/605.1.15"
+  );
+
   const res = await fetch(url, {
-    headers: {
-      "User-Agent":
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.1 Safari/605.1.15",
-    },
+    ...init,
+    headers,
   });
   return res;
+};
+
+const resolveFacebookRedirect = async (url: string): Promise<string> => {
+  const tryResolve = async (method: "HEAD" | "GET") => {
+    try {
+      const res = await fetchWithUA(url, { method, redirect: "follow" });
+      const finalUrl = res.url || url;
+      if (res.redirected && finalUrl !== url) {
+        console.log("[source] facebook redirect", url, "->", finalUrl);
+      }
+      try {
+        res.body?.cancel();
+      } catch {
+        // ignore cancellation errors
+      }
+      return finalUrl;
+    } catch (e) {
+      console.log(`[source] facebook ${method.toLowerCase()} resolve error`, String(e));
+      return null;
+    }
+  };
+
+  const headResolved = await tryResolve("HEAD");
+  if (headResolved && headResolved !== url) return headResolved;
+
+  const getResolved = await tryResolve("GET");
+  return getResolved ?? headResolved ?? url;
 };
 
 const decodeHtml = (value: string | null | undefined): string | null => {
@@ -91,13 +130,15 @@ const fetchHtmlMeta = async (url: string) => {
 
 const fetchOEmbed = async (
   url: string,
-  source: SourceType
+  source: SourceType,
+  facebookToken?: string | null
 ): Promise<{ title: string | null; author: string | null; image: string | null } | null> => {
   let endpoint: string | null = null;
   if (source === "instagram") {
     endpoint = `https://www.instagram.com/oembed?url=${encodeURIComponent(url)}`;
   } else if (source === "facebook") {
-    endpoint = `https://www.facebook.com/plugins/post/oembed.json/?url=${encodeURIComponent(url)}`;
+    const base = `https://www.facebook.com/plugins/post/oembed.json/?url=${encodeURIComponent(url)}`;
+    endpoint = facebookToken ? `${base}&access_token=${facebookToken}` : base;
   } else if (source === "tiktok") {
     endpoint = `https://www.tiktok.com/oembed?url=${encodeURIComponent(url)}`;
   }
@@ -213,49 +254,113 @@ const fetchYouTubeMetadata = async (
   }
 };
 
+const sanitizeMeta = (
+  url: string,
+  meta: Omit<SourceMetadata, "source">
+): Omit<SourceMetadata, "source"> => {
+  const normalizedUrl = normalizeActivityUrl(url).toLowerCase();
+  const stripTrailingSlash = (v: string) => v.replace(/\/+$/, "");
+  const targets = new Set([
+    normalizedUrl,
+    stripTrailingSlash(normalizedUrl),
+    url.toLowerCase(),
+    stripTrailingSlash(url.toLowerCase()),
+  ]);
+  const isUrlValue = (v: string | null | undefined) =>
+    typeof v === "string" && v.trim().length > 0 && targets.has(stripTrailingSlash(v.trim().toLowerCase()));
+
+  return {
+    title: isUrlValue(meta.title) ? null : meta.title,
+    description: isUrlValue(meta.description) ? null : meta.description,
+    image: meta.image,
+    author: meta.author,
+    publishedAt: meta.publishedAt ?? null,
+  };
+};
+
 export const getSourceMetadata = async (
   url: string,
   userMeta?: Record<string, any>
 ): Promise<SourceMetadata> => {
   const source = detectSource(url);
   console.log("[source] detected", source, "for", url);
+  const targetUrl =
+    source === "facebook" ? normalizeActivityUrl(await resolveFacebookRedirect(url)) : url;
+  if (targetUrl !== url) {
+    console.log("[source] resolved url for metadata", targetUrl);
+  }
+
+  const pickUserMeta = () => ({
+    title: userMeta?.title ?? null,
+    description: userMeta?.description ?? null,
+    image: userMeta?.thumbnail_url ?? null,
+    author: userMeta?.author_name ?? null,
+  });
+  const mergeWithHtml = async (
+    current: { title: string | null; description: string | null; image: string | null; author: string | null }
+  ) => {
+    if (current.title && current.description && current.image) return current;
+    const html = await fetchHtmlMeta(targetUrl);
+    return {
+      title: current.title ?? html.title,
+      description: current.description ?? html.description,
+      image: current.image ?? html.image,
+      author: current.author ?? null,
+    };
+  };
+
   if (source === "youtube") {
-    const yt = await fetchYouTubeMetadata(url);
-    const out: SourceMetadata = {
+    const yt = await fetchYouTubeMetadata(targetUrl);
+    const out: SourceMetadata = sanitizeMeta(targetUrl, {
       source,
       title: userMeta?.title ?? yt.title,
       description: userMeta?.description ?? yt.description,
       image: userMeta?.thumbnail_url ?? yt.image,
       author: userMeta?.author_name ?? yt.author,
       publishedAt: yt.publishedAt,
-    };
+    }) as SourceMetadata;
     console.log("[source] final youtube meta", out);
     return out;
   }
 
-  const oembed = await fetchOEmbed(url, source);
+  const userFirst = pickUserMeta();
+  const oembed =
+    source === "facebook" && !facebookAppToken
+      ? null
+      : await fetchOEmbed(targetUrl, source, facebookAppToken);
+  if (source === "facebook" && userMeta) {
+    const merged = await mergeWithHtml({
+      title: userFirst.title ?? oembed?.title ?? null,
+      description: userFirst.description ?? null,
+      image: userFirst.image ?? oembed?.image ?? null,
+      author: userFirst.author ?? oembed?.author ?? null,
+    });
+    const out: SourceMetadata = { source, ...sanitizeMeta(targetUrl, merged), publishedAt: null };
+    console.log("[source] final facebook meta", out);
+    return out;
+  }
+
   if (oembed) {
-    const out: SourceMetadata = {
-      source,
-      title: userMeta?.title ?? oembed.title,
-      description: userMeta?.description ?? null,
-      image: userMeta?.thumbnail_url ?? oembed.image,
-      author: userMeta?.author_name ?? oembed.author,
-      publishedAt: null,
-    };
+    const merged = await mergeWithHtml({
+      title: userFirst.title ?? oembed.title,
+      description: userFirst.description ?? null,
+      image: userFirst.image ?? oembed.image,
+      author: userFirst.author ?? oembed.author,
+    });
+    const out: SourceMetadata = { source, ...sanitizeMeta(targetUrl, merged), publishedAt: null };
     console.log("[source] final oembed meta", out);
     return out;
   }
 
-  const basic = await fetchHtmlMeta(url);
-  const out: SourceMetadata = {
+  const basic = await fetchHtmlMeta(targetUrl);
+  const out: SourceMetadata = sanitizeMeta(targetUrl, {
     source,
-    title: userMeta?.title ?? basic.title,
-    description: userMeta?.description ?? basic.description,
-    image: userMeta?.thumbnail_url ?? basic.image,
-    author: userMeta?.author_name ?? null,
+    title: userFirst.title ?? basic.title,
+    description: userFirst.description ?? basic.description,
+    image: userFirst.image ?? basic.image,
+    author: userFirst.author ?? null,
     publishedAt: null,
-  };
+  }) as SourceMetadata;
   console.log("[source] final meta", out);
   return out;
 };

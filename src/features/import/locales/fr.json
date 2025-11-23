@@ -45,5 +45,11 @@
     "location": "Échec de la confirmation du lieu",
     "date": "Échec de la confirmation de la date",
     "saveDetails": "Impossible d'enregistrer les détails de l'activité"
+  },
+  "errorState": {
+    "title": "On a un petit souci",
+    "description": "On ne peut pas importer cette vidéo pour l'instant. Retourne à l'accueil et réessaie dans un instant.",
+    "reasonLabel": "Ce qui s'est passé",
+    "homeCta": "Retour à l'accueil"
   }
 }

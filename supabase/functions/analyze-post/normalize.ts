@@ -287,7 +287,10 @@ export const normalizeActivityUrl = (input: string): string => {
   if (
     hostname === "facebook.com" ||
     hostname.endsWith(".facebook.com") ||
-    hostname === "fb.watch"
+    hostname === "fb.watch" ||
+    hostname === "fb.com" ||
+    hostname.endsWith(".fb.com") ||
+    hostname === "fb.me"
   ) {
     return normalizeFacebookUrl(url);
   }

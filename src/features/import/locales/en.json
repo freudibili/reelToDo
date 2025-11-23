@@ -45,5 +45,11 @@
     "location": "Failed to confirm location",
     "date": "Failed to confirm date",
     "saveDetails": "Unable to save activity details"
+  },
+  "errorState": {
+    "title": "We hit a snag",
+    "description": "We couldn't import this one right now. Head back home and try again in a bit.",
+    "reasonLabel": "What happened",
+    "homeCta": "Back to home"
   }
 }

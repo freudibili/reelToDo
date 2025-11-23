@@ -31,6 +31,7 @@ import ImportDetailsForm, {
   type ImportDetailsFormHandle,
 } from "../components/ImportDetailsForm";
 import ImportFooter from "../components/ImportFooter";
+import ImportErrorState from "../components/ImportErrorState";
 import type { Activity } from "@features/activities/utils/types";
 import { UpdateActivityPayload } from "../utils/types";
 import { useTranslation } from "react-i18next";
@@ -117,6 +118,12 @@ const ImportScreen = () => {
     detailsRef.current?.save();
   }, []);
 
+  const handleGoHome = useCallback(() => {
+    dispatch(resetImport());
+    setHasUnsavedChanges(false);
+    router.replace("/");
+  }, [dispatch, router]);
+
   const discardActivity = async () => {
     if (!activity) {
       return;
@@ -174,7 +181,9 @@ const ImportScreen = () => {
           <Text style={styles.subtitle}>{t("import:header.subtitle")}</Text>
         </View>
 
-        {error && <Text style={styles.error}>{error}</Text>}
+        {error ? (
+          <ImportErrorState message={error} onGoHome={handleGoHome} />
+        ) : null}
 
         {activity ? (
           <View style={styles.detailsCard}>
@@ -232,7 +241,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
-  error: { color: "#c00", marginTop: 8 },
   detailsCard: {
     marginTop: 12,
     backgroundColor: "#fff",

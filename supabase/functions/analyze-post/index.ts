@@ -35,6 +35,7 @@ serve(async (req) => {
 
   const url = body.url as string | undefined;
   const userId = body.user_id as string | undefined;
+  const userMeta = body.metadata as Record<string, any> | undefined;
 
   if (!url) {
     return new Response(JSON.stringify({ error: "Missing url" }), {
@@ -111,8 +112,25 @@ serve(async (req) => {
   }
 
   console.log("[fn] fetching source meta for", url);
-  const sourceMeta = await getSourceMetadata(url);
+  const sourceMeta = await getSourceMetadata(url, userMeta);
   console.log("[fn] sourceMeta", sourceMeta);
+
+  const hasAnySourceMeta = Boolean(
+    sourceMeta.title || sourceMeta.description || sourceMeta.image || sourceMeta.author
+  );
+  if (!hasAnySourceMeta) {
+    console.log("[fn] no usable metadata, aborting create");
+    return new Response(
+      JSON.stringify({
+        error: "NO_CONTENT",
+        reason: "Could not extract any metadata from the provided URL",
+      }),
+      {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  }
 
   const aiActivity = await analyzeActivity({
     title: sourceMeta.title ?? null,
