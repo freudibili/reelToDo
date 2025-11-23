@@ -1,18 +1,88 @@
 {
   "signIn": {
     "title": "Sign in",
+    "subtitle": "Access your ReelToDo account",
     "submit": "Continue",
+    "submitOtp": "Send code",
     "noAccount": "No account?",
-    "cta": "Sign up"
+    "cta": "Sign up",
+    "forgot": "Forgot password?",
+    "useMagicLink": "Use magic link"
+  },
+  "social": {
+    "or": "or continue with"
   },
   "signUp": {
     "title": "Create account",
+    "subtitle": "Start organizing with ReelToDo",
     "submit": "Create",
+    "submitOtp": "Send code",
     "hasAccount": "Already have an account?",
-    "cta": "Sign in"
+    "cta": "Sign in",
+    "useMagicLink": "Prefer a magic link?"
+  },
+  "landing": {
+    "title": "Welcome",
+    "subtitle": "Choose how you want to access ReelToDo",
+    "badge": "Flow-ready",
+    "catchphrase": "Capture ideas fast, ship tasks even faster.",
+    "helper": "Keep your list tidy, your reminders timely, and your head clear with ReelToDo.",
+    "signIn": "Sign in",
+    "signUp": "Create account",
+    "magicLink": "Magic link",
+    "noAccount": "New here?",
+    "create": "Create an account",
+    "forgotPassword": "I forgot my password"
+  },
+  "magicLink": {
+    "title": "Magic link",
+    "subtitle": "We’ll send you a link to sign in securely",
+    "submit": "Send link",
+    "ctaOtp": "I have a code"
+  },
+  "emailCheck": {
+    "title": "Check your inbox",
+    "subtitle": "We sent a link or code to {{email}}",
+    "magicMessage": "Open the email we just sent and tap the link to continue.",
+    "resetMessage": "Use the link we sent to reset your password and secure your account.",
+    "enterCode": "Enter code manually",
+    "back": "Back"
+  },
+  "otp": {
+    "title": "Enter your code",
+    "subtitle": "We sent a 6-digit code to {{email}}",
+    "helper": "Paste the code from your email. If you tapped the magic link already, you may be signed in automatically.",
+    "codeLabel": "Code",
+    "submit": "Verify"
+  },
+  "forgotPassword": {
+    "title": "Forgot password",
+    "subtitle": "We’ll send you a reset link",
+    "submit": "Send reset link",
+    "haveCode": "Already have a code?"
+  },
+  "resetPassword": {
+    "title": "Set a new password",
+    "subtitle": "Secure your account with a fresh password",
+    "password": "New password",
+    "confirm": "Confirm password",
+    "submit": "Update password",
+    "minLength": "Password must be at least 8 characters",
+    "mismatch": "Passwords do not match"
+  },
+  "sessionExpired": {
+    "title": "Session expired",
+    "subtitle": "You’ve been signed out for security",
+    "body": "Please sign in again to continue where you left off.",
+    "relog": "Sign in again",
+    "backToAuth": "Back to auth home"
   },
   "errors": {
     "signIn": "Unable to sign in",
-    "signUp": "Unable to sign up"
+    "signUp": "Unable to sign up",
+    "magicLink": "Unable to send magic link",
+    "verifyOtp": "The code is invalid or expired",
+    "reset": "Unable to send reset link",
+    "updatePassword": "Unable to update password"
   }
 }

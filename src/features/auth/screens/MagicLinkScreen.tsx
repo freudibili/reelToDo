@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import React, { useState } from "react";
+import { Text, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import AuthLayout from "../components/AuthLayout";
@@ -7,17 +7,15 @@ import AuthTextField from "../components/AuthTextField";
 import AuthButton from "../components/AuthButton";
 import { useAppDispatch, useAppSelector } from "@core/store/hook";
 import {
-  clearError,
   requestMagicLink,
+  clearError,
 } from "@features/auth/store/authSlice";
 import {
   selectAuthError,
   selectAuthRequestStatus,
-  selectIsAuthenticated,
 } from "@features/auth/store/authSelectors";
-import SocialAuthButtons from "../components/SocialAuthButtons";
 
-const SignInScreen = () => {
+const MagicLinkScreen = () => {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const { t } = useTranslation();
@@ -25,13 +23,6 @@ const SignInScreen = () => {
 
   const error = useAppSelector(selectAuthError);
   const status = useAppSelector(selectAuthRequestStatus("magicLink"));
-  const isAuthenticated = useAppSelector(selectIsAuthenticated);
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      router.replace("/");
-    }
-  }, [isAuthenticated, router]);
 
   const onSubmit = async () => {
     if (!email) return;
@@ -40,18 +31,33 @@ const SignInScreen = () => {
       await dispatch(requestMagicLink({ email })).unwrap();
       router.push({
         pathname: "/auth/otp",
-        params: { email, type: "magiclink" },
+        params: { email, type: "email" },
       });
     } catch {
-      // handled by slice
+      // error handled by slice
     }
   };
 
   return (
     <AuthLayout
-      title={t("auth:signIn.title")}
-      subtitle={t("auth:signIn.subtitle")}
+      title={t("auth:magicLink.title")}
+      subtitle={t("auth:magicLink.subtitle")}
       loading={status === "pending"}
+      withCard={false}
+      footer={
+        <View style={styles.footerLinks}>
+          <AuthButton
+            label={t("auth:emailCheck.back")}
+            variant="secondary"
+            onPress={() =>
+              router.canGoBack() ? router.back() : router.replace("/auth")
+            }
+          />
+          <TouchableOpacity onPress={() => router.replace("/auth/signin")}>
+            <Text style={styles.link}>{t("auth:signIn.title")}</Text>
+          </TouchableOpacity>
+        </View>
+      }
     >
       {error ? <Text style={styles.error}>{error}</Text> : null}
       <AuthTextField
@@ -61,32 +67,31 @@ const SignInScreen = () => {
         placeholder="moi@email.com"
         value={email}
         onChangeText={setEmail}
-        returnKeyType="next"
       />
       <AuthButton
-        label={t("auth:signIn.submitOtp")}
+        label={t("auth:magicLink.submit")}
         onPress={onSubmit}
         loading={status === "pending"}
         disabled={!email}
       />
-      <SocialAuthButtons />
-      <View style={styles.secondaryAction}>
-        <Text style={styles.secondaryLabel}>
-          {t("auth:signIn.noAccount")}
-        </Text>
-        <AuthButton
-          label={t("auth:signUp.title")}
-          variant="ghost"
-          onPress={() => router.replace("/auth/signup")}
-        />
-      </View>
     </AuthLayout>
   );
 };
 
-export default SignInScreen;
+export default MagicLinkScreen;
 
 const styles = StyleSheet.create({
+  link: {
+    color: "#2563eb",
+    fontWeight: "600",
+    fontSize: 14,
+  },
+  backLink: {
+    color: "#0f172a",
+    fontWeight: "600",
+    fontSize: 14,
+    marginBottom: 4,
+  },
   error: {
     color: "#b91c1c",
     backgroundColor: "#fef2f2",
@@ -95,14 +100,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 10,
   },
-  secondaryAction: {
-    alignSelf: "flex-start",
-    gap: 6,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  secondaryLabel: {
-    fontSize: 14,
-    color: "#475569",
+  footerLinks: {
+    gap: 10,
   },
 });

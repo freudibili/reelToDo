@@ -8,5 +8,6 @@
       "@core/*": ["core/*"],
       "@config/*": ["config/*"]
     }
-  }
+  },
+  "exclude": ["node_modules", "supabase/functions/**"]
 }

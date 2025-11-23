@@ -45,4 +45,4 @@ export const languageOptions = [
   { value: "system", labelKey: "settings:preferences.language.system" },
   { value: "en", labelKey: "settings:preferences.language.en" },
   { value: "fr", labelKey: "settings:preferences.language.fr" },
-];
+] as const;

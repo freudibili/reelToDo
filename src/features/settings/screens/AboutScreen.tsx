@@ -11,11 +11,14 @@ const AboutScreen = () => {
   const router = useRouter();
   const { t } = useTranslation();
 
+  const manifest = (Constants as unknown as { manifest?: Record<string, any> })
+    .manifest;
+
   const version =
-    Constants?.expoConfig?.version || Constants.manifest?.version || "dev";
+    Constants?.expoConfig?.version || manifest?.version || "dev";
   const buildNumber =
     Constants?.expoConfig?.extra?.buildNumber ||
-    Constants.manifest?.extra?.buildNumber ||
+    manifest?.extra?.buildNumber ||
     "-";
 
   return (

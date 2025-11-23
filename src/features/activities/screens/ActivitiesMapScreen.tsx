@@ -209,6 +209,8 @@ const ActivitiesMapScreen = () => {
   return (
     <Screen noPadding loading={isLoading}>
       <View style={styles.header}>
+        <Text style={styles.title}>{t("activities:map.title")}</Text>
+
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -296,6 +298,14 @@ export default ActivitiesMapScreen;
 const styles = StyleSheet.create({
   header: {
     backgroundColor: "#fff",
+  },
+  title: {
+    paddingHorizontal: 12,
+    paddingTop: 12,
+    paddingBottom: 4,
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#0f172a",
   },
   headerContent: {
     paddingHorizontal: 12,

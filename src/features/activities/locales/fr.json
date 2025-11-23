@@ -36,6 +36,7 @@
     "fallbackTitle": "Activités"
   },
   "map": {
+    "title": "Carte",
     "permissionDeniedTitle": "Permission refusée",
     "permissionDeniedMessage": "Impossible d'accéder à votre position.",
     "all": "Toutes",

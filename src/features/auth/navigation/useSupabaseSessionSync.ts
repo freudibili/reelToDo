@@ -1,7 +1,11 @@
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { supabase } from "@config/supabase";
-import { setSession } from "@features/auth/store/authSlice";
+import {
+  setPasswordResetRequired,
+  setPendingEmail,
+  setSession,
+} from "@features/auth/store/authSlice";
 import type { AppDispatch } from "@core/store";
 
 const useSupabaseSessionSync = (onReady?: () => void) => {
@@ -23,13 +27,19 @@ const useSupabaseSessionSync = (onReady?: () => void) => {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       dispatch(
         setSession({
           session,
           user: session ? session.user : null,
         })
       );
+      if (event === "PASSWORD_RECOVERY") {
+        dispatch(setPasswordResetRequired(true));
+        if (session?.user?.email) {
+          dispatch(setPendingEmail(session.user.email));
+        }
+      }
     });
 
     return () => {

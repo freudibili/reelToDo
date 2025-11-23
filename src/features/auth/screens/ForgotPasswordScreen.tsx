@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import React, { useState } from "react";
+import { Text, StyleSheet, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import AuthLayout from "../components/AuthLayout";
@@ -7,51 +7,47 @@ import AuthTextField from "../components/AuthTextField";
 import AuthButton from "../components/AuthButton";
 import { useAppDispatch, useAppSelector } from "@core/store/hook";
 import {
+  requestPasswordReset,
   clearError,
-  requestMagicLink,
 } from "@features/auth/store/authSlice";
 import {
   selectAuthError,
   selectAuthRequestStatus,
-  selectIsAuthenticated,
 } from "@features/auth/store/authSelectors";
-import SocialAuthButtons from "../components/SocialAuthButtons";
 
-const SignInScreen = () => {
+const ForgotPasswordScreen = () => {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const { t } = useTranslation();
   const [email, setEmail] = useState("");
 
   const error = useAppSelector(selectAuthError);
-  const status = useAppSelector(selectAuthRequestStatus("magicLink"));
-  const isAuthenticated = useAppSelector(selectIsAuthenticated);
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      router.replace("/");
-    }
-  }, [isAuthenticated, router]);
+  const status = useAppSelector(selectAuthRequestStatus("passwordReset"));
 
   const onSubmit = async () => {
     if (!email) return;
     dispatch(clearError());
     try {
-      await dispatch(requestMagicLink({ email })).unwrap();
+      await dispatch(requestPasswordReset({ email })).unwrap();
       router.push({
         pathname: "/auth/otp",
-        params: { email, type: "magiclink" },
+        params: { email, type: "recovery" },
       });
     } catch {
-      // handled by slice
+      // error handled in slice
     }
   };
 
   return (
     <AuthLayout
-      title={t("auth:signIn.title")}
-      subtitle={t("auth:signIn.subtitle")}
+      title={t("auth:forgotPassword.title")}
+      subtitle={t("auth:forgotPassword.subtitle")}
       loading={status === "pending"}
+      footer={
+        <TouchableOpacity onPress={() => router.replace("/auth/signin")}>
+          <Text style={styles.link}>{t("auth:signIn.title")}</Text>
+        </TouchableOpacity>
+      }
     >
       {error ? <Text style={styles.error}>{error}</Text> : null}
       <AuthTextField
@@ -61,32 +57,28 @@ const SignInScreen = () => {
         placeholder="moi@email.com"
         value={email}
         onChangeText={setEmail}
-        returnKeyType="next"
       />
       <AuthButton
-        label={t("auth:signIn.submitOtp")}
+        label={t("auth:forgotPassword.submit")}
         onPress={onSubmit}
         loading={status === "pending"}
         disabled={!email}
       />
-      <SocialAuthButtons />
-      <View style={styles.secondaryAction}>
-        <Text style={styles.secondaryLabel}>
-          {t("auth:signIn.noAccount")}
-        </Text>
-        <AuthButton
-          label={t("auth:signUp.title")}
-          variant="ghost"
-          onPress={() => router.replace("/auth/signup")}
-        />
-      </View>
+      <TouchableOpacity onPress={() => router.push("/auth/otp")}>
+        <Text style={styles.link}>{t("auth:forgotPassword.haveCode")}</Text>
+      </TouchableOpacity>
     </AuthLayout>
   );
 };
 
-export default SignInScreen;
+export default ForgotPasswordScreen;
 
 const styles = StyleSheet.create({
+  link: {
+    color: "#2563eb",
+    fontWeight: "600",
+    fontSize: 14,
+  },
   error: {
     color: "#b91c1c",
     backgroundColor: "#fef2f2",
@@ -94,15 +86,5 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 10,
     borderRadius: 10,
-  },
-  secondaryAction: {
-    alignSelf: "flex-start",
-    gap: 6,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  secondaryLabel: {
-    fontSize: 14,
-    color: "#475569",
   },
 });

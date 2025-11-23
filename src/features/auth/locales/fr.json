@@ -1,18 +1,85 @@
 {
   "signIn": {
     "title": "Se connecter",
+    "subtitle": "Accédez à votre compte ReelToDo",
     "submit": "Continuer",
+    "submitOtp": "Envoyer le code",
     "noAccount": "Pas encore de compte ?",
-    "cta": "Inscription"
+    "cta": "Inscription",
+    "forgot": "Mot de passe oublié ?",
+    "useMagicLink": "Utiliser un lien magique"
   },
   "signUp": {
     "title": "Créer un compte",
+    "subtitle": "Commencez à vous organiser avec ReelToDo",
     "submit": "Créer",
+    "submitOtp": "Envoyer le code",
     "hasAccount": "Vous avez déjà un compte ?",
-    "cta": "Connexion"
+    "cta": "Connexion",
+    "useMagicLink": "Préférer un lien magique ?"
+  },
+  "landing": {
+    "title": "Bienvenue",
+    "subtitle": "Choisissez comment accéder à ReelToDo",
+    "badge": "Mode productif",
+    "catchphrase": "Capture vite, expédie encore plus vite.",
+    "helper": "ReelToDo garde vos idées au chaud, vos rappels à l'heure et votre esprit léger.",
+    "signIn": "Connexion",
+    "signUp": "Créer un compte",
+    "magicLink": "Lien magique",
+    "noAccount": "Nouveau ici ?",
+    "create": "Créer un compte",
+    "forgotPassword": "J'ai oublié mon mot de passe"
+  },
+  "magicLink": {
+    "title": "Lien magique",
+    "subtitle": "Nous envoyons un lien sécurisé par email",
+    "submit": "Envoyer le lien",
+    "ctaOtp": "J'ai déjà un code"
+  },
+  "emailCheck": {
+    "title": "Vérifiez votre boîte mail",
+    "subtitle": "Nous avons envoyé un lien ou code à {{email}}",
+    "magicMessage": "Ouvrez l'email et cliquez sur le lien pour continuer.",
+    "resetMessage": "Utilisez le lien pour réinitialiser votre mot de passe et sécuriser votre compte.",
+    "enterCode": "Entrer le code manuellement",
+    "back": "Retour"
+  },
+  "otp": {
+    "title": "Entrez votre code",
+    "subtitle": "Nous avons envoyé un code à 6 chiffres à {{email}}",
+    "helper": "Collez le code reçu par email. Si vous avez déjà cliqué sur le lien magique, vous pouvez être connecté automatiquement.",
+    "codeLabel": "Code",
+    "submit": "Vérifier"
+  },
+  "forgotPassword": {
+    "title": "Mot de passe oublié",
+    "subtitle": "Nous envoyons un lien de réinitialisation",
+    "submit": "Envoyer le lien",
+    "haveCode": "Déjà un code ?"
+  },
+  "resetPassword": {
+    "title": "Nouveau mot de passe",
+    "subtitle": "Sécurisez votre compte avec un mot de passe à jour",
+    "password": "Nouveau mot de passe",
+    "confirm": "Confirmer le mot de passe",
+    "submit": "Mettre à jour",
+    "minLength": "Le mot de passe doit contenir au moins 8 caractères",
+    "mismatch": "Les mots de passe ne correspondent pas"
+  },
+  "sessionExpired": {
+    "title": "Session expirée",
+    "subtitle": "Vous avez été déconnecté par sécurité",
+    "body": "Reconnectez-vous pour reprendre où vous en étiez.",
+    "relog": "Se reconnecter",
+    "backToAuth": "Retour à l'accueil d'auth"
   },
   "errors": {
     "signIn": "Impossible de se connecter",
-    "signUp": "Impossible de créer le compte"
+    "signUp": "Impossible de créer le compte",
+    "magicLink": "Impossible d'envoyer le lien magique",
+    "verifyOtp": "Code invalide ou expiré",
+    "reset": "Impossible d'envoyer le lien de réinitialisation",
+    "updatePassword": "Impossible de mettre à jour le mot de passe"
   }
 }

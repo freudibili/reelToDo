@@ -1,116 +1,103 @@
-import React, { useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  ActivityIndicator,
-  StyleSheet,
-} from "react-native";
-import { useDispatch, useSelector } from "react-redux";
-import { signUpWithPassword } from "../store/authSlice";
-import { selectAuthLoading, selectAuthError } from "../store/authSelectors";
-import type { AppDispatch } from "@core/store";
-import { Link } from "expo-router";
+import React, { useEffect, useState } from "react";
+import { View, Text, StyleSheet } from "react-native";
+import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
+import AuthLayout from "../components/AuthLayout";
+import AuthTextField from "../components/AuthTextField";
+import AuthButton from "../components/AuthButton";
+import SocialAuthButtons from "../components/SocialAuthButtons";
+import { useAppDispatch, useAppSelector } from "@core/store/hook";
+import {
+  selectAuthError,
+  selectAuthRequestStatus,
+  selectIsAuthenticated,
+} from "@features/auth/store/authSelectors";
+import { clearError, requestMagicLink } from "../store/authSlice";
 
 const SignUpScreen = () => {
-  const dispatch = useDispatch<AppDispatch>();
-  const loading = useSelector(selectAuthLoading);
-  const error = useSelector(selectAuthError);
+  const dispatch = useAppDispatch();
+  const router = useRouter();
   const { t } = useTranslation();
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
 
-  const onSubmit = () => {
-    if (!email || !password) return;
-    dispatch(signUpWithPassword({ email, password }));
+  const error = useAppSelector(selectAuthError);
+  const status = useAppSelector(selectAuthRequestStatus("magicLink"));
+  const isAuthenticated = useAppSelector(selectIsAuthenticated);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.replace("/");
+    }
+  }, [isAuthenticated, router]);
+
+  const onSubmit = async () => {
+    if (!email) return;
+    dispatch(clearError());
+    try {
+      await dispatch(requestMagicLink({ email })).unwrap();
+      router.push({
+        pathname: "/auth/otp",
+        params: { email, type: "magiclink" },
+      });
+    } catch {
+      // handled by slice
+    }
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>{t("auth:signUp.title")}</Text>
+    <AuthLayout
+      title={t("auth:signUp.title")}
+      subtitle={t("auth:signUp.subtitle")}
+      loading={status === "pending"}
+    >
       {error ? <Text style={styles.error}>{error}</Text> : null}
-      <TextInput
-        style={styles.input}
+      <AuthTextField
+        label={t("common:fields.email")}
         autoCapitalize="none"
         keyboardType="email-address"
-        placeholder={t("common:fields.email")}
+        placeholder="moi@email.com"
         value={email}
         onChangeText={setEmail}
+        returnKeyType="next"
       />
-      <TextInput
-        style={styles.input}
-        secureTextEntry
-        placeholder={t("common:fields.password")}
-        value={password}
-        onChangeText={setPassword}
-      />
-      <TouchableOpacity
-        style={styles.button}
+      <AuthButton
+        label={t("auth:signUp.submitOtp")}
         onPress={onSubmit}
-        disabled={loading}
-      >
-        {loading ? (
-          <ActivityIndicator />
-        ) : (
-          <Text style={styles.buttonText}>{t("auth:signUp.submit")}</Text>
-        )}
-      </TouchableOpacity>
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>{t("auth:signUp.hasAccount")}</Text>
-        <Link href="/auth/signin" style={styles.link}>
-          {t("auth:signUp.cta")}
-        </Link>
+        loading={status === "pending"}
+        disabled={!email}
+      />
+      <SocialAuthButtons />
+      <View style={styles.secondaryAction}>
+        <Text style={styles.secondaryLabel}>{t("auth:signUp.hasAccount")}</Text>
+        <AuthButton
+          label={t("auth:signUp.cta")}
+          variant="ghost"
+          onPress={() => router.replace("/auth/signin")}
+        />
       </View>
-    </View>
+    </AuthLayout>
   );
 };
 
 export default SignUpScreen;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-    gap: 16,
-    justifyContent: "center",
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "600",
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 8,
-    paddingHorizontal: 14,
-    height: 46,
-  },
-  button: {
-    backgroundColor: "#111827",
-    height: 46,
-    borderRadius: 8,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  buttonText: {
-    color: "#fff",
-    fontWeight: "500",
-  },
   error: {
     color: "#b91c1c",
+    backgroundColor: "#fef2f2",
+    borderColor: "#fecdd3",
+    borderWidth: 1,
+    padding: 10,
+    borderRadius: 10,
   },
-  footer: {
+  secondaryAction: {
+    alignSelf: "flex-start",
     flexDirection: "row",
-    gap: 6,
     alignItems: "center",
+    gap: 6,
   },
-  footerText: {
+  secondaryLabel: {
     fontSize: 14,
-  },
-  link: {
-    color: "#2563eb",
-    fontSize: 14,
+    color: "#475569",
   },
 });

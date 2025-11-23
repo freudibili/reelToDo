@@ -1,60 +1,168 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
-import type { Session, User } from "@supabase/supabase-js";
-import { supabase } from "@config/supabase";
+import type {
+  Session,
+  User,
+  VerifyOtpParams,
+} from "@supabase/supabase-js";
+import { authService, type AuthResult } from "../services/authService";
 import i18next from "@common/i18n/i18n";
+
+type RequestStatus = "idle" | "pending" | "succeeded" | "failed";
+type AuthRequestKey =
+  | "signIn"
+  | "signUp"
+  | "magicLink"
+  | "verifyOtp"
+  | "passwordReset"
+  | "updatePassword"
+  | "signOut"
+  | "oauth";
+
+type EmailOtpType = Extract<
+  VerifyOtpParams["type"],
+  "email" | "magiclink" | "signup" | "recovery"
+>;
 
 type AuthState = {
   session: Session | null;
   user: User | null;
-  loading: boolean;
   error: string | null;
+  pendingEmail: string | null;
+  pendingOtpType: EmailOtpType | null;
+  requiresPasswordChange: boolean;
+  sessionExpired: boolean;
+  requests: Record<AuthRequestKey, RequestStatus>;
+};
+
+const initialRequestState: Record<AuthRequestKey, RequestStatus> = {
+  signIn: "idle",
+  signUp: "idle",
+  magicLink: "idle",
+  verifyOtp: "idle",
+  passwordReset: "idle",
+  updatePassword: "idle",
+  signOut: "idle",
+  oauth: "idle",
 };
 
 const initialState: AuthState = {
   session: null,
   user: null,
-  loading: false,
   error: null,
+  pendingEmail: null,
+  pendingOtpType: null,
+  requiresPasswordChange: false,
+  sessionExpired: false,
+  requests: { ...initialRequestState },
 };
 
-export const signInWithPassword = createAsyncThunk(
-  "auth/signInWithPassword",
-  async (payload: { email: string; password: string }, { rejectWithValue }) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: payload.email,
-      password: payload.password,
-    });
-    if (error) return rejectWithValue(error.message);
-    return data;
+const setRequestStatus = (
+  state: AuthState,
+  key: AuthRequestKey,
+  status: RequestStatus
+) => {
+  state.requests[key] = status;
+  if (status !== "failed") {
+    state.error = null;
   }
-);
+};
 
-export const signUpWithPassword = createAsyncThunk(
-  "auth/signUpWithPassword",
-  async (payload: { email: string; password: string }, { rejectWithValue }) => {
-    const { data, error } = await supabase.auth.signUp({
-      email: payload.email,
-      password: payload.password,
-    });
-    if (error) return rejectWithValue(error.message);
+const toError = (error: unknown) =>
+  error instanceof Error ? error.message : String(error);
 
-    if (data.session) {
-      return data;
+export const signInWithPassword = createAsyncThunk<
+  AuthResult,
+  { email: string; password: string },
+  { rejectValue: string }
+>("auth/signInWithPassword", async (payload, { rejectWithValue }) => {
+  try {
+    return await authService.signInWithPassword(payload);
+  } catch (error) {
+    return rejectWithValue(toError(error));
+  }
+});
+
+export const signUpWithPassword = createAsyncThunk<
+  AuthResult,
+  { email: string; password: string },
+  { rejectValue: string }
+>("auth/signUpWithPassword", async (payload, { rejectWithValue }) => {
+  try {
+    return await authService.signUpWithPassword(payload);
+  } catch (error) {
+    return rejectWithValue(toError(error));
+  }
+});
+
+export const requestMagicLink = createAsyncThunk<
+  void,
+  { email: string },
+  { rejectValue: string }
+>("auth/requestMagicLink", async ({ email }, { rejectWithValue }) => {
+  try {
+    await authService.sendMagicLink(email);
+  } catch (error) {
+    return rejectWithValue(toError(error));
+  }
+});
+
+export const verifyEmailOtp = createAsyncThunk<
+  AuthResult,
+  { email: string; token: string; type: EmailOtpType },
+  { rejectValue: string }
+>("auth/verifyEmailOtp", async (payload, { rejectWithValue }) => {
+  try {
+    return await authService.verifyEmailOtp(payload);
+  } catch (error) {
+    return rejectWithValue(toError(error));
+  }
+});
+
+export const requestPasswordReset = createAsyncThunk<
+  void,
+  { email: string },
+  { rejectValue: string }
+>("auth/requestPasswordReset", async ({ email }, { rejectWithValue }) => {
+  try {
+    await authService.requestPasswordReset(email);
+  } catch (error) {
+    return rejectWithValue(toError(error));
+  }
+});
+
+export const updatePassword = createAsyncThunk<
+  AuthResult,
+  { password: string },
+  { rejectValue: string }
+>("auth/updatePassword", async ({ password }, { rejectWithValue }) => {
+  try {
+    return await authService.updatePassword(password);
+  } catch (error) {
+    return rejectWithValue(toError(error));
+  }
+});
+
+export const signOut = createAsyncThunk<void, void, { rejectValue: string }>(
+  "auth/signOut",
+  async (_payload, { rejectWithValue }) => {
+    try {
+      await authService.signOut();
+    } catch (error) {
+      return rejectWithValue(toError(error));
     }
-
-    const { data: signInData, error: signInError } =
-      await supabase.auth.signInWithPassword({
-        email: payload.email,
-        password: payload.password,
-      });
-    if (signInError) return rejectWithValue(signInError.message);
-    return signInData;
   }
 );
 
-export const signOut = createAsyncThunk("auth/signOut", async () => {
-  await supabase.auth.signOut();
-  return;
+export const signInWithProvider = createAsyncThunk<
+  void,
+  { provider: "google" | "apple" | "facebook" },
+  { rejectValue: string }
+>("auth/signInWithProvider", async ({ provider }, { rejectWithValue }) => {
+  try {
+    await authService.signInWithProvider(provider);
+  } catch (error) {
+    return rejectWithValue(toError(error));
+  }
 });
 
 const authSlice = createSlice({
@@ -65,56 +173,169 @@ const authSlice = createSlice({
       state,
       action: PayloadAction<{ session: Session | null; user: User | null }>
     ) => {
+      const hadSession = Boolean(state.session);
       state.session = action.payload.session;
       state.user = action.payload.user;
+      if (hadSession && !action.payload.session) {
+        state.sessionExpired = true;
+      }
+      if (action.payload.session) {
+        state.sessionExpired = false;
+        state.requiresPasswordChange = false;
+      }
     },
     clearError: (state) => {
       state.error = null;
+    },
+    acknowledgeSessionExpiry: (state) => {
+      state.sessionExpired = false;
+    },
+    setPendingEmail: (state, action: PayloadAction<string | null>) => {
+      state.pendingEmail = action.payload;
+    },
+    setPendingOtpType: (state, action: PayloadAction<EmailOtpType | null>) => {
+      state.pendingOtpType = action.payload;
+    },
+    setPasswordResetRequired: (state, action: PayloadAction<boolean>) => {
+      state.requiresPasswordChange = action.payload;
     },
   },
   extraReducers: (builder) => {
     builder
       .addCase(signInWithPassword.pending, (state) => {
-        state.loading = true;
-        state.error = null;
+        setRequestStatus(state, "signIn", "pending");
       })
       .addCase(signInWithPassword.fulfilled, (state, action) => {
-        state.loading = false;
+        setRequestStatus(state, "signIn", "succeeded");
         state.session = action.payload.session;
-        state.user = action.payload.user ?? null;
+        state.user = action.payload.user;
+        state.pendingEmail = null;
+        state.pendingOtpType = null;
+        state.sessionExpired = false;
+        state.requiresPasswordChange = false;
       })
       .addCase(signInWithPassword.rejected, (state, action) => {
-        state.loading = false;
+        setRequestStatus(state, "signIn", "failed");
         state.error =
           (action.payload as string) ?? i18next.t("auth:errors.signIn");
       })
       .addCase(signUpWithPassword.pending, (state) => {
-        state.loading = true;
-        state.error = null;
+        setRequestStatus(state, "signUp", "pending");
       })
       .addCase(signUpWithPassword.fulfilled, (state, action) => {
-        state.loading = false;
+        setRequestStatus(state, "signUp", "succeeded");
         state.session = action.payload.session;
-        state.user = action.payload.user ?? null;
+        state.user = action.payload.user;
+        state.sessionExpired = false;
+        state.requiresPasswordChange = false;
+
+        if (!action.payload.session) {
+          state.pendingEmail = action.meta.arg.email;
+          state.pendingOtpType = "signup";
+        } else {
+          state.pendingEmail = null;
+          state.pendingOtpType = null;
+        }
       })
       .addCase(signUpWithPassword.rejected, (state, action) => {
-        state.loading = false;
+        setRequestStatus(state, "signUp", "failed");
         state.error =
           (action.payload as string) ?? i18next.t("auth:errors.signUp");
       })
+      .addCase(requestMagicLink.pending, (state) => {
+        setRequestStatus(state, "magicLink", "pending");
+      })
+      .addCase(requestMagicLink.fulfilled, (state, action) => {
+        setRequestStatus(state, "magicLink", "succeeded");
+        state.pendingEmail = action.meta.arg.email;
+        state.pendingOtpType = "magiclink";
+      })
+      .addCase(requestMagicLink.rejected, (state, action) => {
+        setRequestStatus(state, "magicLink", "failed");
+        state.error =
+          (action.payload as string) ?? i18next.t("auth:errors.magicLink");
+      })
+      .addCase(verifyEmailOtp.pending, (state) => {
+        setRequestStatus(state, "verifyOtp", "pending");
+      })
+      .addCase(verifyEmailOtp.fulfilled, (state, action) => {
+        setRequestStatus(state, "verifyOtp", "succeeded");
+        state.session = action.payload.session;
+        state.user = action.payload.user;
+        state.pendingEmail = action.meta.arg.email;
+        state.pendingOtpType = action.meta.arg.type;
+        state.sessionExpired = false;
+        state.requiresPasswordChange = action.meta.arg.type === "recovery";
+      })
+      .addCase(verifyEmailOtp.rejected, (state, action) => {
+        setRequestStatus(state, "verifyOtp", "failed");
+        state.error =
+          (action.payload as string) ?? i18next.t("auth:errors.verifyOtp");
+      })
+      .addCase(requestPasswordReset.pending, (state) => {
+        setRequestStatus(state, "passwordReset", "pending");
+      })
+      .addCase(requestPasswordReset.fulfilled, (state, action) => {
+        setRequestStatus(state, "passwordReset", "succeeded");
+        state.pendingEmail = action.meta.arg.email;
+        state.pendingOtpType = "recovery";
+      })
+      .addCase(requestPasswordReset.rejected, (state, action) => {
+        setRequestStatus(state, "passwordReset", "failed");
+        state.error =
+          (action.payload as string) ?? i18next.t("auth:errors.reset");
+      })
+      .addCase(updatePassword.pending, (state) => {
+        setRequestStatus(state, "updatePassword", "pending");
+      })
+      .addCase(updatePassword.fulfilled, (state, action) => {
+        setRequestStatus(state, "updatePassword", "succeeded");
+        state.session = action.payload.session;
+        state.user = action.payload.user;
+        state.requiresPasswordChange = false;
+        state.pendingOtpType = null;
+      })
+      .addCase(updatePassword.rejected, (state, action) => {
+        setRequestStatus(state, "updatePassword", "failed");
+        state.error =
+          (action.payload as string) ?? i18next.t("auth:errors.updatePassword");
+      })
       .addCase(signOut.pending, (state) => {
-        state.loading = true;
+        setRequestStatus(state, "signOut", "pending");
       })
       .addCase(signOut.fulfilled, (state) => {
-        state.loading = false;
+        setRequestStatus(state, "signOut", "succeeded");
         state.session = null;
         state.user = null;
+        state.pendingEmail = null;
+        state.pendingOtpType = null;
+        state.sessionExpired = false;
+        state.requiresPasswordChange = false;
       })
       .addCase(signOut.rejected, (state) => {
-        state.loading = false;
+        setRequestStatus(state, "signOut", "failed");
+      })
+      .addCase(signInWithProvider.pending, (state) => {
+        setRequestStatus(state, "oauth", "pending");
+      })
+      .addCase(signInWithProvider.fulfilled, (state) => {
+        setRequestStatus(state, "oauth", "succeeded");
+      })
+      .addCase(signInWithProvider.rejected, (state, action) => {
+        setRequestStatus(state, "oauth", "failed");
+        state.error =
+          (action.payload as string) ?? i18next.t("auth:errors.signIn");
       });
   },
 });
 
-export const { setSession, clearError } = authSlice.actions;
+export const {
+  setSession,
+  clearError,
+  acknowledgeSessionExpiry,
+  setPendingEmail,
+  setPendingOtpType,
+  setPasswordResetRequired,
+} = authSlice.actions;
+
 export default authSlice.reducer;
