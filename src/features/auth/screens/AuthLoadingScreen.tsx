@@ -1,11 +1,14 @@
 import React from "react";
 import { View, ActivityIndicator, StyleSheet } from "react-native";
+import AppScreen from "@common/components/AppScreen";
 
 const AuthLoadingScreen = () => {
   return (
-    <View style={styles.container}>
-      <ActivityIndicator />
-    </View>
+    <AppScreen alignToTabBar={false} withBottomInset>
+      <View style={styles.container}>
+        <ActivityIndicator />
+      </View>
+    </AppScreen>
   );
 };
 

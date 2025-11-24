@@ -2,21 +2,21 @@
   "signIn": {
     "title": "Se connecter",
     "subtitle": "Accédez à votre compte ReelToDo",
-    "submit": "Continuer",
+    "submit": "Connexion avec mot de passe",
     "submitOtp": "Envoyer le code",
     "noAccount": "Pas encore de compte ?",
     "cta": "Inscription",
     "forgot": "Mot de passe oublié ?",
-    "useMagicLink": "Utiliser un lien magique"
+    "useMagicLink": "Lien magique"
   },
   "signUp": {
     "title": "Créer un compte",
     "subtitle": "Commencez à vous organiser avec ReelToDo",
-    "submit": "Créer",
+    "submit": "Créer avec mot de passe",
     "submitOtp": "Envoyer le code",
     "hasAccount": "Vous avez déjà un compte ?",
     "cta": "Connexion",
-    "useMagicLink": "Préférer un lien magique ?"
+    "useMagicLink": "Lien magique"
   },
   "landing": {
     "title": "Bienvenue",

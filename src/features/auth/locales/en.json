@@ -2,12 +2,12 @@
   "signIn": {
     "title": "Sign in",
     "subtitle": "Access your ReelToDo account",
-    "submit": "Continue",
+    "submit": "Sign in with password",
     "submitOtp": "Send code",
     "noAccount": "No account?",
     "cta": "Sign up",
     "forgot": "Forgot password?",
-    "useMagicLink": "Use magic link"
+    "useMagicLink": "Magic link"
   },
   "social": {
     "or": "or continue with"
@@ -15,11 +15,11 @@
   "signUp": {
     "title": "Create account",
     "subtitle": "Start organizing with ReelToDo",
-    "submit": "Create",
+    "submit": "Create with password",
     "submitOtp": "Send code",
     "hasAccount": "Already have an account?",
     "cta": "Sign in",
-    "useMagicLink": "Prefer a magic link?"
+    "useMagicLink": "Magic link"
   },
   "landing": {
     "title": "Welcome",

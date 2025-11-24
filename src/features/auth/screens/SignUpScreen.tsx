@@ -5,23 +5,24 @@ import { useTranslation } from "react-i18next";
 import AuthLayout from "../components/AuthLayout";
 import AuthTextField from "../components/AuthTextField";
 import AuthButton from "../components/AuthButton";
-import SocialAuthButtons from "../components/SocialAuthButtons";
+import MagicLinkButton from "../components/MagicLinkButton";
 import { useAppDispatch, useAppSelector } from "@core/store/hook";
 import {
   selectAuthError,
   selectAuthRequestStatus,
   selectIsAuthenticated,
 } from "@features/auth/store/authSelectors";
-import { clearError, requestMagicLink } from "../store/authSlice";
+import { clearError, signUpWithPassword } from "../store/authSlice";
 
 const SignUpScreen = () => {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const { t } = useTranslation();
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const error = useAppSelector(selectAuthError);
-  const status = useAppSelector(selectAuthRequestStatus("magicLink"));
+  const passwordStatus = useAppSelector(selectAuthRequestStatus("signUp"));
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
 
   useEffect(() => {
@@ -30,15 +31,22 @@ const SignUpScreen = () => {
     }
   }, [isAuthenticated, router]);
 
-  const onSubmit = async () => {
-    if (!email) return;
+  const onSubmitPassword = async () => {
+    if (!email || !password) return;
     dispatch(clearError());
     try {
-      await dispatch(requestMagicLink({ email })).unwrap();
-      router.push({
-        pathname: "/auth/otp",
-        params: { email, type: "magiclink" },
-      });
+      const result = await dispatch(
+        signUpWithPassword({ email, password })
+      ).unwrap();
+
+      if (!result.session) {
+        router.push({
+          pathname: "/auth/otp",
+          params: { email, type: "signup" },
+        });
+      } else {
+        router.replace("/");
+      }
     } catch {
       // handled by slice
     }
@@ -48,7 +56,7 @@ const SignUpScreen = () => {
     <AuthLayout
       title={t("auth:signUp.title")}
       subtitle={t("auth:signUp.subtitle")}
-      loading={status === "pending"}
+      loading={passwordStatus === "pending"}
     >
       {error ? <Text style={styles.error}>{error}</Text> : null}
       <AuthTextField
@@ -60,13 +68,29 @@ const SignUpScreen = () => {
         onChangeText={setEmail}
         returnKeyType="next"
       />
-      <AuthButton
-        label={t("auth:signUp.submitOtp")}
-        onPress={onSubmit}
-        loading={status === "pending"}
-        disabled={!email}
+      <AuthTextField
+        label={t("common:fields.password")}
+        secureTextEntry
+        placeholder="••••••••"
+        value={password}
+        onChangeText={setPassword}
+        returnKeyType="done"
       />
-      <SocialAuthButtons />
+      <AuthButton
+        label={t("auth:signUp.submit")}
+        onPress={onSubmitPassword}
+        loading={passwordStatus === "pending"}
+        disabled={!email || !password}
+      />
+      <MagicLinkButton
+        label={t("auth:signUp.useMagicLink")}
+        onPress={() =>
+          router.push({
+            pathname: "/auth/magic-link",
+            params: email ? { email } : undefined,
+          })
+        }
+      />
       <View style={styles.secondaryAction}>
         <Text style={styles.secondaryLabel}>{t("auth:signUp.hasAccount")}</Text>
         <AuthButton

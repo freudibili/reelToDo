@@ -4,7 +4,6 @@ import type {
   Session,
   User,
   VerifyOtpParams,
-  Provider,
 } from "@supabase/supabase-js";
 
 export type AuthResult = {
@@ -86,19 +85,5 @@ export const authService = {
   async signOut() {
     const { error } = await supabase.auth.signOut();
     if (error) throw new Error(error.message);
-  },
-
-  async signInWithProvider(
-    provider: Extract<Provider, "google" | "apple" | "facebook">
-  ) {
-    const redirectTo = createRedirectUrl("auth");
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: {
-        redirectTo,
-      },
-    });
-    if (error) throw new Error(error.message);
-    return data;
   },
 };

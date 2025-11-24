@@ -15,8 +15,7 @@ type AuthRequestKey =
   | "verifyOtp"
   | "passwordReset"
   | "updatePassword"
-  | "signOut"
-  | "oauth";
+  | "signOut";
 
 type EmailOtpType = Extract<
   VerifyOtpParams["type"],
@@ -42,7 +41,6 @@ const initialRequestState: Record<AuthRequestKey, RequestStatus> = {
   passwordReset: "idle",
   updatePassword: "idle",
   signOut: "idle",
-  oauth: "idle",
 };
 
 const initialState: AuthState = {
@@ -153,18 +151,6 @@ export const signOut = createAsyncThunk<void, void, { rejectValue: string }>(
   }
 );
 
-export const signInWithProvider = createAsyncThunk<
-  void,
-  { provider: "google" | "apple" | "facebook" },
-  { rejectValue: string }
->("auth/signInWithProvider", async ({ provider }, { rejectWithValue }) => {
-  try {
-    await authService.signInWithProvider(provider);
-  } catch (error) {
-    return rejectWithValue(toError(error));
-  }
-});
-
 const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -181,7 +167,6 @@ const authSlice = createSlice({
       }
       if (action.payload.session) {
         state.sessionExpired = false;
-        state.requiresPasswordChange = false;
       }
     },
     clearError: (state) => {
@@ -314,17 +299,6 @@ const authSlice = createSlice({
       })
       .addCase(signOut.rejected, (state) => {
         setRequestStatus(state, "signOut", "failed");
-      })
-      .addCase(signInWithProvider.pending, (state) => {
-        setRequestStatus(state, "oauth", "pending");
-      })
-      .addCase(signInWithProvider.fulfilled, (state) => {
-        setRequestStatus(state, "oauth", "succeeded");
-      })
-      .addCase(signInWithProvider.rejected, (state, action) => {
-        setRequestStatus(state, "oauth", "failed");
-        state.error =
-          (action.payload as string) ?? i18next.t("auth:errors.signIn");
       });
   },
 });

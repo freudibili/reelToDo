@@ -20,6 +20,7 @@ const ForgotPasswordScreen = () => {
   const router = useRouter();
   const { t } = useTranslation();
   const [email, setEmail] = useState("");
+  const [linkSent, setLinkSent] = useState(false);
 
   const error = useAppSelector(selectAuthError);
   const status = useAppSelector(selectAuthRequestStatus("passwordReset"));
@@ -29,10 +30,7 @@ const ForgotPasswordScreen = () => {
     dispatch(clearError());
     try {
       await dispatch(requestPasswordReset({ email })).unwrap();
-      router.push({
-        pathname: "/auth/otp",
-        params: { email, type: "recovery" },
-      });
+      setLinkSent(true);
     } catch {
       // error handled in slice
     }
@@ -50,6 +48,9 @@ const ForgotPasswordScreen = () => {
       }
     >
       {error ? <Text style={styles.error}>{error}</Text> : null}
+      {linkSent ? (
+        <Text style={styles.info}>{t("auth:emailCheck.resetMessage")}</Text>
+      ) : null}
       <AuthTextField
         label={t("common:fields.email")}
         autoCapitalize="none"
@@ -83,6 +84,14 @@ const styles = StyleSheet.create({
     color: "#b91c1c",
     backgroundColor: "#fef2f2",
     borderColor: "#fecdd3",
+    borderWidth: 1,
+    padding: 10,
+    borderRadius: 10,
+  },
+  info: {
+    color: "#0f172a",
+    backgroundColor: "#eff6ff",
+    borderColor: "#bfdbfe",
     borderWidth: 1,
     padding: 10,
     borderRadius: 10,

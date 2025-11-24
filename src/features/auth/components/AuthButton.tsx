@@ -4,6 +4,7 @@ import {
   Text,
   ActivityIndicator,
   StyleSheet,
+  View,
 } from "react-native";
 
 type AuthButtonProps = {
@@ -12,6 +13,7 @@ type AuthButtonProps = {
   loading?: boolean;
   disabled?: boolean;
   variant?: "primary" | "secondary" | "ghost";
+  icon?: React.ReactNode;
 };
 
 const AuthButton: React.FC<AuthButtonProps> = ({
@@ -20,6 +22,7 @@ const AuthButton: React.FC<AuthButtonProps> = ({
   loading = false,
   disabled = false,
   variant = "primary",
+  icon,
 }) => {
   const isGhost = variant === "ghost";
   const isSecondary = variant === "secondary";
@@ -50,7 +53,10 @@ const AuthButton: React.FC<AuthButtonProps> = ({
       {loading ? (
         <ActivityIndicator color={textColor} />
       ) : (
-        <Text style={[styles.label, { color: textColor }]}>{label}</Text>
+        <View style={styles.content}>
+          {icon ? <View style={styles.icon}>{icon}</View> : null}
+          <Text style={[styles.label, { color: textColor }]}>{label}</Text>
+        </View>
       )}
     </TouchableOpacity>
   );
@@ -64,6 +70,14 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
+  },
+  content: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  icon: {
+    transform: [{ translateY: 0.5 }],
   },
   label: {
     fontWeight: "700",

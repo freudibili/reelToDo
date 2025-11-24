@@ -1,30 +1,28 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import AuthLayout from "../components/AuthLayout";
 import AuthTextField from "../components/AuthTextField";
 import AuthButton from "../components/AuthButton";
+import MagicLinkButton from "../components/MagicLinkButton";
 import { useAppDispatch, useAppSelector } from "@core/store/hook";
-import {
-  clearError,
-  requestMagicLink,
-} from "@features/auth/store/authSlice";
+import { clearError, signInWithPassword } from "@features/auth/store/authSlice";
 import {
   selectAuthError,
   selectAuthRequestStatus,
   selectIsAuthenticated,
 } from "@features/auth/store/authSelectors";
-import SocialAuthButtons from "../components/SocialAuthButtons";
 
 const SignInScreen = () => {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const { t } = useTranslation();
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const error = useAppSelector(selectAuthError);
-  const status = useAppSelector(selectAuthRequestStatus("magicLink"));
+  const passwordStatus = useAppSelector(selectAuthRequestStatus("signIn"));
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
 
   useEffect(() => {
@@ -33,17 +31,14 @@ const SignInScreen = () => {
     }
   }, [isAuthenticated, router]);
 
-  const onSubmit = async () => {
-    if (!email) return;
+  const onPasswordSubmit = async () => {
+    if (!email || !password) return;
     dispatch(clearError());
     try {
-      await dispatch(requestMagicLink({ email })).unwrap();
-      router.push({
-        pathname: "/auth/otp",
-        params: { email, type: "magiclink" },
-      });
+      await dispatch(signInWithPassword({ email, password })).unwrap();
+      router.replace("/");
     } catch {
-      // handled by slice
+      // handled in slice
     }
   };
 
@@ -51,7 +46,7 @@ const SignInScreen = () => {
     <AuthLayout
       title={t("auth:signIn.title")}
       subtitle={t("auth:signIn.subtitle")}
-      loading={status === "pending"}
+      loading={passwordStatus === "pending"}
     >
       {error ? <Text style={styles.error}>{error}</Text> : null}
       <AuthTextField
@@ -63,13 +58,32 @@ const SignInScreen = () => {
         onChangeText={setEmail}
         returnKeyType="next"
       />
-      <AuthButton
-        label={t("auth:signIn.submitOtp")}
-        onPress={onSubmit}
-        loading={status === "pending"}
-        disabled={!email}
+      <AuthTextField
+        label={t("common:fields.password")}
+        secureTextEntry
+        placeholder="••••••••"
+        value={password}
+        onChangeText={setPassword}
+        returnKeyType="done"
       />
-      <SocialAuthButtons />
+      <AuthButton
+        label={t("auth:signIn.submit")}
+        onPress={onPasswordSubmit}
+        loading={passwordStatus === "pending"}
+        disabled={!email || !password}
+      />
+      <TouchableOpacity onPress={() => router.push("/auth/forgot-password")}>
+        <Text style={styles.forgot}>{t("auth:signIn.forgot")}</Text>
+      </TouchableOpacity>
+      <MagicLinkButton
+        label={t("auth:signIn.useMagicLink")}
+        onPress={() =>
+          router.push({
+            pathname: "/auth/magic-link",
+            params: email ? { email } : undefined,
+          })
+        }
+      />
       <View style={styles.secondaryAction}>
         <Text style={styles.secondaryLabel}>
           {t("auth:signIn.noAccount")}
@@ -94,6 +108,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 10,
     borderRadius: 10,
+  },
+  forgot: {
+    color: "#2563eb",
+    fontWeight: "600",
+    fontSize: 14,
+    alignSelf: "flex-start",
+    marginTop: -2,
+    marginBottom: 4,
   },
   secondaryAction: {
     alignSelf: "flex-start",

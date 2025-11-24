@@ -1,9 +1,10 @@
 import React from "react";
-import { View, Text, StyleSheet, Image } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import AuthLayout from "../components/AuthLayout";
 import AuthButton from "../components/AuthButton";
+import MagicLinkButton from "../components/MagicLinkButton";
 
 const AuthLandingScreen = () => {
   const router = useRouter();
@@ -33,6 +34,13 @@ const AuthLandingScreen = () => {
             variant="secondary"
             onPress={() => router.push("/auth/signup")}
           />
+
+          <View style={styles.altGroup}>
+            <MagicLinkButton
+              label={t("auth:landing.magicLink")}
+              onPress={() => router.push("/auth/magic-link")}
+            />
+          </View>
         </View>
       </View>
     </AuthLayout>
@@ -76,58 +84,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#7c3aed",
     opacity: 0.08,
   },
-  heroContent: {
-    gap: 12,
-  },
-  heroBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    backgroundColor: "rgba(255, 255, 255, 0.08)",
-    borderRadius: 14,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    alignSelf: "flex-start",
-  },
-  iconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: "rgba(255, 255, 255, 0.12)",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.18)",
-  },
-  icon: {
-    width: 26,
-    height: 26,
-  },
-  badgeText: {
-    color: "#e2e8f0",
-    fontWeight: "700",
-    fontSize: 14,
-    letterSpacing: 0.2,
-  },
-  catchphrase: {
-    color: "#f8fafc",
-    fontSize: 22,
-    fontWeight: "800",
-    lineHeight: 28,
-    marginTop: 6,
-    letterSpacing: 0.2,
-  },
-  helper: {
-    color: "#cbd5e1",
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  helperAboveCtas: {
-    marginTop: 6,
-    marginBottom: 2,
-  },
   actions: {
     marginTop: 8,
     gap: 10,
+  },
+  altGroup: {
+    marginTop: 6,
+    gap: 8,
   },
 });

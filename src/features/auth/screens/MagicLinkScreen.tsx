@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Text, StyleSheet, TouchableOpacity, View } from "react-native";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 import AuthLayout from "../components/AuthLayout";
 import AuthTextField from "../components/AuthTextField";
@@ -16,10 +16,12 @@ import {
 } from "@features/auth/store/authSelectors";
 
 const MagicLinkScreen = () => {
+  const { email: emailParam } = useLocalSearchParams<{ email?: string }>();
   const dispatch = useAppDispatch();
   const router = useRouter();
   const { t } = useTranslation();
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(emailParam || "");
+  const [linkSent, setLinkSent] = useState(false);
 
   const error = useAppSelector(selectAuthError);
   const status = useAppSelector(selectAuthRequestStatus("magicLink"));
@@ -29,10 +31,7 @@ const MagicLinkScreen = () => {
     dispatch(clearError());
     try {
       await dispatch(requestMagicLink({ email })).unwrap();
-      router.push({
-        pathname: "/auth/otp",
-        params: { email, type: "email" },
-      });
+      setLinkSent(true);
     } catch {
       // error handled by slice
     }
@@ -60,6 +59,9 @@ const MagicLinkScreen = () => {
       }
     >
       {error ? <Text style={styles.error}>{error}</Text> : null}
+      {linkSent ? (
+        <Text style={styles.info}>{t("auth:emailCheck.magicMessage")}</Text>
+      ) : null}
       <AuthTextField
         label={t("common:fields.email")}
         autoCapitalize="none"
@@ -96,6 +98,14 @@ const styles = StyleSheet.create({
     color: "#b91c1c",
     backgroundColor: "#fef2f2",
     borderColor: "#fecdd3",
+    borderWidth: 1,
+    padding: 10,
+    borderRadius: 10,
+  },
+  info: {
+    color: "#0f172a",
+    backgroundColor: "#eff6ff",
+    borderColor: "#bfdbfe",
     borderWidth: 1,
     padding: 10,
     borderRadius: 10,
