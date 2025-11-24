@@ -2,7 +2,7 @@ import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { supabase } from "@config/supabase";
 import { ActivitiesService } from "../services/activitiesService";
-import { createCalendarEventForActivity } from "../services/calendarService";
+import { createCalendarEventForActivity } from "@features/calendar/services/calendarService";
 import { Linking } from "react-native";
 import type { Activity } from "../utils/types";
 import type { AppDispatch, RootState } from "@core/store";

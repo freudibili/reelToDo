@@ -1,3 +1,3 @@
-import ActivitiesMapScreen from "@features/activities/screens/ActivitiesMapScreen";
+import MapScreen from "@features/map/screens/MapScreen";
 
-export default ActivitiesMapScreen;
+export default MapScreen;

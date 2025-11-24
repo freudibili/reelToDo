@@ -43,7 +43,18 @@
     "nearby": "Nearby"
   },
   "calendar": {
-    "comingSoon": "Calendar coming soon 📅"
+    "title": "Calendar",
+    "today": "Today",
+    "allDay": "All day",
+    "count": "{{count}} plans",
+    "count_one": "1 plan",
+    "count_other": "{{count}} plans",
+    "undatedTitle": "Undated activities",
+    "undatedSubtitle": "Add a date to schedule them.",
+    "noDate": "No date set",
+    "noActivitiesForDay": "No plans for this day.",
+    "emptyTitle": "No dated activities yet.",
+    "emptySubtitle": "Add a date to an activity to have it appear in your calendar."
   },
   "card": {
     "untitled": "Activity"

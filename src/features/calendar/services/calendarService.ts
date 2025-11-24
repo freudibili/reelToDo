@@ -1,6 +1,6 @@
 import * as Calendar from "expo-calendar";
 import { supabase } from "@config/supabase";
-import type { Activity } from "../utils/types";
+import type { Activity } from "@features/activities/utils/types";
 
 const ensureCalendarPermission = async () => {
   const { status } = await Calendar.getCalendarPermissionsAsync();

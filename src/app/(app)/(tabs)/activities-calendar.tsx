@@ -1,3 +1,3 @@
-import ActivitiesCalendarScreen from "@features/activities/screens/ActivitiesCalendarScreen";
+import CalendarScreen from "@features/calendar/screens/CalendarScreen";
 
-export default ActivitiesCalendarScreen;
+export default CalendarScreen;

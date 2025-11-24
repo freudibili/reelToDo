@@ -43,7 +43,18 @@
     "nearby": "À proximité"
   },
   "calendar": {
-    "comingSoon": "Calendrier à venir 📅"
+    "title": "Calendrier",
+    "today": "Aujourd'hui",
+    "allDay": "Toute la journée",
+    "count": "{{count}} sorties",
+    "count_one": "1 sortie",
+    "count_other": "{{count}} sorties",
+    "undatedTitle": "Activités sans date",
+    "undatedSubtitle": "Ajoute une date pour les planifier.",
+    "noDate": "Date non définie",
+    "noActivitiesForDay": "Aucune activité pour ce jour.",
+    "emptyTitle": "Aucune activité datée pour l'instant.",
+    "emptySubtitle": "Ajoute une date à une activité pour l'afficher dans ton calendrier."
   },
   "card": {
     "untitled": "Activité"

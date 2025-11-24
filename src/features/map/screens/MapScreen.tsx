@@ -15,27 +15,29 @@ import {
   Text,
   ScrollView,
 } from "react-native";
-import * as Location from "expo-location";
 import type { Region } from "react-native-maps";
 import { useAppSelector, useAppDispatch } from "@core/store/hook";
-import { activitiesSelectors } from "../store/activitiesSelectors";
+import { activitiesSelectors } from "@features/activities/store/activitiesSelectors";
 import ActivitiesMap, {
   ActivitiesMapHandle,
-} from "../components/Map/ActivityMap";
-import NearbyActivitiesSheet from "../components/Map/NearbyActivitiesSheet";
-import ActivityDetailsSheet from "../components/ActivityDetailsSheet";
+} from "@features/activities/components/Map/ActivityMap";
+import NearbyActivitiesSheet from "@features/activities/components/Map/NearbyActivitiesSheet";
+import ActivityDetailsSheet from "@features/activities/components/ActivityDetailsSheet";
 import {
   deleteActivity,
   addFavorite,
   removeFavorite,
-} from "../store/activitiesSlice";
-import type { Activity } from "../utils/types";
+} from "@features/activities/store/activitiesSlice";
+import type { Activity } from "@features/activities/utils/types";
 import { useConfirmDialog } from "@common/hooks/useConfirmDialog";
 import Screen from "@common/components/AppScreen";
 import AppBottomSheet from "@common/components/AppBottomSheet";
 import { useTranslation } from "react-i18next";
+import { mapSelectors } from "@features/map/store/mapSelectors";
+import { mapActions } from "@features/map/store/mapSlice";
+import { requestUserRegion } from "@features/map/services/locationService";
 
-const ActivitiesMapScreen = () => {
+const MapScreen = () => {
   const dispatch = useAppDispatch();
   const { confirm } = useConfirmDialog();
   const { t } = useTranslation();
@@ -43,35 +45,26 @@ const ActivitiesMapScreen = () => {
   const initialized = useAppSelector(activitiesSelectors.initialized);
   const activities = useAppSelector(activitiesSelectors.items);
   const favoriteIds = useAppSelector(activitiesSelectors.favoriteIds);
+  const selectedCategory = useAppSelector(mapSelectors.selectedCategory);
 
   const [userRegion, setUserRegion] = useState<Region | null>(null);
   const [selected, setSelected] = useState<Activity | null>(null);
   const [mode, setMode] = useState<"list" | "details">("list");
   const [sheetIndex, setSheetIndex] = useState(-1);
-  const [category, setCategory] = useState<string | null>(null);
-
   const sheetRef = useRef(null);
   const mapRef = useRef<ActivitiesMapHandle | null>(null);
 
   useEffect(() => {
     const requestLocation = async () => {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") {
+      const region = await requestUserRegion();
+      if (!region) {
         Alert.alert(
           t("activities:map.permissionDeniedTitle"),
           t("activities:map.permissionDeniedMessage")
         );
         return;
       }
-      const loc = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Balanced,
-      });
-      setUserRegion({
-        latitude: loc.coords.latitude,
-        longitude: loc.coords.longitude,
-        latitudeDelta: 0.1,
-        longitudeDelta: 0.1,
-      });
+      setUserRegion(region);
     };
 
     requestLocation().catch(() => {});
@@ -112,11 +105,12 @@ const ActivitiesMapScreen = () => {
 
   // ⬇️ ici la modif : on snap à l'index 0 au lieu d'expand
   const openDetails = useCallback((activity: Activity) => {
+    dispatch(mapActions.setLastFocusedActivity(activity.id));
     setSelected(activity);
     setMode("details");
     setSheetIndex(0);
     sheetRef.current?.snapToIndex?.(0);
-  }, []);
+  }, [dispatch]);
 
   const handleMapSelect = useCallback(
     (activity: Activity) => {
@@ -192,9 +186,12 @@ const ActivitiesMapScreen = () => {
     [openDetails]
   );
 
-  const handleCategoryChange = useCallback((next: string | null) => {
-    setCategory(next);
-  }, []);
+  const handleCategoryChange = useCallback(
+    (next: string | null) => {
+      dispatch(mapActions.setSelectedCategory(next));
+    },
+    [dispatch]
+  );
 
   const categories = useMemo(() => {
     const set = new Set<string>();
@@ -218,12 +215,15 @@ const ActivitiesMapScreen = () => {
         >
           <Pressable
             onPress={() => handleCategoryChange(null)}
-            style={[styles.chip, category === null && styles.chipActive]}
+            style={[
+              styles.chip,
+              selectedCategory === null && styles.chipActive,
+            ]}
             >
               <Text
                 style={[
                   styles.chipText,
-                  category === null && styles.chipTextActive,
+                  selectedCategory === null && styles.chipTextActive,
                 ]}
               >
                 {t("activities:map.all")}
@@ -233,12 +233,15 @@ const ActivitiesMapScreen = () => {
             <Pressable
               key={cat}
               onPress={() => handleCategoryChange(cat)}
-              style={[styles.chip, category === cat && styles.chipActive]}
+              style={[
+                styles.chip,
+                selectedCategory === cat && styles.chipActive,
+              ]}
             >
               <Text
                 style={[
                   styles.chipText,
-                  category === cat && styles.chipTextActive,
+                  selectedCategory === cat && styles.chipTextActive,
                 ]}
               >
                 {cat}
@@ -254,7 +257,7 @@ const ActivitiesMapScreen = () => {
           activities={activities}
           initialRegion={initialRegion}
           onSelectActivity={handleMapSelect}
-          selectedCategory={category}
+          selectedCategory={selectedCategory}
           onCategoryChange={handleCategoryChange}
         />
 
@@ -274,7 +277,7 @@ const ActivitiesMapScreen = () => {
           <NearbyActivitiesSheet
             activities={activities}
             userRegion={userRegion}
-            category={category}
+            category={selectedCategory}
             onSelectActivity={handleSelectFromNearby}
           />
         ) : (
@@ -293,7 +296,7 @@ const ActivitiesMapScreen = () => {
   );
 };
 
-export default ActivitiesMapScreen;
+export default MapScreen;
 
 const styles = StyleSheet.create({
   header: {

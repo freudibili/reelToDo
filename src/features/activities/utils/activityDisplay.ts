@@ -30,3 +30,37 @@ export const formatActivityLocation = (
   const label = [main, region].filter(Boolean).join(" • ");
   return label || null;
 };
+
+export const parseDateValue = (
+  value: string | Date | null | undefined
+): Date | null => {
+  if (!value) return null;
+  const parsed = typeof value === "string" ? new Date(value) : value;
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+};
+
+export const hasTimeComponent = (
+  value: string | Date | null | undefined
+): boolean => {
+  if (!value) return false;
+  if (typeof value === "string") {
+    return value.includes("T");
+  }
+  return value.getHours() !== 0 || value.getMinutes() !== 0;
+};
+
+export const formatDisplayTime = (
+  value: string | Date | null | undefined
+): string | null => {
+  const date = parseDateValue(value);
+  if (!date) return null;
+  const locale = i18next.resolvedLanguage === "fr" ? "fr-FR" : "en-US";
+  try {
+    return date.toLocaleTimeString(locale, {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return null;
+  }
+};
