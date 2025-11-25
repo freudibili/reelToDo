@@ -7,10 +7,8 @@ import React, {
 } from "react";
 import {
   View,
-  ActivityIndicator,
   StyleSheet,
   Alert,
-  Linking,
   Pressable,
   Text,
   ScrollView,
@@ -27,7 +25,9 @@ import {
   deleteActivity,
   addFavorite,
   removeFavorite,
+  setPlannedDate,
 } from "@features/activities/store/activitiesSlice";
+import { createActivityCalendarEvent } from "@features/calendar/store/calendarThunks";
 import type { Activity } from "@features/activities/utils/types";
 import { useConfirmDialog } from "@common/hooks/useConfirmDialog";
 import Screen from "@common/components/AppScreen";
@@ -36,6 +36,10 @@ import { useTranslation } from "react-i18next";
 import { mapSelectors } from "@features/map/store/mapSelectors";
 import { mapActions } from "@features/map/store/mapSlice";
 import { requestUserRegion } from "@features/map/services/locationService";
+import {
+  openActivityInMaps,
+  openActivitySource,
+} from "@features/activities/services/linksService";
 
 const MapScreen = () => {
   const dispatch = useAppDispatch();
@@ -48,7 +52,14 @@ const MapScreen = () => {
   const selectedCategory = useAppSelector(mapSelectors.selectedCategory);
 
   const [userRegion, setUserRegion] = useState<Region | null>(null);
-  const [selected, setSelected] = useState<Activity | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const selectedSelector = useMemo(
+    () => (selectedId ? activitiesSelectors.byId(selectedId) : null),
+    [selectedId]
+  );
+  const selected = useAppSelector((state) =>
+    selectedSelector ? selectedSelector(state) : null
+  );
   const [mode, setMode] = useState<"list" | "details">("list");
   const [sheetIndex, setSheetIndex] = useState(-1);
   const sheetRef = useRef(null);
@@ -100,13 +111,13 @@ const MapScreen = () => {
     sheetRef.current?.close?.();
     setSheetIndex(-1);
     setMode("list");
-    setSelected(null);
+    setSelectedId(null);
   }, []);
 
   // ⬇️ ici la modif : on snap à l'index 0 au lieu d'expand
   const openDetails = useCallback((activity: Activity) => {
     dispatch(mapActions.setLastFocusedActivity(activity.id));
-    setSelected(activity);
+    setSelectedId(activity.id);
     setMode("details");
     setSheetIndex(0);
     sheetRef.current?.snapToIndex?.(0);
@@ -146,29 +157,41 @@ const MapScreen = () => {
     [favoriteIds, dispatch]
   );
 
-  const handleOpenMaps = useCallback((activity: Activity) => {
-    if (activity.latitude && activity.longitude) {
-      const url = `https://www.google.com/maps/search/?api=1&query=${activity.latitude},${activity.longitude}`;
-      Linking.openURL(url);
-      return;
-    }
-    const query =
-      activity.address ||
-      activity.location_name ||
-      activity.city ||
-      activity.title;
-    if (query) {
-      const encoded = encodeURIComponent(query);
-      const url = `https://www.google.com/maps/search/?api=1&query=${encoded}`;
-      Linking.openURL(url);
-    }
-  }, []);
+  const handleOpenMaps = useCallback(
+    (activity: Activity) => openActivityInMaps(activity),
+    []
+  );
 
-  const handleOpenSource = useCallback((activity: Activity) => {
-    if (activity.source_url) {
-      Linking.openURL(activity.source_url);
-    }
-  }, []);
+  const handleOpenSource = useCallback(
+    (activity: Activity) => openActivitySource(activity),
+    []
+  );
+
+  const handleAddToCalendar = useCallback(
+    (activity: Activity) => {
+      dispatch(
+        createActivityCalendarEvent({
+          activityId: activity.id,
+          activityDate: activity.planned_at
+            ? { start: activity.planned_at }
+            : undefined,
+        })
+      );
+    },
+    [dispatch]
+  );
+
+  const handleSetPlannedDate = useCallback(
+    (activity: Activity, planned: Date | null) => {
+      dispatch(
+        setPlannedDate({
+          activityId: activity.id,
+          plannedAt: planned,
+        })
+      );
+    },
+    [dispatch]
+  );
 
   const handleShowNearby = () => {
     setMode("list");
@@ -288,7 +311,8 @@ const MapScreen = () => {
             onToggleFavorite={handleToggleFavorite}
             onOpenMaps={handleOpenMaps}
             onOpenSource={handleOpenSource}
-            onAddToCalendar={() => {}}
+            onAddToCalendar={handleAddToCalendar}
+            onChangePlannedDate={handleSetPlannedDate}
           />
         )}
       </AppBottomSheet>

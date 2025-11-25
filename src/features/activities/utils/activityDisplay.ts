@@ -22,6 +22,15 @@ export const formatDisplayDate = (
   }
 };
 
+export const formatDisplayDateTime = (
+  value: string | Date | null | undefined
+): string | null => {
+  const date = formatDisplayDate(value);
+  const time = formatDisplayTime(value);
+  if (date && time) return `${date} · ${time}`;
+  return date ?? time ?? null;
+};
+
 export const formatActivityLocation = (
   activity: Pick<Activity, "location_name" | "city" | "country" | "address">
 ): string | null => {
@@ -31,11 +40,31 @@ export const formatActivityLocation = (
   return label || null;
 };
 
+export const getPrimaryDateValue = (
+  activity: Pick<Activity, "planned_at" | "main_date">
+): string | null => activity.planned_at ?? activity.main_date ?? null;
+
+export const isSameDateValue = (
+  a: string | Date | null | undefined,
+  b: string | Date | null | undefined
+): boolean => {
+  const aDate = parseDateValue(a);
+  const bDate = parseDateValue(b);
+  if (!aDate || !bDate) return false;
+  return aDate.getTime() === bDate.getTime();
+};
+
 export const parseDateValue = (
   value: string | Date | null | undefined
 ): Date | null => {
   if (!value) return null;
-  const parsed = typeof value === "string" ? new Date(value) : value;
+  let parsed: Date;
+  if (typeof value === "string") {
+    const dateOnly = /^\d{4}-\d{2}-\d{2}$/.test(value);
+    parsed = dateOnly ? new Date(`${value}T00:00:00`) : new Date(value);
+  } else {
+    parsed = value;
+  }
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 };
 

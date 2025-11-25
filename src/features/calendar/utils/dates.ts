@@ -1,10 +1,14 @@
-export const toDayKey = (date: Date): string => date.toISOString().split("T")[0];
+export const toDayKey = (date: Date): string => {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+};
 
 export const startOfMonthIso = (value: string | Date): string => {
   const date = typeof value === "string" ? new Date(value) : new Date(value);
-  date.setDate(1);
-  date.setHours(0, 0, 0, 0);
-  return date.toISOString();
+  const local = new Date(date.getFullYear(), date.getMonth(), 1);
+  return `${toDayKey(local)}T00:00:00`;
 };
 
 export interface CalendarDay {

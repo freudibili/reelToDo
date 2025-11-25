@@ -1,7 +1,11 @@
 import React from "react";
 import { View, Text, StyleSheet, Image, Pressable } from "react-native";
 import { Icon } from "react-native-paper";
-import { formatActivityLocation, formatDisplayDate } from "../utils/activityDisplay";
+import {
+  formatActivityLocation,
+  formatDisplayDate,
+  getPrimaryDateValue,
+} from "../utils/activityDisplay";
 import type { Activity } from "../utils/types";
 import { useTranslation } from "react-i18next";
 
@@ -16,7 +20,9 @@ const ActivityCard: React.FC<Props> = ({
 }) => {
   const { t } = useTranslation();
   const locationLabel = formatActivityLocation(activity);
-  const dateLabel = formatDisplayDate(activity.main_date);
+  const primaryDate = getPrimaryDateValue(activity);
+  const dateLabel = formatDisplayDate(primaryDate);
+  const isPlanned = Boolean(activity.planned_at);
 
   return (
     <Pressable style={styles.card} onPress={() => onPress(activity)}>
@@ -40,9 +46,19 @@ const ActivityCard: React.FC<Props> = ({
           ) : null}
           {dateLabel ? (
             <View style={styles.metaRow}>
-              <Icon source="calendar" size={14} color="#d1d5db" />
-              <Text style={styles.metaText} numberOfLines={1} ellipsizeMode="tail">
-                {dateLabel}
+              <Icon
+                source={isPlanned ? "calendar-check" : "calendar"}
+                size={14}
+                color="#d1d5db"
+              />
+              <Text
+                style={styles.metaText}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {isPlanned
+                  ? t("activities:planned.timeLabel", { value: dateLabel })
+                  : dateLabel}
               </Text>
             </View>
           ) : null}

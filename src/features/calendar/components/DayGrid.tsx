@@ -70,17 +70,17 @@ const styles = StyleSheet.create({
   daysGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "space-between",
-    columnGap: 4,
+    justifyContent: "flex-start",
+    columnGap: 6,
     rowGap: 10,
     marginBottom: 10,
   },
   dayChip: {
-    flexBasis: "13.5%",
-    maxWidth: "13.5%",
+    flexBasis: "18%",
+    maxWidth: "18%",
     backgroundColor: "#fff",
     borderRadius: 12,
-    paddingVertical: 10,
+    paddingVertical: 5,
     alignItems: "center",
     borderWidth: 1,
     borderColor: "#e2e8f0",
@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
   },
   dayChipToday: {
     borderColor: "#38bdf8",
-    backgroundColor: "rgba(56,189,248,0.12)",
+    backgroundColor: "#0ea5e9",
   },
   dayChipText: {
     color: "#475569",
@@ -104,8 +104,8 @@ const styles = StyleSheet.create({
     fontWeight: "800",
   },
   dayNumber: {
-    marginTop: 2,
-    fontSize: 20,
+    marginTop: 1,
+    fontSize: 16,
     fontWeight: "700",
     color: "#0f172a",
   },

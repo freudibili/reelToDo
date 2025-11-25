@@ -7,10 +7,9 @@ import {
   addFavorite,
   removeFavorite,
   deleteActivity,
-  createActivityCalendarEvent,
-  openActivityInMaps,
-  openActivitySource,
+  setPlannedDate,
 } from "../store/activitiesSlice";
+import { createActivityCalendarEvent } from "@features/calendar/store/calendarThunks";
 import ActivityCard from "../components/ActivityCard";
 import ActivityDetailsSheet from "../components/ActivityDetailsSheet";
 import type { Activity } from "../utils/types";
@@ -18,6 +17,10 @@ import { useConfirmDialog } from "@common/hooks/useConfirmDialog";
 import Screen from "@common/components/AppScreen";
 import AppBottomSheet from "@common/components/AppBottomSheet";
 import { useTranslation } from "react-i18next";
+import {
+  openActivityInMaps,
+  openActivitySource,
+} from "../services/linksService";
 
 const ActivitiesCategoryScreen = () => {
   const { category: categoryParam } = useLocalSearchParams<{
@@ -39,19 +42,26 @@ const ActivitiesCategoryScreen = () => {
   const activities = useAppSelector(categorySelector);
   const favoriteIds = useAppSelector(activitiesSelectors.favoriteIds);
 
-  const [selected, setSelected] = useState<Activity | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const selectedSelector = useMemo(
+    () => (selectedId ? activitiesSelectors.byId(selectedId) : null),
+    [selectedId]
+  );
+  const selected = useAppSelector((state) =>
+    selectedSelector ? selectedSelector(state) : null
+  );
   const [sheetVisible, setSheetVisible] = useState(false);
   const sheetRef = useRef(null);
   const snapPoints = useMemo(() => ["25%", "60%", "90%"], []);
 
   const handleSelect = useCallback((activity: Activity) => {
-    setSelected(activity);
+    setSelectedId(activity.id);
     setSheetVisible(true);
   }, []);
 
   const handleClose = () => {
     setSheetVisible(false);
-    setSelected(null);
+    setSelectedId(null);
   };
 
   const handleToggleFavorite = useCallback(
@@ -86,6 +96,18 @@ const ActivitiesCategoryScreen = () => {
 
   const categoryLabel =
     category?.charAt(0).toUpperCase() + category?.slice(1).toLowerCase();
+
+  const handleSetPlannedDate = useCallback(
+    (activity: Activity, planned: Date | null) => {
+      dispatch(
+        setPlannedDate({
+          activityId: activity.id,
+          plannedAt: planned,
+        })
+      );
+    },
+    [dispatch]
+  );
 
   return (
     <Screen
@@ -125,19 +147,19 @@ const ActivitiesCategoryScreen = () => {
             isFavorite={selected ? favoriteIds.includes(selected.id) : false}
             onDelete={handleDelete}
             onToggleFavorite={(activity) => handleToggleFavorite(activity.id)}
-            onOpenMaps={(activity) => {
-              dispatch(openActivityInMaps(activity.id));
-            }}
-            onOpenSource={(activity) => {
-              dispatch(openActivitySource(activity.id));
-            }}
+            onOpenMaps={(activity) => openActivityInMaps(activity)}
+            onOpenSource={(activity) => openActivitySource(activity)}
             onAddToCalendar={(activity) => {
               dispatch(
                 createActivityCalendarEvent({
                   activityId: activity.id,
+                  activityDate: activity.planned_at
+                    ? { start: activity.planned_at }
+                    : undefined,
                 })
               );
             }}
+            onChangePlannedDate={handleSetPlannedDate}
           />
         </AppBottomSheet>
       )}

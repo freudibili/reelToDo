@@ -56,6 +56,16 @@
     "emptyTitle": "No dated activities yet.",
     "emptySubtitle": "Add a date to an activity to have it appear in your calendar."
   },
+  "planned": {
+    "title": "Your date",
+    "empty": "No personal date yet.",
+    "matchesOfficial": "Same as the official date.",
+    "officialLabel": "Official: {{value}}",
+    "timeLabel": "Planned: {{value}}",
+    "ctaAdd": "Plan",
+    "ctaEdit": "Edit plan",
+    "ctaClear": "Clear"
+  },
   "card": {
     "untitled": "Activity"
   },

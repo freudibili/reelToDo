@@ -9,6 +9,9 @@ export const ActivitiesService = {
       .select(
         `
         activity_id,
+        activity_date_id,
+        calendar_event_id,
+        planned_at,
         is_favorite,
         activities (*)
       `
@@ -21,6 +24,9 @@ export const ActivitiesService = {
     return data.map((row) => ({
       ...row.activities,
       is_favorite: row.is_favorite,
+      planned_at: row.planned_at,
+      activity_date_id: row.activity_date_id,
+      calendar_event_id: row.calendar_event_id,
     }));
   },
 
@@ -117,5 +123,42 @@ export const ActivitiesService = {
     if (!count) {
       throw new Error("Activity not owned by user or already deleted");
     }
+  },
+
+  async setPlannedDate(
+    userId: string,
+    activityId: string,
+    plannedAt: string | null
+  ) {
+    const base = {
+      planned_at: plannedAt,
+    };
+
+    // Try to update existing link (covers null activity_date_id rows)
+    const { data: updated, error: updateError } = await supabase
+      .from("user_activities")
+      .update(base)
+      .eq("user_id", userId)
+      .eq("activity_id", activityId)
+      .select("planned_at, activity_id, calendar_event_id, is_favorite")
+      .maybeSingle();
+
+    if (updateError) throw updateError;
+    if (updated) return updated;
+
+    // Fallback: insert if no existing row
+    const { data: inserted, error: insertError } = await supabase
+      .from("user_activities")
+      .insert({
+        user_id: userId,
+        activity_id: activityId,
+        planned_at: plannedAt,
+        activity_date_id: null,
+      })
+      .select("planned_at, activity_id, calendar_event_id, is_favorite")
+      .single();
+
+    if (insertError) throw insertError;
+    return inserted;
   },
 };

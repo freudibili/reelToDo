@@ -18,21 +18,23 @@ import { calendarActions } from "@features/calendar/store/calendarSlice";
 import { toDayKey } from "@features/calendar/utils/dates";
 import {
   addFavorite,
-  createActivityCalendarEvent,
   deleteActivity,
   fetchActivities,
-  openActivityInMaps,
-  openActivitySource,
+  setPlannedDate,
   removeFavorite,
   startActivitiesListener,
   stopActivitiesListener,
 } from "@features/activities/store/activitiesSlice";
+import { createActivityCalendarEvent } from "@features/calendar/store/calendarThunks";
+import {
+  openActivityInMaps,
+  openActivitySource,
+} from "@features/activities/services/linksService";
 import type { Activity } from "@features/activities/utils/types";
 import {
   formatActivityLocation,
   formatDisplayDate,
-  formatDisplayTime,
-  hasTimeComponent,
+  getPrimaryDateValue,
   parseDateValue,
 } from "@features/activities/utils/activityDisplay";
 import { useConfirmDialog } from "@common/hooks/useConfirmDialog";
@@ -49,7 +51,7 @@ type DayGroup = {
 const buildDayGroups = (activities: Activity[]): DayGroup[] => {
   const groups: Record<string, DayGroup> = {};
   activities.forEach((activity) => {
-    const parsed = parseDateValue(activity.main_date);
+    const parsed = parseDateValue(getPrimaryDateValue(activity));
     if (!parsed) return;
     const key = toDayKey(parsed);
     if (!groups[key]) {
@@ -62,8 +64,10 @@ const buildDayGroups = (activities: Activity[]): DayGroup[] => {
     .map((group) => ({
       ...group,
       activities: group.activities.sort((a, b) => {
-        const aDate = parseDateValue(a.main_date)?.getTime() ?? 0;
-        const bDate = parseDateValue(b.main_date)?.getTime() ?? 0;
+        const aDate =
+          parseDateValue(getPrimaryDateValue(a))?.getTime() ?? 0;
+        const bDate =
+          parseDateValue(getPrimaryDateValue(b))?.getTime() ?? 0;
         return aDate - bDate;
       }),
     }))
@@ -87,7 +91,16 @@ const CalendarScreen = () => {
     [i18n.resolvedLanguage]
   );
   const [selected, setSelected] = useState<Activity | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const selectedSelector = useMemo(
+    () => (selectedId ? activitiesSelectors.byId(selectedId) : null),
+    [selectedId]
+  );
+  const selectedFromStore = useAppSelector((state) =>
+    selectedSelector ? selectedSelector(state) : null
+  );
   const [sheetVisible, setSheetVisible] = useState(false);
+  const effectiveSelected = selectedFromStore ?? selected;
   const sheetRef = useRef(null);
   const snapPoints = useMemo(() => ["35%", "70%"], []);
 
@@ -102,11 +115,6 @@ const CalendarScreen = () => {
   }, [dispatch]);
 
   const dayGroups = useMemo(() => buildDayGroups(activities), [activities]);
-  const undatedActivities = useMemo(
-    () => activities.filter((a) => !parseDateValue(a.main_date)),
-    [activities]
-  );
-
   const todayKey = useMemo(() => toDayKey(new Date()), []);
   const selectedDateObj = useMemo(() => new Date(selectedDate), [selectedDate]);
   const selectedGroup = dayGroups.find((g) => g.key === selectedDate) ?? null;
@@ -138,12 +146,14 @@ const CalendarScreen = () => {
 
   const handleSelect = useCallback((activity: Activity) => {
     setSelected(activity);
+    setSelectedId(activity.id);
     setSheetVisible(true);
   }, []);
 
   const handleClose = useCallback(() => {
     setSheetVisible(false);
     setSelected(null);
+    setSelectedId(null);
   }, []);
 
   const handleToggleFavorite = useCallback(
@@ -181,6 +191,21 @@ const CalendarScreen = () => {
       dispatch(
         createActivityCalendarEvent({
           activityId: activity.id,
+          activityDate: activity.planned_at
+            ? { start: activity.planned_at }
+            : undefined,
+        })
+      );
+    },
+    [dispatch]
+  );
+
+  const handleSetPlannedDate = useCallback(
+    (activity: Activity, planned: Date | null) => {
+      dispatch(
+        setPlannedDate({
+          activityId: activity.id,
+          plannedAt: planned,
         })
       );
     },
@@ -235,94 +260,6 @@ const CalendarScreen = () => {
         onSelectActivity={handleSelect}
       />
 
-      {undatedActivities.length ? (
-        <View style={styles.dayCard}>
-          <View style={styles.dayHeader}>
-            <View>
-              <Text style={styles.dayLabel}>
-                {t("activities:calendar.undatedTitle")}
-              </Text>
-              <Text style={styles.daySubLabel}>
-                {t("activities:calendar.undatedSubtitle")}
-              </Text>
-            </View>
-            <View style={styles.countPill}>
-              <Text style={styles.countText}>
-                {t("activities:calendar.count", {
-                  count: undatedActivities.length,
-                })}
-              </Text>
-            </View>
-          </View>
-
-          {undatedActivities.map((activity, idx) => {
-            const locationLabel = formatActivityLocation(activity);
-            const isFavorite = favoriteIds.includes(activity.id);
-            const isLast = idx === undatedActivities.length - 1;
-
-            return (
-              <Pressable
-                key={activity.id}
-                style={styles.activityRow}
-                onPress={() => handleSelect(activity)}
-              >
-                <View style={styles.timelineColumn}>
-                  <View
-                    style={[
-                      styles.timelineDot,
-                      isFavorite && styles.timelineDotFavorite,
-                    ]}
-                  />
-                  {!isLast ? <View style={styles.timelineLine} /> : null}
-                </View>
-
-                <View style={styles.cardBody}>
-                  <View style={styles.rowHeader}>
-                    <Text
-                      style={styles.activityTitle}
-                      numberOfLines={2}
-                      ellipsizeMode="tail"
-                    >
-                      {activity.title ?? t("activities:card.untitled")}
-                    </Text>
-                    {isFavorite ? (
-                      <Text style={styles.favoriteTag}>★</Text>
-                    ) : null}
-                  </View>
-
-                  <View style={styles.metaRow}>
-                    <Icon
-                      source="calendar-remove"
-                      size={14}
-                      color="#0f172a"
-                    />
-                    <Text style={styles.metaText}>
-                      {t("activities:calendar.noDate")}
-                    </Text>
-                  </View>
-                  {locationLabel ? (
-                    <View style={styles.metaRow}>
-                      <Icon
-                        source="map-marker-outline"
-                        size={14}
-                        color="#0f172a"
-                      />
-                      <Text
-                        style={styles.metaText}
-                        numberOfLines={1}
-                        ellipsizeMode="tail"
-                      >
-                        {locationLabel}
-                      </Text>
-                    </View>
-                  ) : null}
-                </View>
-              </Pressable>
-            );
-          })}
-        </View>
-      ) : null}
-
       {sheetVisible ? (
         <AppBottomSheet
           ref={sheetRef}
@@ -331,16 +268,19 @@ const CalendarScreen = () => {
           onClose={handleClose}
           scrollable
         >
-          <ActivityDetailsSheet
-            activity={selected}
-            isFavorite={selected ? favoriteIds.includes(selected.id) : false}
+      <ActivityDetailsSheet
+            activity={effectiveSelected}
+            isFavorite={
+              effectiveSelected
+                ? favoriteIds.includes(effectiveSelected.id)
+                : false
+            }
             onDelete={handleDelete}
             onToggleFavorite={handleToggleFavorite}
-            onOpenMaps={(activity) => dispatch(openActivityInMaps(activity.id))}
-            onOpenSource={(activity) =>
-              dispatch(openActivitySource(activity.id))
-            }
+            onOpenMaps={(activity) => openActivityInMaps(activity)}
+            onOpenSource={(activity) => openActivitySource(activity)}
             onAddToCalendar={handleAddToCalendar}
+            onChangePlannedDate={handleSetPlannedDate}
           />
         </AppBottomSheet>
       ) : null}

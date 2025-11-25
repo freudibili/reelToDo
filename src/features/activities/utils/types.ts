@@ -1,6 +1,10 @@
 export interface Activity {
   id: string;
   user_id: string | null;
+  planned_at?: string | null;
+  activity_date_id?: string | null;
+  calendar_event_id?: string | null;
+  is_favorite?: boolean;
   title: string | null;
   category: string | null;
   location_name: string | null;

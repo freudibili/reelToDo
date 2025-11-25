@@ -2,8 +2,7 @@ import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { supabase } from "@config/supabase";
 import { ActivitiesService } from "../services/activitiesService";
-import { createCalendarEventForActivity } from "@features/calendar/services/calendarService";
-import { Linking } from "react-native";
+import { createActivityCalendarEvent } from "@features/calendar/store/calendarThunks";
 import type { Activity } from "../utils/types";
 import type { AppDispatch, RootState } from "@core/store";
 import i18next from "@common/i18n/i18n";
@@ -39,7 +38,7 @@ export const fetchActivities = createAsyncThunk<
 
   const activities: Activity[] = rows.map((row: any) => {
     const { is_favorite, ...rest } = row;
-    return rest as Activity;
+    return { ...rest, is_favorite } as Activity;
   });
 
   const favorites = rows
@@ -109,80 +108,43 @@ export const cancelActivity = createAsyncThunk<
   return id;
 });
 
-export const createActivityCalendarEvent = createAsyncThunk<
-  { activityId: string; calendarEventId: string },
+export const setPlannedDate = createAsyncThunk<
   {
     activityId: string;
-    activityDate?: { id?: string; start: string | Date; end?: string | Date };
+    plannedAt: string | null;
+    isFavorite?: boolean;
+    calendarEventId?: string | null;
   },
+  { activityId: string; plannedAt: string | Date | null },
   { state: RootState; rejectValue: string }
 >(
-  "activities/createActivityCalendarEvent",
-  async ({ activityId, activityDate }, { getState, rejectWithValue }) => {
+  "activities/setPlannedDate",
+  async ({ activityId, plannedAt }, { getState, rejectWithValue }) => {
     const userId = getState().auth.user?.id;
     if (!userId) {
       return rejectWithValue(i18next.t("activities:errors.noUser"));
     }
 
-    const activity = getState().activities.items.find(
-      (a) => a.id === activityId
-    );
-    if (!activity) {
-      return rejectWithValue(i18next.t("activities:errors.notFound"));
-    }
-
-    const eventId = await createCalendarEventForActivity(
-      userId,
-      activity,
-      activityDate
-    );
-    if (!eventId) {
+    const iso = plannedAt ? new Date(plannedAt).toISOString() : null;
+    try {
+      const row = await ActivitiesService.setPlannedDate(
+        userId,
+        activityId,
+        iso
+      );
+      return {
+        activityId,
+        plannedAt: row?.planned_at ?? iso,
+        isFavorite: row?.is_favorite ?? undefined,
+        calendarEventId: row?.calendar_event_id ?? undefined,
+      };
+    } catch (e: any) {
       return rejectWithValue(
-        i18next.t("activities:errors.calendarCreateFailed")
+        e?.message ?? i18next.t("activities:errors.notFound")
       );
     }
-
-    return { activityId, calendarEventId: eventId };
   }
 );
-
-export const openActivityInMaps = createAsyncThunk<
-  void,
-  string,
-  { state: RootState }
->("activities/openActivityInMaps", async (activityId, { getState }) => {
-  const { activities } = getState();
-  const activity = activities.items.find((a) => a.id === activityId);
-  if (!activity) return;
-
-  if (activity.latitude && activity.longitude) {
-    const url = `https://www.google.com/maps/search/?api=1&query=${activity.latitude},${activity.longitude}`;
-    Linking.openURL(url);
-    return;
-  }
-
-  const query =
-    activity.address ||
-    activity.location_name ||
-    activity.city ||
-    activity.title;
-  if (query) {
-    const encoded = encodeURIComponent(query);
-    const url = `https://www.google.com/maps/search/?api=1&query=${encoded}`;
-    Linking.openURL(url);
-  }
-});
-
-export const openActivitySource = createAsyncThunk<
-  void,
-  string,
-  { state: RootState }
->("activities/openActivitySource", async (activityId, { getState }) => {
-  const { activities } = getState();
-  const activity = activities.items.find((a) => a.id === activityId);
-  if (!activity?.source_url) return;
-  Linking.openURL(activity.source_url);
-});
 
 const activitiesSlice = createSlice({
   name: "activities",
@@ -214,6 +176,51 @@ const activitiesSlice = createSlice({
         state.favoriteIds.push(id);
       }
     },
+    userActivityUpdated: (
+      state,
+      action: PayloadAction<{
+        activityId: string;
+        plannedAt?: string | null;
+        isFavorite?: boolean;
+        calendarEventId?: string | null;
+        activityDateId?: string | null;
+      }>
+    ) => {
+      const {
+        activityId,
+        plannedAt,
+        isFavorite,
+        calendarEventId,
+        activityDateId,
+      } = action.payload;
+      const idx = state.items.findIndex((a) => a.id === activityId);
+      if (idx >= 0) {
+        state.items[idx] = {
+          ...state.items[idx],
+          planned_at:
+            plannedAt !== undefined ? plannedAt : state.items[idx].planned_at,
+          calendar_event_id:
+            calendarEventId !== undefined
+              ? calendarEventId
+              : state.items[idx].calendar_event_id,
+          activity_date_id:
+            activityDateId !== undefined
+              ? activityDateId
+              : state.items[idx].activity_date_id,
+          is_favorite:
+            isFavorite !== undefined
+              ? isFavorite
+              : state.items[idx].is_favorite,
+        } as Activity;
+      }
+      if (isFavorite === true) {
+        if (!state.favoriteIds.includes(activityId)) {
+          state.favoriteIds.push(activityId);
+        }
+      } else if (isFavorite === false) {
+        state.favoriteIds = state.favoriteIds.filter((x) => x !== activityId);
+      }
+    },
   },
   extraReducers: (builder) => {
     builder.addCase(fetchActivities.pending, (state) => {
@@ -234,10 +241,18 @@ const activitiesSlice = createSlice({
       if (!state.favoriteIds.includes(id)) {
         state.favoriteIds.push(id);
       }
+      const idx = state.items.findIndex((a) => a.id === id);
+      if (idx >= 0) {
+        state.items[idx].is_favorite = true;
+      }
     });
     builder.addCase(removeFavorite.fulfilled, (state, action) => {
       const id = action.payload;
       state.favoriteIds = state.favoriteIds.filter((x) => x !== id);
+      const idx = state.items.findIndex((a) => a.id === id);
+      if (idx >= 0) {
+        state.items[idx].is_favorite = false;
+      }
     });
     builder.addCase(deleteActivity.fulfilled, (state, action) => {
       const id = action.payload;
@@ -250,13 +265,45 @@ const activitiesSlice = createSlice({
       state.favoriteIds = state.favoriteIds.filter((x) => x !== id);
     });
     builder.addCase(createActivityCalendarEvent.fulfilled, (state, action) => {
-      const { activityId, calendarEventId } = action.payload;
+      const { activityId, calendarEventId, plannedAt } = action.payload;
       const idx = state.items.findIndex((a) => a.id === activityId);
       if (idx >= 0) {
         state.items[idx] = {
           ...state.items[idx],
           calendar_event_id: calendarEventId,
+          planned_at:
+            plannedAt !== undefined
+              ? plannedAt
+              : state.items[idx].planned_at,
+          is_favorite: true,
         } as Activity;
+      }
+      if (!state.favoriteIds.includes(activityId)) {
+        state.favoriteIds.push(activityId);
+      }
+    });
+    builder.addCase(setPlannedDate.fulfilled, (state, action) => {
+      const { activityId, plannedAt, isFavorite, calendarEventId } =
+        action.payload;
+      const idx = state.items.findIndex((a) => a.id === activityId);
+      if (idx >= 0) {
+        state.items[idx] = {
+          ...state.items[idx],
+          planned_at: plannedAt,
+          calendar_event_id:
+            calendarEventId ?? state.items[idx].calendar_event_id,
+          is_favorite:
+            isFavorite !== undefined
+              ? isFavorite
+              : state.items[idx].is_favorite,
+        } as Activity;
+      }
+      if (isFavorite === true) {
+        if (!state.favoriteIds.includes(activityId)) {
+          state.favoriteIds.push(activityId);
+        }
+      } else if (isFavorite === false) {
+        state.favoriteIds = state.favoriteIds.filter((x) => x !== activityId);
       }
     });
   },
@@ -267,6 +314,7 @@ export const {
   activityUpdated,
   activityDeleted,
   favoriteToggledLocal,
+  userActivityUpdated,
 } = activitiesSlice.actions;
 
 export default activitiesSlice.reducer;
@@ -308,9 +356,42 @@ export const startActivitiesListener =
           },
           (payload) => {
             const row = payload.new;
-            if (row.is_favorite) {
-              dispatch(favoriteToggledLocal(row.activity_id));
-            }
+            dispatch(
+              userActivityUpdated({
+                activityId: row.activity_id,
+                plannedAt: row.planned_at,
+                isFavorite:
+                  typeof row.is_favorite === "boolean"
+                    ? row.is_favorite
+                    : undefined,
+                calendarEventId: row.calendar_event_id ?? undefined,
+                activityDateId: row.activity_date_id ?? undefined,
+              })
+            );
+          }
+        )
+        .on(
+          "postgres_changes",
+          {
+            event: "UPDATE",
+            schema: "public",
+            table: "user_activities",
+            filter: `user_id=eq.${userId}`,
+          },
+          (payload) => {
+            const row = payload.new;
+            dispatch(
+              userActivityUpdated({
+                activityId: row.activity_id,
+                plannedAt: row.planned_at,
+                isFavorite:
+                  typeof row.is_favorite === "boolean"
+                    ? row.is_favorite
+                    : undefined,
+                calendarEventId: row.calendar_event_id ?? undefined,
+                activityDateId: row.activity_date_id ?? undefined,
+              })
+            );
           }
         )
         .on(

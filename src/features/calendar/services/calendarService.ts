@@ -69,6 +69,9 @@ export const createCalendarEventForActivity = async (
 
   if (!eventId) return null;
 
+  const plannedAtIso =
+    activityDate?.start ?? activity.main_date ?? startDate.toISOString();
+
   await supabase.from("user_activities").upsert(
     {
       user_id: userId,
@@ -76,6 +79,9 @@ export const createCalendarEventForActivity = async (
       activity_date_id: activityDate?.id ?? null,
       is_favorite: true,
       calendar_event_id: eventId,
+      planned_at: plannedAtIso
+        ? new Date(plannedAtIso).toISOString()
+        : null,
     },
     {
       onConflict: "user_id,activity_id,activity_date_id",
