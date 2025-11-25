@@ -56,6 +56,12 @@
     "emptyTitle": "Aucune activité datée pour l'instant.",
     "emptySubtitle": "Ajoute une date à une activité pour l'afficher dans ton calendrier."
   },
+  "calendarSync": {
+    "title": "Ajouter au calendrier Google ?",
+    "message": "Nous allons créer ou mettre à jour cet événement dans ton calendrier Google afin que tu puisses gérer rappels et notifications.",
+    "confirm": "Ajouter au calendrier Google",
+    "cancel": "Pas maintenant"
+  },
   "planned": {
     "title": "Ta date",
     "empty": "Pas encore de date perso.",

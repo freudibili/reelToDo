@@ -56,6 +56,12 @@
     "emptyTitle": "No dated activities yet.",
     "emptySubtitle": "Add a date to an activity to have it appear in your calendar."
   },
+  "calendarSync": {
+    "title": "Add to Google Calendar?",
+    "message": "We will create or update this event in your Google Calendar so you can manage reminders and notifications there.",
+    "confirm": "Add to Google Calendar",
+    "cancel": "Not now"
+  },
   "planned": {
     "title": "Your date",
     "empty": "No personal date yet.",

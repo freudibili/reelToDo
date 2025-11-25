@@ -3,6 +3,10 @@ import type { RealtimeChannel } from "@supabase/supabase-js";
 import { supabase } from "@config/supabase";
 import { ActivitiesService } from "../services/activitiesService";
 import { createActivityCalendarEvent } from "@features/calendar/store/calendarThunks";
+import {
+  deleteCalendarEvent,
+  updateCalendarEventForActivity,
+} from "@features/calendar/services/calendarService";
 import type { Activity } from "../utils/types";
 import type { AppDispatch, RootState } from "@core/store";
 import i18next from "@common/i18n/i18n";
@@ -23,6 +27,9 @@ const initialState: ActivitiesState = {
 
 let activitiesChannel: RealtimeChannel | null = null;
 let userActivitiesChannel: RealtimeChannel | null = null;
+let activitiesListenerCount = 0;
+let userActivitiesListenerCount = 0;
+let userActivitiesChannelUserId: string | null = null;
 
 export const fetchActivities = createAsyncThunk<
   { activities: Activity[]; favorites: string[] },
@@ -79,6 +86,17 @@ export const deleteActivity = createAsyncThunk<
   if (!userId) {
     return rejectWithValue(i18next.t("activities:errors.noUser"));
   }
+
+  const activity = getState().activities.items.find((a) => a.id === id);
+  const calendarEventId = activity?.calendar_event_id;
+  if (calendarEventId) {
+    try {
+      await deleteCalendarEvent(calendarEventId);
+    } catch (err) {
+      console.warn("Failed to remove calendar event", err);
+    }
+  }
+
   try {
     await ActivitiesService.deleteActivity(userId, id);
   } catch (e: any) {
@@ -98,6 +116,17 @@ export const cancelActivity = createAsyncThunk<
   if (!userId) {
     return rejectWithValue(i18next.t("activities:errors.noUser"));
   }
+
+  const activity = getState().activities.items.find((a) => a.id === id);
+  const calendarEventId = activity?.calendar_event_id;
+  if (calendarEventId) {
+    try {
+      await deleteCalendarEvent(calendarEventId);
+    } catch (err) {
+      console.warn("Failed to remove calendar event", err);
+    }
+  }
+
   try {
     await ActivitiesService.cancelActivity(userId, id);
   } catch (e: any) {
@@ -125,12 +154,44 @@ export const setPlannedDate = createAsyncThunk<
       return rejectWithValue(i18next.t("activities:errors.noUser"));
     }
 
+    const activity = getState().activities.items.find(
+      (a) => a.id === activityId
+    );
+    if (!activity) {
+      return rejectWithValue(i18next.t("activities:errors.notFound"));
+    }
+
     const iso = plannedAt ? new Date(plannedAt).toISOString() : null;
+    let nextCalendarEventId = activity.calendar_event_id ?? null;
+
+    if (nextCalendarEventId) {
+      try {
+        if (iso) {
+          const updatedEventId = await updateCalendarEventForActivity(
+            nextCalendarEventId,
+            activity,
+            iso
+          );
+          if (updatedEventId) {
+            nextCalendarEventId = updatedEventId;
+          }
+        } else {
+          const deleted = await deleteCalendarEvent(nextCalendarEventId);
+          if (deleted) {
+            nextCalendarEventId = null;
+          }
+        }
+      } catch (err) {
+        console.warn("Failed to sync calendar event", err);
+      }
+    }
+
     try {
       const row = await ActivitiesService.setPlannedDate(
         userId,
         activityId,
-        iso
+        iso,
+        { calendarEventId: nextCalendarEventId }
       );
       return {
         activityId,
@@ -322,6 +383,7 @@ export default activitiesSlice.reducer;
 export const startActivitiesListener =
   (userId?: string | null) =>
   (dispatch: any): void => {
+    activitiesListenerCount += 1;
     if (!activitiesChannel) {
       activitiesChannel = supabase
         .channel("public:activities")
@@ -343,81 +405,103 @@ export const startActivitiesListener =
         .subscribe();
     }
 
-    if (userId && !userActivitiesChannel) {
-      userActivitiesChannel = supabase
-        .channel("public:user_activities")
-        .on(
-          "postgres_changes",
-          {
-            event: "INSERT",
-            schema: "public",
-            table: "user_activities",
-            filter: `user_id=eq.${userId}`,
-          },
-          (payload) => {
-            const row = payload.new;
-            dispatch(
-              userActivityUpdated({
-                activityId: row.activity_id,
-                plannedAt: row.planned_at,
-                isFavorite:
-                  typeof row.is_favorite === "boolean"
-                    ? row.is_favorite
-                    : undefined,
-                calendarEventId: row.calendar_event_id ?? undefined,
-                activityDateId: row.activity_date_id ?? undefined,
-              })
-            );
-          }
-        )
-        .on(
-          "postgres_changes",
-          {
-            event: "UPDATE",
-            schema: "public",
-            table: "user_activities",
-            filter: `user_id=eq.${userId}`,
-          },
-          (payload) => {
-            const row = payload.new;
-            dispatch(
-              userActivityUpdated({
-                activityId: row.activity_id,
-                plannedAt: row.planned_at,
-                isFavorite:
-                  typeof row.is_favorite === "boolean"
-                    ? row.is_favorite
-                    : undefined,
-                calendarEventId: row.calendar_event_id ?? undefined,
-                activityDateId: row.activity_date_id ?? undefined,
-              })
-            );
-          }
-        )
-        .on(
-          "postgres_changes",
-          {
-            event: "DELETE",
-            schema: "public",
-            table: "user_activities",
-            filter: `user_id=eq.${userId}`,
-          },
-          (payload) => {
-            const oldRow = payload.old;
-            dispatch(activityDeleted(oldRow.activity_id));
-          }
-        )
-        .subscribe();
+    if (userId) {
+      if (
+        userActivitiesChannel &&
+        userActivitiesChannelUserId &&
+        userActivitiesChannelUserId !== userId
+      ) {
+        supabase.removeChannel(userActivitiesChannel);
+        userActivitiesChannel = null;
+        userActivitiesChannelUserId = null;
+        userActivitiesListenerCount = 0;
+      }
+
+      if (!userActivitiesChannel) {
+        userActivitiesChannel = supabase
+          .channel(`public:user_activities:${userId}`)
+          .on(
+            "postgres_changes",
+            {
+              event: "INSERT",
+              schema: "public",
+              table: "user_activities",
+              filter: `user_id=eq.${userId}`,
+            },
+            (payload) => {
+              const row = payload.new;
+              dispatch(
+                userActivityUpdated({
+                  activityId: row.activity_id,
+                  plannedAt: row.planned_at,
+                  isFavorite:
+                    typeof row.is_favorite === "boolean"
+                      ? row.is_favorite
+                      : undefined,
+                  calendarEventId: row.calendar_event_id ?? undefined,
+                  activityDateId: row.activity_date_id ?? undefined,
+                })
+              );
+            }
+          )
+          .on(
+            "postgres_changes",
+            {
+              event: "UPDATE",
+              schema: "public",
+              table: "user_activities",
+              filter: `user_id=eq.${userId}`,
+            },
+            (payload) => {
+              const row = payload.new;
+              dispatch(
+                userActivityUpdated({
+                  activityId: row.activity_id,
+                  plannedAt: row.planned_at,
+                  isFavorite:
+                    typeof row.is_favorite === "boolean"
+                      ? row.is_favorite
+                      : undefined,
+                  calendarEventId: row.calendar_event_id ?? undefined,
+                  activityDateId: row.activity_date_id ?? undefined,
+                })
+              );
+            }
+          )
+          .on(
+            "postgres_changes",
+            {
+              event: "DELETE",
+              schema: "public",
+              table: "user_activities",
+              filter: `user_id=eq.${userId}`,
+            },
+            (payload) => {
+              const oldRow = payload.old;
+              dispatch(activityDeleted(oldRow.activity_id));
+            }
+          )
+          .subscribe();
+        userActivitiesChannelUserId = userId;
+      }
+      userActivitiesListenerCount += 1;
     }
   };
 
 export const stopActivitiesListener = () => {
-  if (activitiesChannel) {
+  if (activitiesListenerCount > 0) {
+    activitiesListenerCount -= 1;
+  }
+  if (activitiesListenerCount === 0 && activitiesChannel) {
     supabase.removeChannel(activitiesChannel);
     activitiesChannel = null;
   }
-  if (userActivitiesChannel) {
+  if (userActivitiesListenerCount > 0) {
+    userActivitiesListenerCount -= 1;
+  }
+  if (userActivitiesListenerCount === 0 && userActivitiesChannel) {
     supabase.removeChannel(userActivitiesChannel);
     userActivitiesChannel = null;
+    userActivitiesChannelUserId = null;
   }
 };

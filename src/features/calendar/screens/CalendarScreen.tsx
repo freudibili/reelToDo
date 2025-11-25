@@ -78,6 +78,7 @@ const CalendarScreen = () => {
   const dispatch = useAppDispatch();
   const { confirm } = useConfirmDialog();
   const { t, i18n } = useTranslation();
+  const userId = useAppSelector((state) => state.auth.user?.id ?? null);
   const activities = useAppSelector(activitiesSelectors.items);
   const loading = useAppSelector(activitiesSelectors.loading);
   const initialized = useAppSelector(activitiesSelectors.initialized);
@@ -106,13 +107,13 @@ const CalendarScreen = () => {
 
   useEffect(() => {
     dispatch(fetchActivities());
-    dispatch(startActivitiesListener());
+    dispatch(startActivitiesListener(userId));
     dispatch(calendarActions.setSelectedDate(toDayKey(new Date())));
     dispatch(calendarActions.setVisibleMonth(toDayKey(new Date())));
     return () => {
       stopActivitiesListener();
     };
-  }, [dispatch]);
+  }, [dispatch, userId]);
 
   const dayGroups = useMemo(() => buildDayGroups(activities), [activities]);
   const todayKey = useMemo(() => toDayKey(new Date()), []);

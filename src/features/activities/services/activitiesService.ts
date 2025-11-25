@@ -128,11 +128,21 @@ export const ActivitiesService = {
   async setPlannedDate(
     userId: string,
     activityId: string,
-    plannedAt: string | null
+    plannedAt: string | null,
+    options?: { calendarEventId?: string | null }
   ) {
-    const base = {
+    const base: {
+      planned_at: string | null;
+      calendar_event_id?: string | null;
+    } = {
       planned_at: plannedAt,
     };
+    const hasCalendarEventId = options
+      ? "calendarEventId" in options
+      : false;
+    if (hasCalendarEventId) {
+      base.calendar_event_id = options?.calendarEventId ?? null;
+    }
 
     // Try to update existing link (covers null activity_date_id rows)
     const { data: updated, error: updateError } = await supabase
@@ -154,6 +164,9 @@ export const ActivitiesService = {
         activity_id: activityId,
         planned_at: plannedAt,
         activity_date_id: null,
+        ...(hasCalendarEventId
+          ? { calendar_event_id: options?.calendarEventId ?? null }
+          : {}),
       })
       .select("planned_at, activity_id, calendar_event_id, is_favorite")
       .single();

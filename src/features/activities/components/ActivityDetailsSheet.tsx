@@ -19,6 +19,7 @@ import InfoRow from "./InfoRow";
 import DateTimePicker, {
   type DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
+import { useConfirmDialog } from "@common/hooks/useConfirmDialog";
 
 interface Props {
   activity: Activity | null;
@@ -42,8 +43,9 @@ const ActivityDetailsSheet: React.FC<Props> = ({
   onChangePlannedDate,
 }) => {
   const { t } = useTranslation();
-  if (!activity) return null;
+  const { confirm } = useConfirmDialog();
   const [pickerVisible, setPickerVisible] = useState(false);
+  if (!activity) return null;
 
   const officialDateLabel = formatDisplayDate(activity.main_date);
   const plannedDateLabel = formatDisplayDateTime(activity.planned_at);
@@ -72,6 +74,17 @@ const ActivityDetailsSheet: React.FC<Props> = ({
     ? t("activities:planned.ctaEdit")
     : t("activities:planned.ctaAdd");
 
+  const handleAddToCalendar = () =>
+    confirm(
+      t("activities:calendarSync.title"),
+      t("activities:calendarSync.message"),
+      () => onAddToCalendar(activity),
+      {
+        cancelText: t("activities:calendarSync.cancel"),
+        confirmText: t("activities:calendarSync.confirm"),
+      }
+    );
+
   const actions: ActionRailItem[] = [
     {
       key: "plan",
@@ -91,7 +104,7 @@ const ActivityDetailsSheet: React.FC<Props> = ({
             key: "calendar",
             label: t("activities:details.actions.calendar"),
             icon: "calendar",
-            onPress: () => onAddToCalendar(activity),
+            onPress: handleAddToCalendar,
           } as ActionRailItem,
         ]
       : []),

@@ -33,6 +33,7 @@ const ActivitiesScreen = () => {
   const dispatch = useAppDispatch();
   const { confirm } = useConfirmDialog();
   const { t } = useTranslation();
+  const userId = useAppSelector((state) => state.auth.user?.id ?? null);
   const grouped = useAppSelector(activitiesSelectors.groupedByCategory);
   const loading = useAppSelector(activitiesSelectors.loading);
   const initialized = useAppSelector(activitiesSelectors.initialized);
@@ -51,11 +52,11 @@ const ActivitiesScreen = () => {
 
   useEffect(() => {
     dispatch(fetchActivities());
-    dispatch(startActivitiesListener());
+    dispatch(startActivitiesListener(userId));
     return () => {
       stopActivitiesListener();
     };
-  }, [dispatch]);
+  }, [dispatch, userId]);
 
   const handleSelect = (activity: Activity) => {
     setSelectedId(activity.id);
