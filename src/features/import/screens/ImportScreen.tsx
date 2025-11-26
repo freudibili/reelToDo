@@ -5,9 +5,17 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  Pressable,
+} from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import type { ShareIntent } from "expo-share-intent";
+import { LinearGradient } from "expo-linear-gradient";
+import { Icon } from "react-native-paper";
 
 import { selectAuthUser } from "@features/auth/store/authSelectors";
 import {
@@ -47,6 +55,7 @@ const ImportScreen = () => {
   const loading = useAppSelector(selectImportLoading);
   const error = useAppSelector(selectImportError);
   const activity = useAppSelector(selectImportedActivity) as Activity | null;
+  const [manualLink, setManualLink] = useState("");
 
   const sharedData = useMemo<ShareIntent | null>(() => {
     if (!shared || Array.isArray(shared)) return null;
@@ -71,6 +80,21 @@ const ImportScreen = () => {
       })
     );
   }, [dispatch, sharedData, user]);
+
+  const handleManualAnalyze = useCallback(() => {
+    if (!user?.id) return;
+    const trimmed = manualLink.trim();
+    if (!trimmed || loading) return;
+    hasAnalyzedRef.current = true;
+    dispatch(
+      analyzeSharedLink({
+        shared: { webUrl: trimmed, text: trimmed } as ShareIntent,
+        userId: user.id,
+      })
+    ).finally(() => {
+      hasAnalyzedRef.current = false;
+    });
+  }, [dispatch, manualLink, user, loading]);
 
   useEffect(() => {
     if (sharedData?.webUrl && user?.id) {
@@ -177,12 +201,58 @@ const ImportScreen = () => {
     >
       <View style={styles.container}>
         <View style={styles.header}>
+          <LinearGradient
+            colors={["#0ea5e9", "#6366f1"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.heroIcon}
+          >
+            <Icon source="link-variant" size={30} color="#fff" />
+          </LinearGradient>
           <Text style={styles.title}>{t("import:header.title")}</Text>
           <Text style={styles.subtitle}>{t("import:header.subtitle")}</Text>
         </View>
 
         {error ? (
           <ImportErrorState message={error} onGoHome={handleGoHome} />
+        ) : null}
+
+        {!sharedData?.webUrl ? (
+          <View style={styles.linkCard}>
+            <Text style={styles.linkLabel}>{t("import:linkInput.label")}</Text>
+            <View style={styles.linkRow}>
+              <TextInput
+                value={manualLink}
+                onChangeText={setManualLink}
+                placeholder={t("import:linkInput.placeholder")}
+                placeholderTextColor="#94a3b8"
+                style={styles.linkInput}
+                autoCapitalize="none"
+                autoCorrect={false}
+                keyboardType="url"
+                returnKeyType="done"
+                editable={!loading}
+              />
+              <Pressable
+                onPress={handleManualAnalyze}
+                disabled={loading || !manualLink.trim()}
+                style={({ pressed }) => [
+                  styles.analyzePressable,
+                  pressed && styles.analyzePressed,
+                  (loading || !manualLink.trim()) && styles.analyzeDisabled,
+                ]}
+              >
+                <View style={styles.analyzeBtn}>
+                  <Icon source="link-plus" size={16} color="#0f172a" />
+                  <Text style={styles.analyzeText}>
+                    {loading
+                      ? t("import:linkInput.analyzing")
+                      : t("import:linkInput.analyze")}
+                  </Text>
+                </View>
+              </Pressable>
+            </View>
+          </View>
         ) : null}
 
         {activity ? (
@@ -204,15 +274,80 @@ const ImportScreen = () => {
 const styles = StyleSheet.create({
   container: {
     paddingBottom: 24,
-    gap: 10,
+    gap: 12,
+    alignItems: "center",
   },
   header: {
     marginBottom: 16,
+    alignItems: "center",
+    gap: 8,
   },
   title: { fontSize: 22, fontWeight: "600", marginBottom: 4 },
   subtitle: {
     fontSize: 14,
     color: "#666",
+    textAlign: "center",
+  },
+  heroIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 999,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 4,
+  },
+  linkCard: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    gap: 10,
+    alignSelf: "stretch",
+  },
+  linkLabel: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#0f172a",
+  },
+  linkRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  linkInput: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#cbd5e1",
+    backgroundColor: "#f8fafc",
+    color: "#0f172a",
+    fontSize: 14,
+  },
+  analyzePressable: {
+    borderRadius: 12,
+  },
+  analyzePressed: {
+    opacity: 0.9,
+  },
+  analyzeDisabled: {
+    opacity: 0.5,
+  },
+  analyzeBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: "#e2e8f0",
+  },
+  analyzeText: {
+    color: "#0f172a",
+    fontWeight: "700",
+    fontSize: 12.5,
   },
   detailsCard: {
     marginTop: 12,

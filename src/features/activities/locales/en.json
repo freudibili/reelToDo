@@ -3,6 +3,7 @@
   "list": {
     "emptyTitle": "No activities yet.",
     "emptySubtitle": "Import one from the Import screen.",
+    "importFromLink": "Import link",
     "more": {
       "title": "See more",
       "hint": "All activities",
