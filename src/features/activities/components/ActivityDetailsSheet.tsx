@@ -60,6 +60,10 @@ const ActivityDetailsSheet: React.FC<Props> = ({
     activity.planned_at,
     activity.main_date
   );
+  const primaryDateValue = getPrimaryDateValue(activity);
+  const hasDateForCalendar =
+    !!primaryDateValue &&
+    !Number.isNaN(new Date(primaryDateValue).getTime());
 
   const handleDateChange = (
     _event: DateTimePickerEvent,
@@ -98,7 +102,7 @@ const ActivityDetailsSheet: React.FC<Props> = ({
       icon: "map-marker",
       onPress: () => onOpenMaps(activity),
     },
-    ...(needsDate
+    ...(hasDateForCalendar
       ? [
           {
             key: "calendar",

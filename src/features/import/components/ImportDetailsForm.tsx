@@ -43,12 +43,12 @@ const ImportDetailsForm = React.forwardRef<
     date: activity.main_date ? new Date(activity.main_date) : null,
   }));
 
-  const markDirty = () => {
+  const markDirty = useCallback(() => {
     if (!dirty) {
       setDirty(true);
       onDirtyChange?.(true);
     }
-  };
+  }, [dirty, onDirtyChange]);
 
   useEffect(() => {
     setDraft({
@@ -63,6 +63,7 @@ const ImportDetailsForm = React.forwardRef<
     activity.location_name,
     activity.address,
     activity.main_date,
+    onDirtyChange,
   ]);
 
   const handleSavePress = useCallback(() => {

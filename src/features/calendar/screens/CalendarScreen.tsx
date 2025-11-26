@@ -5,8 +5,6 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import { Icon } from "react-native-paper";
 import { useTranslation } from "react-i18next";
 import Screen from "@common/components/AppScreen";
 import AppBottomSheet from "@common/components/AppBottomSheet";
@@ -32,7 +30,6 @@ import {
 } from "@features/activities/services/linksService";
 import type { Activity } from "@features/activities/utils/types";
 import {
-  formatActivityLocation,
   formatDisplayDate,
   getPrimaryDateValue,
   parseDateValue,
@@ -85,7 +82,6 @@ const CalendarScreen = () => {
   const favoriteIds = useAppSelector(activitiesSelectors.favoriteIds);
   const selectedDate = useAppSelector(calendarSelectors.selectedDate);
   const visibleMonthDate = useAppSelector(calendarSelectors.visibleMonthDate);
-  const monthPrefix = useAppSelector(calendarSelectors.monthPrefix);
 
   const locale = useMemo(
     () => (i18n.resolvedLanguage === "fr" ? "fr-FR" : "en-US"),
@@ -290,111 +286,3 @@ const CalendarScreen = () => {
 };
 
 export default CalendarScreen;
-
-const styles = StyleSheet.create({
-  dayCard: {
-    borderRadius: 14,
-    backgroundColor: "#f8fafc",
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-  },
-  dayHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  dayLabel: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#0f172a",
-    textTransform: "capitalize",
-  },
-  daySubLabel: {
-    marginTop: 2,
-    fontSize: 12,
-    color: "#475569",
-  },
-  countPill: {
-    backgroundColor: "#e2e8f0",
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-  },
-  countText: {
-    fontSize: 12,
-    color: "#0f172a",
-    fontWeight: "600",
-  },
-  activityRow: {
-    flexDirection: "row",
-    gap: 10,
-    marginBottom: 14,
-  },
-  timelineColumn: {
-    width: 18,
-    alignItems: "center",
-  },
-  timelineDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 999,
-    backgroundColor: "#cbd5e1",
-    borderWidth: 2,
-    borderColor: "#fff",
-    marginTop: 2,
-  },
-  timelineDotFavorite: {
-    backgroundColor: "#0ea5e9",
-    borderColor: "#0f172a",
-  },
-  timelineLine: {
-    flex: 1,
-    width: 2,
-    backgroundColor: "#e2e8f0",
-    marginTop: 2,
-  },
-  cardBody: {
-    flex: 1,
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-    shadowColor: "#0f172a",
-    shadowOpacity: 0.06,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 6,
-  },
-  rowHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 6,
-    marginBottom: 6,
-  },
-  activityTitle: {
-    flex: 1,
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#0f172a",
-  },
-  favoriteTag: {
-    color: "#f59e0b",
-    fontSize: 16,
-  },
-  metaRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    marginTop: 2,
-  },
-  metaText: {
-    fontSize: 13,
-    color: "#475569",
-    flexShrink: 1,
-  },
-});

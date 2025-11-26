@@ -41,6 +41,7 @@ export default ActivitySummaryHeader;
 const styles = StyleSheet.create({
   container: {
     gap: 4,
+    width: "90%",
   },
   title: {
     fontSize: 20,

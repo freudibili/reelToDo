@@ -9,7 +9,6 @@ interface Props {
   initialRegion: Region;
   onSelectActivity: (activity: Activity) => void;
   selectedCategory?: string | null;
-  onCategoryChange?: (category: string | null) => void;
 }
 
 export interface ActivitiesMapHandle {
@@ -23,7 +22,6 @@ const ActivitiesMap = forwardRef<ActivitiesMapHandle, Props>(
       initialRegion,
       onSelectActivity,
       selectedCategory,
-      onCategoryChange,
     },
     ref
   ) => {
@@ -79,6 +77,8 @@ const ActivitiesMap = forwardRef<ActivitiesMapHandle, Props>(
     );
   }
 );
+
+ActivitiesMap.displayName = "ActivitiesMap";
 
 export default ActivitiesMap;
 

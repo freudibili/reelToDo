@@ -36,7 +36,7 @@ export const loadSettings = createAsyncThunk(
   ) => {
     try {
       return await settingsService.fetch(payload.userId, payload.email);
-    } catch (error) {
+    } catch {
       return rejectWithValue("settings:errors.load");
     }
   }
@@ -47,7 +47,7 @@ export const saveProfile = createAsyncThunk(
   async (payload: ProfileSettings, { rejectWithValue }) => {
     try {
       return await settingsService.updateProfile(payload);
-    } catch (error) {
+    } catch {
       return rejectWithValue("settings:errors.profile");
     }
   }
@@ -58,7 +58,7 @@ export const saveNotifications = createAsyncThunk(
   async (payload: NotificationSettings, { rejectWithValue }) => {
     try {
       return await settingsService.updateNotifications(payload);
-    } catch (error) {
+    } catch {
       return rejectWithValue("settings:errors.notifications");
     }
   }
@@ -69,7 +69,7 @@ export const savePreferences = createAsyncThunk(
   async (payload: PreferenceSettings, { rejectWithValue }) => {
     try {
       return await settingsService.updatePreferences(payload);
-    } catch (error) {
+    } catch {
       return rejectWithValue("settings:errors.preferences");
     }
   }

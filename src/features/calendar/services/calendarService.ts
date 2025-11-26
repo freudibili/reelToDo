@@ -88,11 +88,17 @@ export const createCalendarEventForActivity = async (
 
   const calendarId = await getOrCreateCalendarId();
 
-  const startDate = activityDate
-    ? new Date(activityDate.start)
-    : activity.main_date
-      ? new Date(activity.main_date)
-      : new Date();
+  const baseStart = activityDate?.start ?? activity.main_date;
+  if (!baseStart) {
+    console.warn("calendar: skipping create, missing activity date");
+    return null;
+  }
+
+  const startDate = new Date(baseStart);
+  if (Number.isNaN(startDate.getTime())) {
+    console.warn("calendar: invalid start date", baseStart);
+    return null;
+  }
 
   const endDate = activityDate?.end
     ? new Date(activityDate.end)
@@ -183,7 +189,7 @@ export const deleteCalendarEvent = async (eventId: string) => {
   try {
     await Calendar.deleteEventAsync(eventId);
     return true;
-  } catch (e) {
+  } catch {
     return false;
   }
 };

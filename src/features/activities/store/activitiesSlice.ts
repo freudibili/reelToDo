@@ -336,11 +336,7 @@ const activitiesSlice = createSlice({
             plannedAt !== undefined
               ? plannedAt
               : state.items[idx].planned_at,
-          is_favorite: true,
         } as Activity;
-      }
-      if (!state.favoriteIds.includes(activityId)) {
-        state.favoriteIds.push(activityId);
       }
     });
     builder.addCase(setPlannedDate.fulfilled, (state, action) => {

@@ -69,7 +69,7 @@ export const confirmImportedLocation = createAsyncThunk<
   try {
     const updated = await markActivityLocationConfirmed(activityId);
     return updated;
-  } catch (error) {
+  } catch {
     return rejectWithValue(i18next.t("import:errors.location"));
   }
 });
@@ -84,7 +84,7 @@ export const confirmImportedDate = createAsyncThunk<
     try {
       const updated = await markActivityDateConfirmed(activityId, date);
       return updated;
-    } catch (error) {
+    } catch {
       return rejectWithValue(i18next.t("import:errors.date"));
     }
   }

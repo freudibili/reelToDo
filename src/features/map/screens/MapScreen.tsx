@@ -281,7 +281,6 @@ const MapScreen = () => {
           initialRegion={initialRegion}
           onSelectActivity={handleMapSelect}
           selectedCategory={selectedCategory}
-          onCategoryChange={handleCategoryChange}
         />
 
         <Pressable style={styles.fab} onPress={handleShowNearby}>

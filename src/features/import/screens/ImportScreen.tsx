@@ -18,8 +18,8 @@ import {
 import {
   analyzeSharedLink,
   saveImportedActivityDetails,
+  resetImport,
 } from "@features/import/store/importSlice";
-import { resetImport } from "@features/import/store/importSlice";
 import {
   fetchActivities,
   cancelActivity,
@@ -213,33 +213,6 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 14,
     color: "#666",
-  },
-  inputBlock: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 14,
-    marginBottom: 6,
-    fontWeight: "500",
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 8,
-  },
-  analyzeBtn: {
-    borderRadius: 999,
-    paddingVertical: 10,
-    alignItems: "center",
-  },
-  analyzeBtnDisabled: {
-    opacity: 0.5,
-  },
-  analyzeBtnText: {
-    fontSize: 16,
-    fontWeight: "600",
   },
   detailsCard: {
     marginTop: 12,
