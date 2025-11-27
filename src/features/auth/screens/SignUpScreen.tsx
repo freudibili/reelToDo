@@ -13,11 +13,13 @@ import {
   selectIsAuthenticated,
 } from "@features/auth/store/authSelectors";
 import { clearError, signUpWithPassword } from "../store/authSlice";
+import { useAppTheme } from "@common/theme/appTheme";
 
 const SignUpScreen = () => {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const { t } = useTranslation();
+  const { colors, mode } = useAppTheme();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -58,7 +60,21 @@ const SignUpScreen = () => {
       subtitle={t("auth:signUp.subtitle")}
       loading={passwordStatus === "pending"}
     >
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      {error ? (
+        <Text
+          style={[
+            styles.error,
+            {
+              color: colors.danger,
+              borderColor: colors.danger,
+              backgroundColor:
+                mode === "dark" ? colors.mutedSurface : colors.overlay,
+            },
+          ]}
+        >
+          {error}
+        </Text>
+      ) : null}
       <AuthTextField
         label={t("common:fields.email")}
         autoCapitalize="none"
@@ -92,7 +108,11 @@ const SignUpScreen = () => {
         }
       />
       <View style={styles.secondaryAction}>
-        <Text style={styles.secondaryLabel}>{t("auth:signUp.hasAccount")}</Text>
+        <Text
+          style={[styles.secondaryLabel, { color: colors.secondaryText }]}
+        >
+          {t("auth:signUp.hasAccount")}
+        </Text>
         <AuthButton
           label={t("auth:signUp.cta")}
           variant="ghost"
@@ -107,9 +127,6 @@ export default SignUpScreen;
 
 const styles = StyleSheet.create({
   error: {
-    color: "#b91c1c",
-    backgroundColor: "#fef2f2",
-    borderColor: "#fecdd3",
     borderWidth: 1,
     padding: 10,
     borderRadius: 10,
@@ -122,6 +139,5 @@ const styles = StyleSheet.create({
   },
   secondaryLabel: {
     fontSize: 14,
-    color: "#475569",
   },
 });

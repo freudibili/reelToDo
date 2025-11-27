@@ -6,6 +6,7 @@ import {
   TextInputKeyPressEventData,
   NativeSyntheticEvent,
 } from "react-native";
+import { useAppTheme } from "@common/theme/appTheme";
 
 type Props = {
   value: string;
@@ -20,6 +21,7 @@ const OtpInput: React.FC<Props> = ({
   length = 6,
   autoFocus = true,
 }) => {
+  const { colors } = useAppTheme();
   const inputsRef = useRef<(TextInput | null)[]>([]);
   const chars = useMemo(
     () => value.split("").slice(0, length),
@@ -67,7 +69,15 @@ const OtpInput: React.FC<Props> = ({
           value={chars[idx] ?? ""}
           style={[
             styles.input,
-            Boolean(chars[idx]) && styles.inputFilled,
+            {
+              borderColor: colors.border,
+              backgroundColor: colors.surface,
+              color: colors.text,
+            },
+            Boolean(chars[idx]) && {
+              borderColor: colors.primary,
+              backgroundColor: colors.mutedSurface,
+            },
           ]}
           onChangeText={(text) => handleChange(text, idx)}
           onKeyPress={(event) => handleKeyPress(event, idx)}
@@ -97,13 +107,7 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#e2e8f0",
-    backgroundColor: "#fff",
     fontSize: 20,
     fontWeight: "700",
-    color: "#0f172a",
-  },
-  inputFilled: {
-    borderColor: "#2563eb",
   },
 });

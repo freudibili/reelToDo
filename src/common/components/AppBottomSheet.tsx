@@ -12,6 +12,7 @@ import BottomSheet, {
   BottomSheetScrollView,
 } from "@gorhom/bottom-sheet";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useAppTheme } from "@common/theme/appTheme";
 
 interface AppBottomSheetProps {
   index: number;
@@ -36,6 +37,7 @@ const AppBottomSheet = React.forwardRef<BottomSheet, AppBottomSheetProps>(
     },
     ref
   ) => {
+    const { colors, mode } = useAppTheme();
     const insets = useSafeAreaInsets();
     const bottomSpacing = Math.max(insets.bottom, 8);
 
@@ -71,13 +73,35 @@ const AppBottomSheet = React.forwardRef<BottomSheet, AppBottomSheetProps>(
         enablePanDownToClose
         onClose={onClose}
         enableOverDrag
-        handleIndicatorStyle={styles.handleIndicator}
-        backgroundStyle={styles.sheetBackground}
+        handleIndicatorStyle={[
+          styles.handleIndicator,
+          { backgroundColor: colors.border },
+        ]}
+        backgroundStyle={[
+          styles.sheetBackground,
+          {
+            backgroundColor: colors.surface,
+            shadowColor: colors.text,
+            borderTopColor: colors.border,
+          },
+        ]}
         handleStyle={styles.handle}
       >
-        <BottomSheetView style={[styles.content, style]}>
-          <Pressable style={styles.closeBtn} onPress={onClose}>
-            <Text style={styles.closeText}>×</Text>
+        <BottomSheetView
+          style={[
+            styles.content,
+            { backgroundColor: colors.surface, borderColor: colors.border },
+            style,
+          ]}
+        >
+          <Pressable
+            style={[
+              styles.closeBtn,
+              { backgroundColor: colors.overlay },
+            ]}
+            onPress={onClose}
+          >
+            <Text style={[styles.closeText, { color: colors.text }]}>×</Text>
           </Pressable>
           <View style={styles.body}>{content}</View>
         </BottomSheetView>
@@ -92,12 +116,10 @@ export default AppBottomSheet;
 
 const styles = StyleSheet.create({
   sheetBackground: {
-    backgroundColor: "#fff",
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
     ...Platform.select({
       ios: {
-        shadowColor: "#000",
         shadowOffset: { width: 0, height: -6 }, // 👈 shadow on top
         shadowOpacity: 0.15,
         shadowRadius: 10,
@@ -111,15 +133,14 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
   },
   handleIndicator: {
-    backgroundColor: "#e2e8f0",
   },
   content: {
-    backgroundColor: "#fff",
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
     paddingBottom: 12,
     overflow: "hidden",
     flex: 1,
+    borderWidth: StyleSheet.hairlineWidth,
   },
   body: {
     flex: 1,
@@ -137,7 +158,6 @@ const styles = StyleSheet.create({
     height: 28,
     width: 28,
     borderRadius: 14,
-    backgroundColor: "#f1f3f4",
     alignItems: "center",
     justifyContent: "center",
     zIndex: 10,
@@ -145,7 +165,6 @@ const styles = StyleSheet.create({
   closeText: {
     fontSize: 18,
     lineHeight: 20,
-    color: "#000",
     includeFontPadding: false,
   },
 });

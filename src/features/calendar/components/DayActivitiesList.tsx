@@ -11,6 +11,7 @@ import {
   isSameDateValue,
 } from "@features/activities/utils/activityDisplay";
 import { useTranslation } from "react-i18next";
+import { useAppTheme } from "@common/theme/appTheme";
 
 interface Props {
   dateLabel: string;
@@ -34,28 +35,56 @@ const DayActivitiesList: React.FC<Props> = ({
   todayLabel,
 }) => {
   const { t } = useTranslation();
+  const { colors } = useAppTheme();
 
   return (
-    <View style={styles.dayCard}>
+    <View
+      style={[
+        styles.dayCard,
+        { backgroundColor: colors.card, borderColor: colors.border },
+      ]}
+    >
       <View style={styles.dayHeader}>
         <View>
-          <Text style={styles.dayLabel}>{dateLabel}</Text>
-          {subtitle ? <Text style={styles.daySubLabel}>{subtitle}</Text> : null}
+          <Text style={[styles.dayLabel, { color: colors.text }]}>
+            {dateLabel}
+          </Text>
+          {subtitle ? (
+            <Text style={[styles.daySubLabel, { color: colors.secondaryText }]}>
+              {subtitle}
+            </Text>
+          ) : null}
         </View>
         <View style={styles.dayRight}>
           {isToday ? (
-            <View style={styles.todayBadge}>
-              <Text style={styles.todayBadgeText}>{todayLabel}</Text>
+            <View
+              style={[
+                styles.todayBadge,
+                { backgroundColor: colors.primary },
+              ]}
+            >
+              <Text style={[styles.todayBadgeText, { color: "#fff" }]}>
+                {todayLabel}
+              </Text>
             </View>
           ) : null}
-          <View style={styles.countPill}>
-            <Text style={styles.countText}>{activities.length}</Text>
+          <View
+            style={[
+              styles.countPill,
+              { backgroundColor: colors.overlay, borderColor: colors.border },
+            ]}
+          >
+            <Text style={[styles.countText, { color: colors.text }]}>
+              {activities.length}
+            </Text>
           </View>
         </View>
       </View>
 
       {activities.length === 0 ? (
-        <Text style={styles.emptySubtitle}>{emptyLabel}</Text>
+        <Text style={[styles.emptySubtitle, { color: colors.secondaryText }]}>
+          {emptyLabel}
+        </Text>
       ) : (
         activities.map((activity, idx) => {
           const primaryDate = getPrimaryDateValue(activity);
@@ -91,31 +120,51 @@ const DayActivitiesList: React.FC<Props> = ({
                 <View
                   style={[
                     styles.timelineDot,
-                    isFavorite && styles.timelineDotFavorite,
+                    { backgroundColor: colors.border, borderColor: colors.surface },
+                    isFavorite && {
+                      backgroundColor: colors.primary,
+                      borderColor: colors.primary,
+                    },
                   ]}
                 />
-                {!isLast ? <View style={styles.timelineLine} /> : null}
+                {!isLast ? (
+                  <View
+                    style={[
+                      styles.timelineLine,
+                      { backgroundColor: colors.border },
+                    ]}
+                  />
+                ) : null}
               </View>
 
-              <View style={styles.cardBody}>
+              <View
+                style={[
+                  styles.cardBody,
+                  { backgroundColor: colors.surface, borderColor: colors.border, shadowColor: colors.primary },
+                ]}
+              >
                 <View style={styles.rowHeader}>
                   <Text
-                    style={styles.activityTitle}
+                    style={[styles.activityTitle, { color: colors.text }]}
                     numberOfLines={2}
                     ellipsizeMode="tail"
                   >
                     {title}
                   </Text>
-                  {isFavorite ? <Text style={styles.favoriteTag}>★</Text> : null}
+                  {isFavorite ? (
+                    <Text style={[styles.favoriteTag, { color: colors.primary }]}>
+                      ★
+                    </Text>
+                  ) : null}
                 </View>
 
                 <View style={styles.metaRow}>
                   <Icon
                     source={iconName}
                     size={14}
-                    color="#0f172a"
+                    color={colors.primary}
                   />
-                  <Text style={styles.metaText}>
+                  <Text style={[styles.metaText, { color: colors.secondaryText }]}>
                     {isPlanned
                       ? t("activities:planned.timeLabel", {
                           value: timeLabel,
@@ -124,7 +173,7 @@ const DayActivitiesList: React.FC<Props> = ({
                   </Text>
                 </View>
                 {officialLabel ? (
-                  <Text style={styles.metaTextMuted}>
+                  <Text style={[styles.metaTextMuted, { color: colors.mutedText }]}>
                     {t("activities:planned.officialLabel", {
                       value: officialLabel,
                     })}
@@ -135,10 +184,10 @@ const DayActivitiesList: React.FC<Props> = ({
                     <Icon
                       source="map-marker-outline"
                       size={14}
-                      color="#0f172a"
+                      color={colors.primary}
                     />
                     <Text
-                      style={styles.metaText}
+                      style={[styles.metaText, { color: colors.secondaryText }]}
                       numberOfLines={1}
                       ellipsizeMode="tail"
                     >
@@ -160,12 +209,10 @@ export default DayActivitiesList;
 const styles = StyleSheet.create({
   dayCard: {
     borderRadius: 14,
-    backgroundColor: "#f8fafc",
     paddingHorizontal: 14,
     paddingVertical: 12,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: "#e2e8f0",
   },
   dayHeader: {
     flexDirection: "row",
@@ -176,13 +223,11 @@ const styles = StyleSheet.create({
   dayLabel: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#0f172a",
     textTransform: "capitalize",
   },
   daySubLabel: {
     marginTop: 2,
     fontSize: 12,
-    color: "#475569",
   },
   dayRight: {
     flexDirection: "row",
@@ -190,26 +235,23 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   todayBadge: {
-    backgroundColor: "#0f172a",
     borderRadius: 999,
     paddingHorizontal: 10,
     paddingVertical: 6,
   },
   todayBadgeText: {
-    color: "#fff",
     fontSize: 12,
     fontWeight: "700",
     letterSpacing: 0.3,
   },
   countPill: {
-    backgroundColor: "#e2e8f0",
     borderRadius: 999,
     paddingHorizontal: 10,
     paddingVertical: 6,
+    borderWidth: 1,
   },
   countText: {
     fontSize: 12,
-    color: "#0f172a",
     fontWeight: "600",
   },
   activityRow: {
@@ -225,29 +267,19 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 999,
-    backgroundColor: "#cbd5e1",
     borderWidth: 2,
-    borderColor: "#fff",
     marginTop: 2,
-  },
-  timelineDotFavorite: {
-    backgroundColor: "#0ea5e9",
-    borderColor: "#0f172a",
   },
   timelineLine: {
     flex: 1,
     width: 2,
-    backgroundColor: "#e2e8f0",
     marginTop: 2,
   },
   cardBody: {
     flex: 1,
-    backgroundColor: "#fff",
     borderRadius: 12,
     padding: 12,
     borderWidth: 1,
-    borderColor: "#e2e8f0",
-    shadowColor: "#0f172a",
     shadowOpacity: 0.06,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 6,
@@ -263,10 +295,8 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     fontWeight: "700",
-    color: "#0f172a",
   },
   favoriteTag: {
-    color: "#f59e0b",
     fontSize: 16,
   },
   metaRow: {
@@ -277,16 +307,13 @@ const styles = StyleSheet.create({
   },
   metaText: {
     fontSize: 13,
-    color: "#475569",
     flexShrink: 1,
   },
   metaTextMuted: {
     fontSize: 12,
-    color: "#94a3b8",
     marginTop: 2,
   },
   emptySubtitle: {
     fontSize: 14,
-    color: "#475569",
   },
 });

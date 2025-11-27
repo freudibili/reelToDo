@@ -1,5 +1,6 @@
 import i18next from "i18next";
 import { initReactI18next } from "react-i18next";
+import * as Localization from "expo-localization";
 
 import commonEn from "./locales/common.en.json";
 import commonFr from "./locales/common.fr.json";
@@ -11,6 +12,13 @@ import importEn from "@features/import/locales/en.json";
 import importFr from "@features/import/locales/fr.json";
 import settingsEn from "@features/settings/locales/en.json";
 import settingsFr from "@features/settings/locales/fr.json";
+
+const detectSystemLanguage = () => {
+  const locales = Localization.getLocales();
+  const primary = Array.isArray(locales) ? locales[0] : undefined;
+  const languageCode = primary?.languageCode?.toLowerCase();
+  return languageCode === "fr" ? "fr" : "en";
+};
 
 i18next.use(initReactI18next).init({
   resources: {
@@ -29,8 +37,9 @@ i18next.use(initReactI18next).init({
       settings: settingsFr,
     },
   },
-  lng: "fr", // default language
+  lng: detectSystemLanguage(),
   fallbackLng: "en",
+  supportedLngs: ["en", "fr"],
   ns: ["common", "auth", "activities", "import", "settings"],
   defaultNS: "common",
   interpolation: {

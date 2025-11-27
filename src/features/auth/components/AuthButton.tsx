@@ -6,6 +6,7 @@ import {
   StyleSheet,
   View,
 } from "react-native";
+import { useAppTheme } from "@common/theme/appTheme";
 
 type AuthButtonProps = {
   label: string;
@@ -24,16 +25,23 @@ const AuthButton: React.FC<AuthButtonProps> = ({
   variant = "primary",
   icon,
 }) => {
+  const { colors, mode } = useAppTheme();
   const isGhost = variant === "ghost";
   const isSecondary = variant === "secondary";
   const backgroundColor = isGhost
     ? "transparent"
     : isSecondary
-      ? "#e2e8f0"
-      : "#0f172a";
-  const textColor = isGhost ? "#2563eb" : isSecondary ? "#0f172a" : "#fff";
-  const borderColor = isGhost ? "transparent" : "transparent";
-  const borderWidth = isGhost ? 0 : 1;
+      ? colors.card
+      : colors.primary;
+  const textColor = isGhost
+    ? colors.primary
+    : isSecondary
+      ? colors.text
+      : mode === "dark"
+        ? colors.background
+        : colors.surface;
+  const borderColor = isGhost ? colors.border : "transparent";
+  const borderWidth = isGhost ? 1 : 0;
 
   return (
     <TouchableOpacity

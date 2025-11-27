@@ -18,6 +18,7 @@ import {
   verifyEmailOtp,
 } from "@features/auth/store/authSlice";
 import type { EmailOtpType } from "../services/authService";
+import { useAppTheme } from "@common/theme/appTheme";
 
 type Params = { email?: string; type?: string };
 
@@ -26,6 +27,7 @@ const OtpVerificationScreen = () => {
     useLocalSearchParams<Params>();
   const router = useRouter();
   const { t } = useTranslation();
+  const { colors, mode } = useAppTheme();
   const dispatch = useAppDispatch();
 
   const pendingEmail = useAppSelector(selectPendingEmail);
@@ -69,8 +71,24 @@ const OtpVerificationScreen = () => {
       subtitle={t("auth:otp.subtitle", { email })}
       loading={status === "pending"}
     >
-      <Text style={styles.helperText}>{t("auth:otp.helper")}</Text>
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      <Text style={[styles.helperText, { color: colors.secondaryText }]}>
+        {t("auth:otp.helper")}
+      </Text>
+      {error ? (
+        <Text
+          style={[
+            styles.error,
+            {
+              color: colors.danger,
+              borderColor: colors.danger,
+              backgroundColor:
+                mode === "dark" ? colors.mutedSurface : colors.overlay,
+            },
+          ]}
+        >
+          {error}
+        </Text>
+      ) : null}
       <OtpInput value={token} onChange={setToken} />
       <AuthButton
         label={t("auth:otp.submit")}
@@ -83,7 +101,9 @@ const OtpVerificationScreen = () => {
           router.canGoBack() ? router.back() : router.replace("/auth")
         }
       >
-        <Text style={styles.helper}>{t("auth:emailCheck.back")}</Text>
+        <Text style={[styles.helper, { color: colors.primary }]}>
+          {t("auth:emailCheck.back")}
+        </Text>
       </TouchableOpacity>
     </AuthLayout>
   );
@@ -93,20 +113,15 @@ export default OtpVerificationScreen;
 
 const styles = StyleSheet.create({
   error: {
-    color: "#b91c1c",
-    backgroundColor: "#fef2f2",
-    borderColor: "#fecdd3",
     borderWidth: 1,
     padding: 10,
     borderRadius: 10,
   },
   helper: {
-    color: "#2563eb",
     fontWeight: "600",
     fontSize: 14,
   },
   helperText: {
-    color: "#475569",
     fontSize: 14,
     lineHeight: 20,
   },

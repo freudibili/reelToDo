@@ -1,6 +1,7 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { IconButton } from "react-native-paper";
+import { useAppTheme } from "@common/theme/appTheme";
 
 export interface ScreenHeaderProps {
   title: string;
@@ -21,6 +22,7 @@ const ScreenHeader: React.FC<ScreenHeaderProps> = ({
   compact = false,
   alignLeftWhenNoBack = true,
 }) => {
+  const { colors } = useAppTheme();
   const titleStyle = compact ? styles.headerTitleCompact : styles.headerTitle;
   const wrapperStyle = compact ? styles.headerCompact : styles.header;
   const showPlaceholder = !onBackPress && !alignLeftWhenNoBack;
@@ -39,13 +41,18 @@ const ScreenHeader: React.FC<ScreenHeaderProps> = ({
       ) : null}
 
       <View style={styles.headerText}>
-        {eyebrow ? <Text style={styles.eyebrow}>{eyebrow}</Text> : null}
-        <Text style={titleStyle}>{title}</Text>
+        {eyebrow ? (
+          <Text style={[styles.eyebrow, { color: colors.secondaryText }]}>
+            {eyebrow}
+          </Text>
+        ) : null}
+        <Text style={[titleStyle, { color: colors.text }]}>{title}</Text>
         {subtitle ? (
           <Text
             style={[
               styles.headerSubtitle,
               compact && styles.headerSubtitleCompact,
+              { color: colors.secondaryText },
             ]}
           >
             {subtitle}

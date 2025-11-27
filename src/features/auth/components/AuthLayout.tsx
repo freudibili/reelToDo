@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import AppScreen from "@common/components/AppScreen";
+import { useAppTheme } from "@common/theme/appTheme";
 
 type AuthLayoutProps = {
   title: string;
@@ -25,10 +26,13 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
   tone = "light",
   backgroundColor,
 }) => {
+  const { colors } = useAppTheme();
   const isDark = tone === "dark";
-  const resolvedBackground = backgroundColor ?? (isDark ? "#050915" : "#f9fafb");
-  const titleColor = isDark ? "#e2e8f0" : "#0f172a";
-  const subtitleColor = isDark ? "#cbd5e1" : "#475569";
+  const resolvedBackground =
+    backgroundColor ??
+    (isDark ? colors.surface : colors.background);
+  const titleColor = colors.text;
+  const subtitleColor = colors.secondaryText;
 
   return (
     <AppScreen
@@ -56,7 +60,11 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
         </View>
 
         {withCard ? (
-          <View style={styles.card}>{children}</View>
+          <View
+            style={[styles.card, { backgroundColor: colors.surface }]}
+          >
+            {children}
+          </View>
         ) : (
           <View style={styles.content}>{children}</View>
         )}
@@ -86,7 +94,6 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   card: {
-    backgroundColor: "#fff",
     borderRadius: 16,
     padding: 18,
     gap: 12,
@@ -107,11 +114,9 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: "700",
-    color: "#0f172a",
   },
   subtitle: {
     fontSize: 15,
-    color: "#475569",
     textAlign: "center",
     marginTop: 4,
   },

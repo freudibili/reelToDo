@@ -13,11 +13,13 @@ import {
   selectRequiresPasswordChange,
 } from "@features/auth/store/authSelectors";
 import { clearError, updatePassword } from "@features/auth/store/authSlice";
+import { useAppTheme } from "@common/theme/appTheme";
 
 const ResetPasswordScreen = () => {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const { t } = useTranslation();
+  const { colors, mode } = useAppTheme();
 
   const requiresPasswordChange = useAppSelector(selectRequiresPasswordChange);
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
@@ -61,8 +63,36 @@ const ResetPasswordScreen = () => {
       subtitle={t("auth:resetPassword.subtitle")}
       loading={status === "pending"}
     >
-      {error ? <Text style={styles.error}>{error}</Text> : null}
-      {localError ? <Text style={styles.error}>{localError}</Text> : null}
+      {error ? (
+        <Text
+          style={[
+            styles.error,
+            {
+              color: colors.danger,
+              borderColor: colors.danger,
+              backgroundColor:
+                mode === "dark" ? colors.mutedSurface : colors.overlay,
+            },
+          ]}
+        >
+          {error}
+        </Text>
+      ) : null}
+      {localError ? (
+        <Text
+          style={[
+            styles.error,
+            {
+              color: colors.danger,
+              borderColor: colors.danger,
+              backgroundColor:
+                mode === "dark" ? colors.mutedSurface : colors.overlay,
+            },
+          ]}
+        >
+          {localError}
+        </Text>
+      ) : null}
       <AuthTextField
         label={t("auth:resetPassword.password")}
         placeholder="••••••••"
@@ -91,9 +121,6 @@ export default ResetPasswordScreen;
 
 const styles = StyleSheet.create({
   error: {
-    color: "#b91c1c",
-    backgroundColor: "#fef2f2",
-    borderColor: "#fecdd3",
     borderWidth: 1,
     padding: 10,
     borderRadius: 10,

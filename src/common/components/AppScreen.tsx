@@ -2,6 +2,7 @@ import React from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
+  LayoutChangeEvent,
   Platform,
   ScrollView,
   StyleSheet,
@@ -13,6 +14,7 @@ import {
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 import ScreenHeader, { type ScreenHeaderProps } from "./ScreenHeader";
+import { useAppTheme } from "@common/theme/appTheme";
 
 interface AppScreenProps {
   children: React.ReactNode;
@@ -34,7 +36,7 @@ interface AppScreenProps {
 const AppScreen: React.FC<AppScreenProps> = ({
   children,
   noPadding = false,
-  backgroundColor = "#fff",
+  backgroundColor,
   withBottomInset = true,
   loading = false,
   scrollable = false,
@@ -47,10 +49,12 @@ const AppScreen: React.FC<AppScreenProps> = ({
   alignToTabBar = true,
   flushBottom = false,
 }) => {
+  const { colors, mode } = useAppTheme();
   const insets = useSafeAreaInsets();
   const tabBarHeight = React.useContext(BottomTabBarHeightContext) ?? 0;
   const [footerHeight, setFooterHeight] = React.useState(0);
   const bottomInsetRef = React.useRef(insets.bottom);
+  const resolvedBackgroundColor = backgroundColor ?? colors.background;
 
   React.useEffect(() => {
     if (insets.bottom > bottomInsetRef.current) {
@@ -92,7 +96,7 @@ const AppScreen: React.FC<AppScreenProps> = ({
 
   const content = scrollable ? (
     <ScrollView
-      style={styles.scroll}
+      style={[styles.scroll, { backgroundColor: resolvedBackgroundColor }]}
       contentContainerStyle={[
         styles.scrollContent,
         {
@@ -109,7 +113,7 @@ const AppScreen: React.FC<AppScreenProps> = ({
       {children}
     </ScrollView>
   ) : (
-    <View style={[styles.inner]}>
+    <View style={[styles.inner, { backgroundColor: resolvedBackgroundColor }]}>
       <View
         style={{
           paddingTop: verticalPadding,
@@ -126,7 +130,7 @@ const AppScreen: React.FC<AppScreenProps> = ({
 
   return (
     <SafeAreaView
-      style={[styles.safeArea, { backgroundColor }]}
+      style={[styles.safeArea, { backgroundColor: resolvedBackgroundColor }]}
       edges={["top", "left", "right"]}
     >
       <View style={styles.container}>
@@ -147,7 +151,8 @@ const AppScreen: React.FC<AppScreenProps> = ({
                 paddingHorizontal: horizontalPadding,
                 paddingTop: noPadding ? 8 : 12,
                 paddingBottom: footerBottomPadding,
-                backgroundColor,
+                backgroundColor: resolvedBackgroundColor,
+                borderTopColor: colors.border,
                 position: "absolute",
                 left: 0,
                 right: 0,
@@ -160,8 +165,18 @@ const AppScreen: React.FC<AppScreenProps> = ({
         ) : null}
 
         {loading && (
-          <View style={styles.loadingOverlay}>
-            <ActivityIndicator size="large" color="#000" />
+          <View
+            style={[
+              styles.loadingOverlay,
+              {
+                backgroundColor:
+                  mode === "dark"
+                    ? "rgba(0,0,0,0.35)"
+                    : "rgba(255,255,255,0.72)",
+              },
+            ]}
+          >
+            <ActivityIndicator size="large" color={colors.primary} />
           </View>
         )}
       </View>
@@ -186,7 +201,6 @@ const styles = StyleSheet.create({
   scrollContent: { flexGrow: 1 },
   inner: { flex: 1 },
   footer: {
-    borderTopColor: "#e2e8f0",
     borderTopWidth: StyleSheet.hairlineWidth,
   },
   loadingOverlay: {

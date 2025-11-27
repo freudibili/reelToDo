@@ -1,8 +1,10 @@
 import React, { useMemo } from "react";
 import { View, Text, StyleSheet, FlatList, Pressable } from "react-native";
-import type { Region } from "react-native-maps";
+import type { Region, LatLng } from "react-native-maps";
 import type { Activity } from "../../utils/types";
 import { useTranslation } from "react-i18next";
+import { useAppTheme } from "@common/theme/appTheme";
+import { haversineDistanceKm } from "../../utils/distance";
 
 interface Props {
   activities: Activity[];
@@ -11,26 +13,7 @@ interface Props {
   onSelectActivity: (activity: Activity) => void;
 }
 
-const toRad = (value: number) => (value * Math.PI) / 180;
-
-const getDistanceKm = (
-  lat1: number,
-  lon1: number,
-  lat2: number,
-  lon2: number
-) => {
-  const R = 6371;
-  const dLat = toRad(lat2 - lat1);
-  const dLon = toRad(lon2 - lon1);
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(toRad(lat1)) *
-      Math.cos(toRad(lat2)) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
-};
+const MAX_NEARBY_ITEMS = 30;
 
 const NearbyActivitiesSheet: React.FC<Props> = ({
   activities,
@@ -39,6 +22,29 @@ const NearbyActivitiesSheet: React.FC<Props> = ({
   onSelectActivity,
 }) => {
   const { t } = useTranslation();
+  const { colors } = useAppTheme();
+
+  // Use user location when available, otherwise fall back to first activity
+  // coordinates so distances still show in emulators without GPS.
+  const origin: LatLng | null = useMemo(() => {
+    if (userRegion) {
+      return {
+        latitude: userRegion.latitude,
+        longitude: userRegion.longitude,
+      };
+    }
+    const firstWithCoords = activities.find(
+      (a) => typeof a.latitude === "number" && typeof a.longitude === "number"
+    );
+    if (firstWithCoords?.latitude != null && firstWithCoords.longitude != null) {
+      return {
+        latitude: firstWithCoords.latitude,
+        longitude: firstWithCoords.longitude,
+      };
+    }
+    return null;
+  }, [activities, userRegion]);
+
   const sorted = useMemo(() => {
     const base = category
       ? activities.filter((a) => a.category === category)
@@ -50,19 +56,25 @@ const NearbyActivitiesSheet: React.FC<Props> = ({
 
     const asRows = withCoords.map((a) => ({
       activity: a,
-      distance:
-        userRegion && a.latitude != null && a.longitude != null
-          ? getDistanceKm(
-              userRegion.latitude,
-              userRegion.longitude,
-              a.latitude,
-              a.longitude
-            )
-          : null,
+      distance: (() => {
+        const computed =
+          origin && a.latitude != null && a.longitude != null
+            ? haversineDistanceKm(
+                origin.latitude,
+                origin.longitude,
+                a.latitude,
+                a.longitude
+              )
+            : null;
+        // Fallback to backend-provided distance when available
+        const provided =
+          typeof a.distance === "number" ? (a.distance as number) : null;
+        return computed ?? provided;
+      })(),
     }));
 
-    if (!userRegion) {
-      return asRows.slice(0, 20);
+    if (!origin) {
+      return asRows.slice(0, MAX_NEARBY_ITEMS);
     }
 
     return asRows
@@ -72,30 +84,32 @@ const NearbyActivitiesSheet: React.FC<Props> = ({
         if (b.distance == null) return -1;
         return a.distance - b.distance;
       })
-      .slice(0, 20);
-  }, [activities, userRegion, category]);
+      .slice(0, MAX_NEARBY_ITEMS);
+  }, [activities, origin, category]);
 
   return (
     <View>
-      <Text style={styles.title}>{t("activities:map.nearby")}</Text>
+      <Text style={[styles.title, { color: colors.text }]}>
+        {t("activities:map.nearby")}
+      </Text>
       <FlatList
         data={sorted}
         keyExtractor={(item) => item.activity.id}
         renderItem={({ item }) => (
           <Pressable
             onPress={() => onSelectActivity(item.activity)}
-            style={styles.row}
+            style={[styles.row, { borderColor: colors.border }]}
           >
             <View style={styles.rowText}>
-              <Text style={styles.name}>
+              <Text style={[styles.name, { color: colors.text }]}>
                 {item.activity.title ?? t("common:labels.untitled")}
               </Text>
-              <Text style={styles.sub}>
+              <Text style={[styles.sub, { color: colors.secondaryText }]}>
                 {item.activity.location_name ?? item.activity.category ?? ""}
               </Text>
             </View>
             {item.distance != null ? (
-              <Text style={styles.distance}>
+              <Text style={[styles.distance, { color: colors.secondaryText }]}>
                 {item.distance < 1
                   ? `${Math.round(item.distance * 1000)} m`
                   : `${item.distance.toFixed(1)} km`}
@@ -103,7 +117,11 @@ const NearbyActivitiesSheet: React.FC<Props> = ({
             ) : null}
           </Pressable>
         )}
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
+        ItemSeparatorComponent={() => (
+          <View
+            style={[styles.separator, { backgroundColor: colors.border }]}
+          />
+        )}
       />
     </View>
   );
@@ -121,6 +139,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
   rowText: {
     flex: 1,
@@ -131,7 +150,6 @@ const styles = StyleSheet.create({
   },
   sub: {
     fontSize: 12,
-    color: "#666",
   },
   distance: {
     fontSize: 12,
@@ -139,6 +157,5 @@ const styles = StyleSheet.create({
   },
   separator: {
     height: 1,
-    backgroundColor: "#eee",
   },
 });

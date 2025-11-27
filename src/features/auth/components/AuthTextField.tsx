@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TextInputProps,
 } from "react-native";
+import { useAppTheme } from "@common/theme/appTheme";
 
 type Props = TextInputProps & {
   label?: string;
@@ -14,16 +15,30 @@ type Props = TextInputProps & {
 
 const AuthTextField = forwardRef<TextInput, Props>(
   ({ label, hint, style, ...inputProps }, ref) => {
+    const { colors } = useAppTheme();
+
     return (
       <View style={styles.container}>
-        {label ? <Text style={styles.label}>{label}</Text> : null}
+        {label ? (
+          <Text style={[styles.label, { color: colors.text }]}>{label}</Text>
+        ) : null}
         <TextInput
           ref={ref}
-          style={[styles.input, style]}
-          placeholderTextColor="#94a3b8"
+          style={[
+            styles.input,
+            {
+              borderColor: colors.border,
+              backgroundColor: colors.surface,
+              color: colors.text,
+            },
+            style,
+          ]}
+          placeholderTextColor={colors.secondaryText}
           {...inputProps}
         />
-        {hint ? <Text style={styles.hint}>{hint}</Text> : null}
+        {hint ? (
+          <Text style={[styles.hint, { color: colors.secondaryText }]}>{hint}</Text>
+        ) : null}
       </View>
     );
   }
@@ -40,20 +55,15 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#0f172a",
   },
   input: {
     borderWidth: 1,
-    borderColor: "#e2e8f0",
     borderRadius: 14,
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 16,
-    backgroundColor: "#fff",
-    color: "#0f172a",
   },
   hint: {
     fontSize: 13,
-    color: "#64748b",
   },
 });

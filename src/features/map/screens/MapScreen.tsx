@@ -40,11 +40,13 @@ import {
   openActivityInMaps,
   openActivitySource,
 } from "@features/activities/services/linksService";
+import { useAppTheme } from "@common/theme/appTheme";
 
 const MapScreen = () => {
   const dispatch = useAppDispatch();
   const { confirm } = useConfirmDialog();
   const { t } = useTranslation();
+  const { colors, mode: themeMode } = useAppTheme();
   const loading = useAppSelector(activitiesSelectors.loading);
   const initialized = useAppSelector(activitiesSelectors.initialized);
   const activities = useAppSelector(activitiesSelectors.items);
@@ -60,7 +62,7 @@ const MapScreen = () => {
   const selected = useAppSelector((state) =>
     selectedSelector ? selectedSelector(state) : null
   );
-  const [mode, setMode] = useState<"list" | "details">("list");
+  const [sheetMode, setSheetMode] = useState<"list" | "details">("list");
   const [sheetIndex, setSheetIndex] = useState(-1);
   const sheetRef = useRef(null);
   const mapRef = useRef<ActivitiesMapHandle | null>(null);
@@ -103,14 +105,14 @@ const MapScreen = () => {
   }, [userRegion, activities]);
 
   const snapPoints = useMemo(() => {
-    if (mode === "list") return ["45%"];
+    if (sheetMode === "list") return ["45%"];
     return ["50%"];
-  }, [mode]);
+  }, [sheetMode]);
 
   const handleCloseSheet = useCallback(() => {
     sheetRef.current?.close?.();
     setSheetIndex(-1);
-    setMode("list");
+    setSheetMode("list");
     setSelectedId(null);
   }, []);
 
@@ -118,7 +120,7 @@ const MapScreen = () => {
   const openDetails = useCallback((activity: Activity) => {
     dispatch(mapActions.setLastFocusedActivity(activity.id));
     setSelectedId(activity.id);
-    setMode("details");
+    setSheetMode("details");
     setSheetIndex(0);
     sheetRef.current?.snapToIndex?.(0);
   }, [dispatch]);
@@ -194,7 +196,7 @@ const MapScreen = () => {
   );
 
   const handleShowNearby = () => {
-    setMode("list");
+    setSheetMode("list");
     setSheetIndex(0);
     sheetRef.current?.snapToIndex?.(0);
   };
@@ -227,9 +229,16 @@ const MapScreen = () => {
   const isLoading = !initialized || loading || !initialRegion;
 
   return (
-    <Screen noPadding loading={isLoading}>
-      <View style={styles.header}>
-        <Text style={styles.title}>{t("activities:map.title")}</Text>
+    <Screen noPadding loading={isLoading} backgroundColor={colors.background}>
+      <View
+        style={[
+          styles.header,
+          { backgroundColor: colors.surface, borderBottomColor: colors.border },
+        ]}
+      >
+        <Text style={[styles.title, { color: colors.text }]}>
+          {t("activities:map.title")}
+        </Text>
 
         <ScrollView
           horizontal
@@ -240,13 +249,20 @@ const MapScreen = () => {
             onPress={() => handleCategoryChange(null)}
             style={[
               styles.chip,
+              { backgroundColor: colors.overlay, borderColor: colors.border },
               selectedCategory === null && styles.chipActive,
+              selectedCategory === null && {
+                backgroundColor: colors.primary,
+                borderColor: colors.primary,
+              },
             ]}
-            >
-              <Text
-                style={[
-                  styles.chipText,
-                  selectedCategory === null && styles.chipTextActive,
+          >
+            <Text
+              style={[
+                styles.chipText,
+                selectedCategory === null && styles.chipTextActive,
+                { color: colors.text },
+                  selectedCategory === null && { color: "#fff" },
                 ]}
               >
                 {t("activities:map.all")}
@@ -258,13 +274,20 @@ const MapScreen = () => {
               onPress={() => handleCategoryChange(cat)}
               style={[
                 styles.chip,
+                { backgroundColor: colors.overlay, borderColor: colors.border },
                 selectedCategory === cat && styles.chipActive,
+                selectedCategory === cat && {
+                  backgroundColor: colors.primary,
+                  borderColor: colors.primary,
+                },
               ]}
             >
               <Text
                 style={[
                   styles.chipText,
                   selectedCategory === cat && styles.chipTextActive,
+                  { color: colors.text },
+                  selectedCategory === cat && { color: "#fff" },
                 ]}
               >
                 {cat}
@@ -283,8 +306,21 @@ const MapScreen = () => {
           selectedCategory={selectedCategory}
         />
 
-        <Pressable style={styles.fab} onPress={handleShowNearby}>
-          <Text style={styles.fabText}>☰</Text>
+        <Pressable
+          style={[
+            styles.fab,
+            { backgroundColor: colors.primary, shadowColor: colors.primary },
+          ]}
+          onPress={handleShowNearby}
+        >
+          <Text
+            style={[
+              styles.fabText,
+              { color: themeMode === "dark" ? colors.background : "#fff" },
+            ]}
+          >
+            ☰
+          </Text>
         </Pressable>
       </View>
 
@@ -293,9 +329,9 @@ const MapScreen = () => {
         index={sheetIndex}
         snapPoints={snapPoints}
         onClose={handleCloseSheet}
-        scrollable={mode === "details"}
+        scrollable={sheetMode === "details"}
       >
-        {mode === "list" ? (
+        {sheetMode === "list" ? (
           <NearbyActivitiesSheet
             activities={activities}
             userRegion={userRegion}
@@ -323,7 +359,7 @@ export default MapScreen;
 
 const styles = StyleSheet.create({
   header: {
-    backgroundColor: "#fff",
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
   title: {
     paddingHorizontal: 12,
@@ -331,7 +367,6 @@ const styles = StyleSheet.create({
     paddingBottom: 4,
     fontSize: 22,
     fontWeight: "700",
-    color: "#0f172a",
   },
   headerContent: {
     paddingHorizontal: 12,
@@ -339,17 +374,15 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   chip: {
-    backgroundColor: "rgba(15,23,42,0.05)",
+    borderWidth: 1,
     borderRadius: 999,
     paddingHorizontal: 14,
     paddingVertical: 6,
   },
   chipActive: {
-    backgroundColor: "#0f172a",
   },
   chipText: {
     fontSize: 13,
-    color: "#0f172a",
   },
   chipTextActive: {
     color: "#fff",
@@ -360,7 +393,6 @@ const styles = StyleSheet.create({
   fab: {
     position: "absolute",
     right: 16,
-    backgroundColor: "#0f172a",
     width: 48,
     height: 48,
     borderRadius: 999,
@@ -371,7 +403,6 @@ const styles = StyleSheet.create({
     bottom: 16,
   },
   fabText: {
-    color: "#fff",
     fontSize: 20,
   },
 });

@@ -7,6 +7,7 @@ import {
   GestureResponderEvent,
 } from "react-native";
 import { Icon } from "react-native-paper";
+import { useAppTheme } from "@common/theme/appTheme";
 
 type Tone = "default" | "danger";
 
@@ -27,10 +28,11 @@ const SettingsListItem: React.FC<Props> = ({
   right,
   tone = "default",
 }) => {
-  const titleStyle = tone === "danger" ? styles.dangerTitle : undefined;
-  const iconColor = tone === "danger" ? "#b91c1c" : "#0f172a";
+  const { colors } = useAppTheme();
+  const titleStyle = tone === "danger" ? { color: colors.danger } : undefined;
+  const iconColor = tone === "danger" ? colors.danger : colors.primary;
   const iconBg =
-    tone === "danger" ? "rgba(185,28,28,0.08)" : "rgba(15,23,42,0.06)";
+    tone === "danger" ? "rgba(248,113,113,0.12)" : colors.overlay;
 
   return (
     <TouchableOpacity
@@ -44,9 +46,14 @@ const SettingsListItem: React.FC<Props> = ({
       </View>
 
       <View style={styles.textBlock}>
-        <Text style={[styles.title, titleStyle]}>{title}</Text>
+        <Text style={[styles.title, { color: colors.text }, titleStyle]}>
+          {title}
+        </Text>
         {description ? (
-          <Text style={styles.description} numberOfLines={2}>
+          <Text
+            style={[styles.description, { color: colors.secondaryText }]}
+            numberOfLines={2}
+          >
             {description}
           </Text>
         ) : null}
@@ -54,7 +61,13 @@ const SettingsListItem: React.FC<Props> = ({
 
       <View style={styles.right}>
         {right}
-        {onPress ? <Icon source="chevron-right" size={20} color="#94a3b8" /> : null}
+        {onPress ? (
+          <Icon
+            source="chevron-right"
+            size={20}
+            color={colors.secondaryText}
+          />
+        ) : null}
       </View>
     </TouchableOpacity>
   );
@@ -68,15 +81,10 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   title: {
-    color: "#0f172a",
     fontWeight: "600",
     fontSize: 16,
   },
-  dangerTitle: {
-    color: "#b91c1c",
-  },
   description: {
-    color: "#6b7280",
     marginTop: 2,
     fontSize: 13,
   },

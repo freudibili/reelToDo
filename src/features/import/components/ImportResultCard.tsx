@@ -8,6 +8,7 @@ import ImportDetailsForm, {
 import type { Activity } from "@features/activities/utils/types";
 import type { UpdateActivityPayload } from "../utils/types";
 import { useTranslation } from "react-i18next";
+import { useAppTheme } from "@common/theme/appTheme";
 
 interface ImportResultCardProps {
   activity: Activity;
@@ -25,18 +26,24 @@ const ImportResultCard: React.FC<ImportResultCardProps> = ({
   onDirtyChange,
 }) => {
   const { t } = useTranslation();
+  const { colors } = useAppTheme();
 
   return (
-    <View style={styles.card}>
+    <View
+      style={[
+        styles.card,
+        { backgroundColor: colors.surface, borderColor: colors.border },
+      ]}
+    >
       <View style={styles.resultHeader}>
         <View style={styles.badge}>
-          <Icon source="check-circle" size={22} color="#0f172a" />
+          <Icon source="check-circle" size={22} color={colors.primary} />
         </View>
         <View>
-          <Text style={styles.title}>
+          <Text style={[styles.title, { color: colors.text }]}>
             {t("import:result.title", "Analysis ready")}
           </Text>
-          <Text style={styles.subtitle}>
+          <Text style={[styles.subtitle, { color: colors.secondaryText }]}>
             {t(
               "import:result.subtitle",
               "Review the details we found and tweak if needed."
@@ -59,11 +66,9 @@ const ImportResultCard: React.FC<ImportResultCardProps> = ({
 const styles = StyleSheet.create({
   card: {
     marginTop: 12,
-    backgroundColor: "#fff",
     borderRadius: 18,
     padding: 14,
     borderWidth: 1,
-    borderColor: "#e2e8f0",
     shadowColor: "#000",
     shadowOpacity: 0.06,
     shadowRadius: 10,
@@ -81,18 +86,16 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: "#dcfce7",
+    backgroundColor: "rgba(34,197,94,0.12)",
     alignItems: "center",
     justifyContent: "center",
   },
   title: {
     fontSize: 15,
     fontWeight: "700",
-    color: "#0f172a",
   },
   subtitle: {
     fontSize: 13,
-    color: "#475569",
   },
 });
 

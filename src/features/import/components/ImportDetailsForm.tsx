@@ -20,6 +20,7 @@ import {
 import { PlaceDetails } from "../services/locationService";
 import type { ImportDraftDetails, UpdateActivityPayload } from "../utils/types";
 import { useTranslation } from "react-i18next";
+import { useAppTheme } from "@common/theme/appTheme";
 
 interface ImportDetailsFormProps {
   activity: Activity;
@@ -37,6 +38,7 @@ const ImportDetailsForm = React.forwardRef<
   ImportDetailsFormProps
 >(({ activity, onSave, onCancel: _onCancel, onDirtyChange }, ref) => {
   const { t } = useTranslation();
+  const { colors } = useAppTheme();
   const [dirty, setDirty] = useState(false);
   const [draft, setDraft] = useState<ImportDraftDetails>(() => ({
     location: null,
@@ -127,8 +129,12 @@ const ImportDetailsForm = React.forwardRef<
       />
 
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionHeaderText}>Info</Text>
-        <View style={styles.sectionUnderline} />
+        <Text style={[styles.sectionHeaderText, { color: colors.text }]}>
+          Info
+        </Text>
+        <View
+          style={[styles.sectionUnderline, { backgroundColor: colors.primary }]}
+        />
       </View>
 
       <LocationSection
@@ -169,13 +175,11 @@ const styles = StyleSheet.create({
   sectionHeaderText: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#0f172a",
   },
   sectionUnderline: {
     marginTop: 4,
     height: 2,
     width: 40,
-    backgroundColor: "#0f172a",
     borderRadius: 999,
   },
 });

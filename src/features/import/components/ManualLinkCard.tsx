@@ -7,6 +7,7 @@ import {
   Pressable,
 } from "react-native";
 import { Icon } from "react-native-paper";
+import { useAppTheme } from "@common/theme/appTheme";
 
 interface ManualLinkCardProps {
   value: string;
@@ -33,19 +34,37 @@ const ManualLinkCard: React.FC<ManualLinkCardProps> = ({
   analyzeLabel,
   helperText,
 }) => {
+  const { colors } = useAppTheme();
+
   return (
-    <View style={styles.card}>
+    <View
+      style={[
+        styles.card,
+        { backgroundColor: colors.surface, borderColor: colors.border },
+      ]}
+    >
       <View style={styles.headerRow}>
-        <Text style={styles.label}>{label}</Text>
-        {helperText ? <Text style={styles.helper}>{helperText}</Text> : null}
+        <Text style={[styles.label, { color: colors.text }]}>{label}</Text>
+        {helperText ? (
+          <Text style={[styles.helper, { color: colors.secondaryText }]}>
+            {helperText}
+          </Text>
+        ) : null}
       </View>
       <View style={styles.inputRow}>
         <TextInput
           value={value}
           onChangeText={onChange}
           placeholder={placeholder}
-          placeholderTextColor="#94a3b8"
-          style={styles.input}
+          placeholderTextColor={colors.secondaryText}
+          style={[
+            styles.input,
+            {
+              backgroundColor: colors.card,
+              borderColor: colors.border,
+              color: colors.text,
+            },
+          ]}
           autoCapitalize="none"
           autoCorrect={false}
           keyboardType="url"
@@ -57,13 +76,16 @@ const ManualLinkCard: React.FC<ManualLinkCardProps> = ({
           disabled={!canAnalyze}
           style={({ pressed }) => [
             styles.analyzePressable,
-            pressed && styles.analyzePressed,
-            !canAnalyze && styles.analyzeDisabled,
+            {
+              backgroundColor: colors.overlay,
+              borderColor: colors.border,
+              opacity: !canAnalyze ? 0.5 : pressed ? 0.9 : 1,
+            },
           ]}
         >
           <View style={styles.analyzeBtn}>
-            <Icon source="link-plus" size={16} color="#0f172a" />
-            <Text style={styles.analyzeText}>
+            <Icon source="link-plus" size={16} color={colors.primary} />
+            <Text style={[styles.analyzeText, { color: colors.text }]}>
               {loading ? analyzingLabel : analyzeLabel}
             </Text>
           </View>
@@ -75,11 +97,9 @@ const ManualLinkCard: React.FC<ManualLinkCardProps> = ({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#fff",
     borderRadius: 18,
     padding: 16,
     borderWidth: 1,
-    borderColor: "#e2e8f0",
     gap: 12,
     alignSelf: "stretch",
     shadowColor: "#000",
@@ -96,11 +116,9 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 15,
     fontWeight: "700",
-    color: "#0f172a",
   },
   helper: {
     fontSize: 12,
-    color: "#64748b",
   },
   inputRow: {
     flexDirection: "row",
@@ -113,19 +131,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: "#cbd5e1",
-    backgroundColor: "#f8fafc",
-    color: "#0f172a",
     fontSize: 14,
   },
   analyzePressable: {
     borderRadius: 14,
-  },
-  analyzePressed: {
-    opacity: 0.9,
-  },
-  analyzeDisabled: {
-    opacity: 0.5,
+    borderWidth: 1,
   },
   analyzeBtn: {
     flexDirection: "row",
@@ -134,10 +144,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 11,
     borderRadius: 14,
-    backgroundColor: "#e2e8f0",
   },
   analyzeText: {
-    color: "#0f172a",
     fontWeight: "700",
     fontSize: 13,
   },

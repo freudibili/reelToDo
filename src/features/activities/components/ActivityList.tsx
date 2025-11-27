@@ -11,6 +11,7 @@ import { Link } from "expo-router";
 import ActivityCard from "./ActivityCard";
 import type { Activity } from "../utils/types";
 import { useTranslation } from "react-i18next";
+import { useAppTheme } from "@common/theme/appTheme";
 
 interface CategoryGroup {
   category: string;
@@ -25,12 +26,15 @@ interface Props {
 const ActivityList: React.FC<Props> = ({ data, onSelect }) => {
   const { t } = useTranslation();
   const { width } = useWindowDimensions();
+  const { colors, mode } = useAppTheme();
 
   if (!data || data.length === 0) {
     return (
       <View style={styles.empty}>
-        <Text>{t("activities:list.emptyTitle")}</Text>
-        <Text>{t("activities:list.emptySubtitle")}</Text>
+        <Text style={{ color: colors.text }}>{t("activities:list.emptyTitle")}</Text>
+        <Text style={{ color: colors.secondaryText }}>
+          {t("activities:list.emptySubtitle")}
+        </Text>
       </View>
     );
   }
@@ -39,7 +43,9 @@ const ActivityList: React.FC<Props> = ({ data, onSelect }) => {
     <ScrollView contentContainerStyle={styles.scrollContent}>
       {data.map((section) => (
         <View key={section.category} style={styles.section}>
-          <Text style={styles.sectionTitle}>{section.category}</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            {section.category}
+          </Text>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -64,17 +70,31 @@ const ActivityList: React.FC<Props> = ({ data, onSelect }) => {
                 }}
                 asChild
               >
-                <Pressable style={styles.moreWrapper}>
-                  <Text style={styles.moreLabel}>
+                <Pressable
+                  style={[
+                    styles.moreWrapper,
+                    { backgroundColor: colors.card, borderColor: colors.border },
+                  ]}
+                >
+                  <Text
+                    style={[styles.moreLabel, { color: colors.secondaryText }]}
+                  >
                     +{section.activities.length - 8}
                   </Text>
-                  <Text style={styles.moreTitle}>
+                  <Text style={[styles.moreTitle, { color: colors.text }]}>
                     {t("activities:list.more.title")}
                   </Text>
-                  <Text style={styles.moreHint}>
+                  <Text
+                    style={[styles.moreHint, { color: colors.secondaryText }]}
+                  >
                     {t("activities:list.more.hint")}
                   </Text>
-                  <Text style={styles.moreLink}>
+                  <Text
+                    style={[
+                      styles.moreLink,
+                      { color: mode === "dark" ? colors.primary : "#4da6ff" },
+                    ]}
+                  >
                     {t("activities:list.more.open")}
                   </Text>
                 </Pressable>
@@ -108,7 +128,7 @@ const styles = StyleSheet.create({
     marginRight: 12,
     padding: 14,
     borderRadius: 12,
-    backgroundColor: "#0f0f0f",
+    borderWidth: 1,
     justifyContent: "space-between",
   },
   moreLabel: { color: "#888", fontSize: 14, marginBottom: 2 },
@@ -116,7 +136,6 @@ const styles = StyleSheet.create({
   moreHint: { color: "#aaa", fontSize: 14, marginTop: 6 },
   moreLink: {
     marginTop: 10,
-    color: "#4da6ff",
     fontWeight: "600",
   },
   empty: { marginTop: 40, alignItems: "center", gap: 4 },

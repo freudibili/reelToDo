@@ -7,6 +7,7 @@ import SettingsSection from "../components/SettingsSection";
 import SettingsListItem from "../components/SettingsListItem";
 import UserSettingsHeader from "../components/UserSettingsHeader";
 import { useAppDispatch, useAppSelector } from "@core/store/hook";
+import { useAppTheme } from "@common/theme/appTheme";
 import { selectAuthUser } from "@features/auth/store/authSelectors";
 import {
   loadSettings,
@@ -19,6 +20,7 @@ const SettingsScreen = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { t } = useTranslation();
+  const { colors } = useAppTheme();
 
   const user = useAppSelector(selectAuthUser);
   const profile = useAppSelector(settingsSelectors.profile);
@@ -61,7 +63,7 @@ const SettingsScreen = () => {
     <AppScreen
       scrollable
       loading={loading}
-      backgroundColor="#f1f5f9"
+      backgroundColor={colors.background}
       withBottomInset
     >
       <ScreenHeader
@@ -77,12 +79,6 @@ const SettingsScreen = () => {
       />
 
       <SettingsSection title={t("settings:sections.account")}>
-        <SettingsListItem
-          title={t("settings:items.profile")}
-          description={t("settings:items.profileSubtitle")}
-          icon="account-edit"
-          onPress={() => goTo("/settings/profile")}
-        />
         <SettingsListItem
           title={t("settings:items.notifications")}
           description={t("settings:items.notificationsSubtitle")}
@@ -118,7 +114,12 @@ const SettingsScreen = () => {
         />
       </SettingsSection>
 
-      <View style={styles.footer}>
+      <View
+        style={[
+          styles.footer,
+          { backgroundColor: colors.card, borderColor: colors.border },
+        ]}
+      >
         <SettingsListItem
           title={t("settings:actions.signOut")}
           icon="logout"
@@ -133,10 +134,8 @@ const SettingsScreen = () => {
 const styles = StyleSheet.create({
   footer: {
     marginTop: 12,
-    backgroundColor: "#f8fafc",
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#e2e8f0",
     overflow: "hidden",
   },
 });

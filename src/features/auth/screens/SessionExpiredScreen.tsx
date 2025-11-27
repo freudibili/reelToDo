@@ -42,7 +42,6 @@ export default SessionExpiredScreen;
 
 const styles = StyleSheet.create({
   body: {
-    color: "#0f172a",
     fontSize: 15,
   },
 });

@@ -14,11 +14,13 @@ import {
   selectAuthError,
   selectAuthRequestStatus,
 } from "@features/auth/store/authSelectors";
+import { useAppTheme } from "@common/theme/appTheme";
 
 const ForgotPasswordScreen = () => {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const { t } = useTranslation();
+  const { colors, mode } = useAppTheme();
   const [email, setEmail] = useState("");
   const [linkSent, setLinkSent] = useState(false);
 
@@ -43,13 +45,41 @@ const ForgotPasswordScreen = () => {
       loading={status === "pending"}
       footer={
         <TouchableOpacity onPress={() => router.replace("/auth/signin")}>
-          <Text style={styles.link}>{t("auth:signIn.title")}</Text>
+          <Text style={[styles.link, { color: colors.primary }]}>
+            {t("auth:signIn.title")}
+          </Text>
         </TouchableOpacity>
       }
     >
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      {error ? (
+        <Text
+          style={[
+            styles.error,
+            {
+              color: colors.danger,
+              borderColor: colors.danger,
+              backgroundColor:
+                mode === "dark" ? colors.mutedSurface : colors.overlay,
+            },
+          ]}
+        >
+          {error}
+        </Text>
+      ) : null}
       {linkSent ? (
-        <Text style={styles.info}>{t("auth:emailCheck.resetMessage")}</Text>
+        <Text
+          style={[
+            styles.info,
+            {
+              color: colors.primary,
+              borderColor: colors.border,
+              backgroundColor:
+                mode === "dark" ? colors.mutedSurface : colors.overlay,
+            },
+          ]}
+        >
+          {t("auth:emailCheck.resetMessage")}
+        </Text>
       ) : null}
       <AuthTextField
         label={t("common:fields.email")}
@@ -66,7 +96,9 @@ const ForgotPasswordScreen = () => {
         disabled={!email}
       />
       <TouchableOpacity onPress={() => router.push("/auth/otp")}>
-        <Text style={styles.link}>{t("auth:forgotPassword.haveCode")}</Text>
+        <Text style={[styles.link, { color: colors.primary }]}>
+          {t("auth:forgotPassword.haveCode")}
+        </Text>
       </TouchableOpacity>
     </AuthLayout>
   );
@@ -76,22 +108,15 @@ export default ForgotPasswordScreen;
 
 const styles = StyleSheet.create({
   link: {
-    color: "#2563eb",
     fontWeight: "600",
     fontSize: 14,
   },
   error: {
-    color: "#b91c1c",
-    backgroundColor: "#fef2f2",
-    borderColor: "#fecdd3",
     borderWidth: 1,
     padding: 10,
     borderRadius: 10,
   },
   info: {
-    color: "#0f172a",
-    backgroundColor: "#eff6ff",
-    borderColor: "#bfdbfe",
     borderWidth: 1,
     padding: 10,
     borderRadius: 10,

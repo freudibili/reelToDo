@@ -14,12 +14,14 @@ import {
   selectAuthError,
   selectAuthRequestStatus,
 } from "@features/auth/store/authSelectors";
+import { useAppTheme } from "@common/theme/appTheme";
 
 const MagicLinkScreen = () => {
   const { email: emailParam } = useLocalSearchParams<{ email?: string }>();
   const dispatch = useAppDispatch();
   const router = useRouter();
   const { t } = useTranslation();
+  const { colors, mode } = useAppTheme();
   const [email, setEmail] = useState(emailParam || "");
   const [linkSent, setLinkSent] = useState(false);
 
@@ -53,14 +55,42 @@ const MagicLinkScreen = () => {
             }
           />
           <TouchableOpacity onPress={() => router.replace("/auth/signin")}>
-            <Text style={styles.link}>{t("auth:signIn.title")}</Text>
+            <Text style={[styles.link, { color: colors.primary }]}>
+              {t("auth:signIn.title")}
+            </Text>
           </TouchableOpacity>
         </View>
       }
     >
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      {error ? (
+        <Text
+          style={[
+            styles.error,
+            {
+              color: colors.danger,
+              borderColor: colors.danger,
+              backgroundColor:
+                mode === "dark" ? colors.mutedSurface : colors.overlay,
+            },
+          ]}
+        >
+          {error}
+        </Text>
+      ) : null}
       {linkSent ? (
-        <Text style={styles.info}>{t("auth:emailCheck.magicMessage")}</Text>
+        <Text
+          style={[
+            styles.info,
+            {
+              color: colors.primary,
+              borderColor: colors.border,
+              backgroundColor:
+                mode === "dark" ? colors.mutedSurface : colors.overlay,
+            },
+          ]}
+        >
+          {t("auth:emailCheck.magicMessage")}
+        </Text>
       ) : null}
       <AuthTextField
         label={t("common:fields.email")}
@@ -84,28 +114,20 @@ export default MagicLinkScreen;
 
 const styles = StyleSheet.create({
   link: {
-    color: "#2563eb",
     fontWeight: "600",
     fontSize: 14,
   },
   backLink: {
-    color: "#0f172a",
     fontWeight: "600",
     fontSize: 14,
     marginBottom: 4,
   },
   error: {
-    color: "#b91c1c",
-    backgroundColor: "#fef2f2",
-    borderColor: "#fecdd3",
     borderWidth: 1,
     padding: 10,
     borderRadius: 10,
   },
   info: {
-    color: "#0f172a",
-    backgroundColor: "#eff6ff",
-    borderColor: "#bfdbfe",
     borderWidth: 1,
     padding: 10,
     borderRadius: 10,

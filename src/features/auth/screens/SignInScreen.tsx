@@ -13,11 +13,13 @@ import {
   selectAuthRequestStatus,
   selectIsAuthenticated,
 } from "@features/auth/store/authSelectors";
+import { useAppTheme } from "@common/theme/appTheme";
 
 const SignInScreen = () => {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const { t } = useTranslation();
+  const { colors, mode } = useAppTheme();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -48,7 +50,21 @@ const SignInScreen = () => {
       subtitle={t("auth:signIn.subtitle")}
       loading={passwordStatus === "pending"}
     >
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      {error ? (
+        <Text
+          style={[
+            styles.error,
+            {
+              color: colors.danger,
+              borderColor: colors.danger,
+              backgroundColor:
+                mode === "dark" ? colors.mutedSurface : colors.overlay,
+            },
+          ]}
+        >
+          {error}
+        </Text>
+      ) : null}
       <AuthTextField
         label={t("common:fields.email")}
         autoCapitalize="none"
@@ -73,7 +89,9 @@ const SignInScreen = () => {
         disabled={!email || !password}
       />
       <TouchableOpacity onPress={() => router.push("/auth/forgot-password")}>
-        <Text style={styles.forgot}>{t("auth:signIn.forgot")}</Text>
+        <Text style={[styles.forgot, { color: colors.primary }]}>
+          {t("auth:signIn.forgot")}
+        </Text>
       </TouchableOpacity>
       <MagicLinkButton
         label={t("auth:signIn.useMagicLink")}
@@ -85,7 +103,7 @@ const SignInScreen = () => {
         }
       />
       <View style={styles.secondaryAction}>
-        <Text style={styles.secondaryLabel}>
+        <Text style={[styles.secondaryLabel, { color: colors.secondaryText }]}>
           {t("auth:signIn.noAccount")}
         </Text>
         <AuthButton
@@ -102,15 +120,11 @@ export default SignInScreen;
 
 const styles = StyleSheet.create({
   error: {
-    color: "#b91c1c",
-    backgroundColor: "#fef2f2",
-    borderColor: "#fecdd3",
     borderWidth: 1,
     padding: 10,
     borderRadius: 10,
   },
   forgot: {
-    color: "#2563eb",
     fontWeight: "600",
     fontSize: 14,
     alignSelf: "flex-start",
@@ -125,6 +139,5 @@ const styles = StyleSheet.create({
   },
   secondaryLabel: {
     fontSize: 14,
-    color: "#475569",
   },
 });

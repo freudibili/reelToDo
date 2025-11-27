@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet, ViewStyle } from "react-native";
 import { useTranslation } from "react-i18next";
+import { useAppTheme } from "@common/theme/appTheme";
 
 interface ActivitySummaryHeaderProps {
   title: string;
@@ -18,20 +19,25 @@ const ActivitySummaryHeader: React.FC<ActivitySummaryHeaderProps> = ({
   style,
 }) => {
   const { t } = useTranslation();
+  const { colors } = useAppTheme();
   const displayTitle = title || t("labels.activity");
   const metaLine = [category, location].filter(Boolean).join(" • ");
 
   return (
     <View style={[styles.container, style]}>
-      <Text style={styles.title} numberOfLines={2}>
+      <Text style={[styles.title, { color: colors.text }]} numberOfLines={2}>
         {displayTitle}
       </Text>
       {metaLine ? (
-        <Text style={styles.meta} numberOfLines={2}>
+        <Text style={[styles.meta, { color: colors.secondaryText }]} numberOfLines={2}>
           {metaLine}
         </Text>
       ) : null}
-      {dateLabel ? <Text style={styles.metaMuted}>{dateLabel}</Text> : null}
+      {dateLabel ? (
+        <Text style={[styles.metaMuted, { color: colors.mutedText }]}>
+          {dateLabel}
+        </Text>
+      ) : null}
     </View>
   );
 };
@@ -46,15 +52,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: "800",
-    color: "#0f172a",
     lineHeight: 24,
   },
   meta: {
     fontSize: 14,
-    color: "#475569",
   },
   metaMuted: {
     fontSize: 13,
-    color: "#94a3b8",
   },
 });

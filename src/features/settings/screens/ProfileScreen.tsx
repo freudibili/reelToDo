@@ -7,11 +7,13 @@ import AppScreen, { ScreenHeader } from "@common/components/AppScreen";
 import { useAppDispatch, useAppSelector } from "@core/store/hook";
 import { settingsSelectors } from "../store/settingsSelectors";
 import { saveProfile } from "../store/settingsSlice";
+import { useAppTheme } from "@common/theme/appTheme";
 
 const ProfileScreen = () => {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const { t } = useTranslation();
+  const { colors } = useAppTheme();
 
   const profile = useAppSelector(settingsSelectors.profile);
   const loading = useAppSelector(settingsSelectors.loading);
@@ -50,7 +52,7 @@ const ProfileScreen = () => {
           value={fullName}
           onChangeText={setFullName}
           mode="outlined"
-          style={styles.input}
+          style={[styles.input, { backgroundColor: colors.surface }]}
           autoCapitalize="words"
         />
         <TextInput
@@ -58,14 +60,14 @@ const ProfileScreen = () => {
           value={profile.email}
           mode="outlined"
           disabled
-          style={styles.input}
+          style={[styles.input, { backgroundColor: colors.surface }]}
         />
         <TextInput
           label={t("settings:profile.address")}
           value={address}
           onChangeText={setAddress}
           mode="outlined"
-          style={styles.input}
+          style={[styles.input, { backgroundColor: colors.surface }]}
           autoCapitalize="words"
         />
         <HelperText type="info" visible>
@@ -91,7 +93,6 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   input: {
-    backgroundColor: "#fff",
   },
   button: {
     marginTop: 4,

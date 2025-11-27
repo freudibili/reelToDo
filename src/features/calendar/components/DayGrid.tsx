@@ -1,6 +1,7 @@
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { CalendarDay } from "../utils/dates";
+import { useAppTheme } from "@common/theme/appTheme";
 
 interface Props {
   days: CalendarDay[];
@@ -17,6 +18,8 @@ const DayGrid: React.FC<Props> = ({
   locale,
   onSelectDay,
 }) => {
+  const { colors } = useAppTheme();
+
   return (
     <View style={styles.daysGrid}>
       {days.map((item) => {
@@ -27,8 +30,18 @@ const DayGrid: React.FC<Props> = ({
             key={item.key}
             style={[
               styles.dayChip,
-              isSelected && styles.dayChipSelected,
-              isToday && styles.dayChipToday,
+              {
+                backgroundColor: colors.surface,
+                borderColor: colors.border,
+              },
+              isSelected && {
+                borderColor: colors.primary,
+                backgroundColor: colors.primary,
+              },
+              isToday && {
+                borderColor: colors.primary,
+                backgroundColor: colors.overlay,
+              },
             ]}
             onPress={() => onSelectDay(item.key)}
             hitSlop={6}
@@ -36,7 +49,9 @@ const DayGrid: React.FC<Props> = ({
             <Text
               style={[
                 styles.dayNumber,
-                (isSelected || isToday) && styles.dayChipTextToday,
+                { color: colors.text },
+                isSelected && { color: "#fff" },
+                isToday && { color: colors.primary, fontWeight: "800" },
               ]}
             >
               {item.date.getDate()}
@@ -44,7 +59,9 @@ const DayGrid: React.FC<Props> = ({
             <Text
               style={[
                 styles.dayChipText,
-                (isSelected || isToday) && styles.dayChipTextToday,
+                { color: colors.secondaryText },
+                isSelected && { color: "#fff", fontWeight: "800" },
+                isToday && { color: colors.primary, fontWeight: "800" },
               ]}
             >
               {item.date.toLocaleDateString(locale, { weekday: "short" })}
@@ -53,7 +70,10 @@ const DayGrid: React.FC<Props> = ({
               <View
                 style={[
                   styles.dayDot,
-                  (item.hasActivity || isSelected) && styles.dayDotActive,
+                  { backgroundColor: colors.border },
+                  (item.hasActivity || isSelected) && {
+                    backgroundColor: colors.primary,
+                  },
                 ]}
               />
             </View>
@@ -78,36 +98,20 @@ const styles = StyleSheet.create({
   dayChip: {
     flexBasis: "18%",
     maxWidth: "18%",
-    backgroundColor: "#fff",
     borderRadius: 12,
     paddingVertical: 5,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#e2e8f0",
-  },
-  dayChipSelected: {
-    borderColor: "#0f172a",
-    backgroundColor: "#0f172a",
-  },
-  dayChipToday: {
-    borderColor: "#38bdf8",
-    backgroundColor: "#0ea5e9",
   },
   dayChipText: {
-    color: "#475569",
     fontSize: 12,
     textTransform: "uppercase",
     letterSpacing: 0.4,
-  },
-  dayChipTextToday: {
-    color: "#fff",
-    fontWeight: "800",
   },
   dayNumber: {
     marginTop: 1,
     fontSize: 16,
     fontWeight: "700",
-    color: "#0f172a",
   },
   dayDotRow: {
     marginTop: 4,
@@ -118,9 +122,5 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 999,
-    backgroundColor: "#e2e8f0",
-  },
-  dayDotActive: {
-    backgroundColor: "#0ea5e9",
   },
 });

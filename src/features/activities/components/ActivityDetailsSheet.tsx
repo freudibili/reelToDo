@@ -20,6 +20,7 @@ import DateTimePicker, {
   type DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
 import { useConfirmDialog } from "@common/hooks/useConfirmDialog";
+import { useAppTheme } from "@common/theme/appTheme";
 
 interface Props {
   activity: Activity | null;
@@ -44,6 +45,7 @@ const ActivityDetailsSheet: React.FC<Props> = ({
 }) => {
   const { t } = useTranslation();
   const { confirm } = useConfirmDialog();
+  const { colors } = useAppTheme();
   const [pickerVisible, setPickerVisible] = useState(false);
   if (!activity) return null;
 
@@ -136,7 +138,7 @@ const ActivityDetailsSheet: React.FC<Props> = ({
 
   return (
     <BottomSheetScrollView
-      contentContainerStyle={styles.scrollContent}
+      contentContainerStyle={[styles.scrollContent, { backgroundColor: colors.surface }]}
       nestedScrollEnabled
     >
       <ActivitySummaryHeader
@@ -174,10 +176,10 @@ const ActivityDetailsSheet: React.FC<Props> = ({
         showOverlayContent={false}
       />
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionHeaderText}>
+        <Text style={[styles.sectionHeaderText, { color: colors.text }]}>
           {t("activities:details.overview")}
         </Text>
-        <View style={styles.sectionUnderline} />
+        <View style={[styles.sectionUnderline, { backgroundColor: colors.primary }]} />
       </View>
       <InfoRow
         icon="map-marker"
@@ -189,16 +191,22 @@ const ActivityDetailsSheet: React.FC<Props> = ({
           value={officialDateLabel ?? t("activities:details.dateMissing")}
         />
       ) : null}
-      <Pressable style={styles.planCard} onPress={() => setPickerVisible(true)}>
+      <Pressable
+        style={[
+          styles.planCard,
+          { backgroundColor: colors.card, borderColor: colors.border },
+        ]}
+        onPress={() => setPickerVisible(true)}
+      >
         <View style={styles.planTextCol}>
-          <Text style={styles.sectionHeaderText}>
+          <Text style={[styles.sectionHeaderText, { color: colors.text }]}>
             {t("activities:planned.title")}
           </Text>
-          <Text style={styles.subtle}>
+          <Text style={[styles.subtle, { color: colors.secondaryText }]}>
             {plannedDateLabel ?? t("activities:planned.empty")}
           </Text>
           {activity.main_date ? (
-            <Text style={styles.muted}>
+            <Text style={[styles.muted, { color: colors.mutedText }]}>
               {sameAsOfficial
                 ? t("activities:planned.matchesOfficial")
                 : t("activities:planned.officialLabel", {
@@ -208,22 +216,22 @@ const ActivityDetailsSheet: React.FC<Props> = ({
           ) : null}
         </View>
         <View style={styles.planActions}>
-          <IconButton
-            mode="contained-tonal"
-            icon={plannedDateLabel ? "pencil" : "calendar-plus"}
-            onPress={() => setPickerVisible(true)}
-            containerColor="#e2e8f0"
-            iconColor="#0f172a"
-            size={22}
-            style={styles.iconButton}
-          />
+            <IconButton
+              mode="contained-tonal"
+              icon={plannedDateLabel ? "pencil" : "calendar-plus"}
+              onPress={() => setPickerVisible(true)}
+              containerColor={colors.overlay}
+              iconColor={colors.primary}
+              size={22}
+              style={styles.iconButton}
+            />
           {plannedDateLabel ? (
             <IconButton
               mode="contained-tonal"
               icon="close"
               onPress={() => onChangePlannedDate(activity, null)}
-              containerColor="#e2e8f0"
-              iconColor="#0f172a"
+              containerColor={colors.overlay}
+              iconColor={colors.primary}
               size={22}
               style={styles.iconButton}
             />
@@ -240,6 +248,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 18,
     gap: 10,
+    flexGrow: 1,
   },
   headerBlock: {
     paddingHorizontal: 4,
@@ -251,24 +260,22 @@ const styles = StyleSheet.create({
   sectionHeaderText: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#0f172a",
   },
   sectionUnderline: {
     marginTop: 4,
     height: 2,
     width: 70,
-    backgroundColor: "#0f172a",
     borderRadius: 999,
   },
   planCard: {
     marginTop: 10,
     paddingVertical: 12,
     paddingHorizontal: 12,
-    backgroundColor: "#f1f5f9",
     borderRadius: 12,
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
+    borderWidth: 1,
   },
   planTextCol: {
     flex: 1,
@@ -284,15 +291,12 @@ const styles = StyleSheet.create({
   },
   subtle: {
     fontSize: 12,
-    color: "#475569",
   },
   muted: {
     fontSize: 12,
-    color: "#94a3b8",
   },
   link: {
     fontSize: 14,
-    color: "#0f172a",
     fontWeight: "700",
   },
   actionsRailWrapper: {

@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Icon } from "react-native-paper";
+import { useAppTheme } from "@common/theme/appTheme";
 
 interface ImportHeaderProps {
   title: string;
@@ -14,6 +15,8 @@ const ImportHeader: React.FC<ImportHeaderProps> = ({
   subtitle,
   showText = true,
 }) => {
+  const { colors } = useAppTheme();
+
   return (
     <View style={styles.container}>
       <LinearGradient
@@ -26,8 +29,10 @@ const ImportHeader: React.FC<ImportHeaderProps> = ({
       </LinearGradient>
       {showText ? (
         <>
-          <Text style={styles.title}>{title}</Text>
-          <Text style={styles.subtitle}>{subtitle}</Text>
+          <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
+          <Text style={[styles.subtitle, { color: colors.secondaryText }]}>
+            {subtitle}
+          </Text>
         </>
       ) : null}
     </View>
@@ -51,7 +56,6 @@ const styles = StyleSheet.create({
   title: { fontSize: 22, fontWeight: "700" },
   subtitle: {
     fontSize: 14,
-    color: "#475569",
     textAlign: "center",
     paddingHorizontal: 12,
   },

@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Pressable, Text, StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
+import { useAppTheme } from "@common/theme/appTheme";
 
 interface ImportFooterProps {
   disabled: boolean;
@@ -14,19 +15,34 @@ const ImportFooter: React.FC<ImportFooterProps> = ({
   onSave,
 }) => {
   const { t } = useTranslation();
+  const { colors, mode } = useAppTheme();
 
   return (
     <View style={styles.actionsRow}>
       <Pressable style={styles.cancelBtn} onPress={onCancel}>
-        <Text style={styles.cancelBtnText}>{t("import:details.cancel")}</Text>
+        <Text style={[styles.cancelBtnText, { color: colors.secondaryText }]}>
+          {t("import:details.cancel")}
+        </Text>
       </Pressable>
 
       <Pressable
-        style={[styles.saveBtn, disabled && styles.saveBtnDisabled]}
+        style={[
+          styles.saveBtn,
+          { backgroundColor: colors.primary },
+          disabled && styles.saveBtnDisabled,
+          disabled && { backgroundColor: colors.border },
+        ]}
         disabled={disabled}
         onPress={onSave}
       >
-        <Text style={styles.saveBtnText}>{t("common:buttons.save")}</Text>
+        <Text
+          style={[
+            styles.saveBtnText,
+            { color: mode === "dark" ? colors.background : "#fff" },
+          ]}
+        >
+          {t("common:buttons.save")}
+        </Text>
       </Pressable>
     </View>
   );
@@ -47,20 +63,16 @@ const styles = StyleSheet.create({
   },
   cancelBtnText: {
     fontSize: 14,
-    color: "#64748b",
   },
   saveBtn: {
     paddingVertical: 10,
     paddingHorizontal: 18,
     borderRadius: 10,
-    backgroundColor: "#0f172a",
   },
   saveBtnDisabled: {
-    backgroundColor: "#cbd5e1",
   },
   saveBtnText: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#fff",
   },
 });
