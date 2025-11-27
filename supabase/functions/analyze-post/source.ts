@@ -177,18 +177,28 @@ const extractYouTubeVideoId = (url: string): string | null => {
   return null;
 };
 
+const buildYouTubeImageCandidates = (videoId: string): string[] => [
+  `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`,
+  `https://i.ytimg.com/vi/${videoId}/hq720.jpg`,
+  `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+];
+
 const fetchYouTubeMetadata = async (
   url: string
 ): Promise<Omit<SourceMetadata, "source">> => {
   const videoId = extractYouTubeVideoId(url);
   console.log("[youtube] videoId", videoId);
   console.log("[youtube] api key present", Boolean(youtubeApiKey));
+  const fallbackImage = videoId
+    ? buildYouTubeImageCandidates(videoId)[0]
+    : null;
+
   if (!videoId || !youtubeApiKey) {
     const basic = await fetchHtmlMeta(url);
     return {
       title: basic.title,
       description: basic.description,
-      image: basic.image,
+      image: fallbackImage ?? basic.image,
       author: null,
       publishedAt: null,
     };
@@ -233,6 +243,7 @@ const fetchYouTubeMetadata = async (
       thumbnails.high?.url ||
       thumbnails.medium?.url ||
       thumbnails.default?.url ||
+      fallbackImage ||
       null;
     return {
       title: snippet.title ?? null,
@@ -247,7 +258,7 @@ const fetchYouTubeMetadata = async (
     return {
       title: basic.title,
       description: basic.description,
-      image: basic.image,
+      image: fallbackImage ?? basic.image,
       author: null,
       publishedAt: null,
     };

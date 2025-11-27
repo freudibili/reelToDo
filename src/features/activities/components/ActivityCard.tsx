@@ -28,7 +28,11 @@ const ActivityCard: React.FC<Props> = ({
     <Pressable style={styles.card} onPress={() => onPress(activity)}>
       <View style={styles.imageWrapper}>
         {activity.image_url ? (
-          <Image source={{ uri: activity.image_url }} style={styles.image} />
+          <Image
+            source={{ uri: activity.image_url }}
+            style={styles.image}
+            resizeMode="cover"
+          />
         ) : (
           <View style={styles.imagePlaceholder} />
         )}

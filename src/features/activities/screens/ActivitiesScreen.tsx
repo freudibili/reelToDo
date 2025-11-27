@@ -116,7 +116,7 @@ const ActivitiesScreen = () => {
   );
 
   const handleOpenImport = useCallback(() => {
-    router.push("/import");
+    router.push({ pathname: "/import", params: { from: "activities" } });
   }, [router]);
 
   return (

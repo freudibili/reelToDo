@@ -30,10 +30,10 @@ interface AppScreenProps {
   headerRight?: React.ReactNode;
   onBackPress?: () => void;
   headerCompact?: boolean;
-  headerComponent?: React.ReactNode;
   keyboardOffset?: number;
   alignToTabBar?: boolean;
   flushBottom?: boolean;
+  footerHeight?: number;
 }
 
 const AppScreen: React.FC<AppScreenProps> = ({
@@ -51,10 +51,10 @@ const AppScreen: React.FC<AppScreenProps> = ({
   headerRight,
   onBackPress,
   headerCompact = false,
-  headerComponent,
   keyboardOffset,
   alignToTabBar = true,
   flushBottom = false,
+  footerHeight = 80,
 }) => {
   const insets = useSafeAreaInsets();
   const tabBarHeight = React.useContext(BottomTabBarHeightContext) ?? 0;
@@ -68,25 +68,26 @@ const AppScreen: React.FC<AppScreenProps> = ({
   const bottomGutter = withBottomInset ? bottomBase : 0;
   const horizontalPadding = noPadding ? 0 : 12;
   const verticalPadding = noPadding ? 0 : 4;
-  const contentBottomPadding = flushBottom
-    ? bottomGutter
-    : (noPadding ? 0 : 20) + bottomGutter + (footer ? 12 : 0);
+  const contentBottomPadding =
+    (flushBottom ? 0 : noPadding ? 0 : 20) +
+    bottomGutter +
+    (footer ? footerHeight + 12 : 0);
   const footerPaddingBottom = bottomGutter + (noPadding ? 8 : 12);
 
   const keyboardVerticalOffset = keyboardOffset ?? insets.top;
 
   const renderHeader =
-    headerComponent ||
-    (headerTitle ? (
+    headerTitle || onBackPress ? (
       <ScreenHeader
-        title={headerTitle}
+        title={headerTitle ?? ""}
         subtitle={headerSubtitle}
         eyebrow={headerEyebrow}
         onBackPress={onBackPress}
         right={headerRight}
         compact={headerCompact}
+        alignLeftWhenNoBack={!onBackPress}
       />
-    ) : null);
+    ) : null;
 
   const content = scrollable ? (
     <ScrollView
@@ -142,6 +143,11 @@ const AppScreen: React.FC<AppScreenProps> = ({
                 {
                   paddingHorizontal: horizontalPadding,
                   paddingBottom: footerPaddingBottom,
+                  position: "absolute",
+                  left: 0,
+                  right: 0,
+                  bottom: bottomGutter,
+                  height: footerHeight,
                 },
               ]}
             >
@@ -178,7 +184,7 @@ const styles = StyleSheet.create({
   inner: { flex: 1 },
   footer: {
     borderTopColor: "#e2e8f0",
-    backgroundColor: "#fff",
+    backgroundColor: "#23aa2eff",
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,

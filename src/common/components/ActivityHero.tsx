@@ -63,6 +63,7 @@ const ActivityHero: React.FC<ActivityHeroProps> = ({
         <ImageBackground
           source={{ uri: imageUrl }}
           style={styles.cover}
+          resizeMode="cover"
           imageStyle={styles.coverImage}
         >
           <View style={styles.scrim} />
