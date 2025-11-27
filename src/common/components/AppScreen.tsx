@@ -6,7 +6,6 @@ import {
   ScrollView,
   StyleSheet,
   View,
-  ViewStyle,
 } from "react-native";
 import { BottomTabBarHeightContext } from "@react-navigation/bottom-tabs";
 import {
@@ -17,7 +16,6 @@ import ScreenHeader, { type ScreenHeaderProps } from "./ScreenHeader";
 
 interface AppScreenProps {
   children: React.ReactNode;
-  style?: ViewStyle;
   noPadding?: boolean;
   backgroundColor?: string;
   withBottomInset?: boolean;
@@ -26,19 +24,15 @@ interface AppScreenProps {
   footer?: React.ReactNode;
   headerTitle?: string;
   headerSubtitle?: string;
-  headerEyebrow?: string;
   headerRight?: React.ReactNode;
   onBackPress?: () => void;
   headerCompact?: boolean;
-  keyboardOffset?: number;
   alignToTabBar?: boolean;
   flushBottom?: boolean;
-  footerHeight?: number;
 }
 
 const AppScreen: React.FC<AppScreenProps> = ({
   children,
-  style,
   noPadding = false,
   backgroundColor = "#fff",
   withBottomInset = true,
@@ -47,41 +41,48 @@ const AppScreen: React.FC<AppScreenProps> = ({
   footer,
   headerTitle,
   headerSubtitle,
-  headerEyebrow,
   headerRight,
   onBackPress,
   headerCompact = false,
-  keyboardOffset,
   alignToTabBar = true,
   flushBottom = false,
-  footerHeight = 80,
 }) => {
   const insets = useSafeAreaInsets();
   const tabBarHeight = React.useContext(BottomTabBarHeightContext) ?? 0;
+  const [footerHeight, setFooterHeight] = React.useState(0);
+  const bottomInsetRef = React.useRef(insets.bottom);
+
+  React.useEffect(() => {
+    if (insets.bottom > bottomInsetRef.current) {
+      bottomInsetRef.current = insets.bottom;
+    }
+  }, [insets.bottom]);
 
   const hasTabBar = tabBarHeight > 0;
-  const bottomBase = alignToTabBar
-    ? hasTabBar
-      ? 0
-      : insets.bottom
-    : insets.bottom;
-  const bottomGutter = withBottomInset ? bottomBase : 0;
+  const footerOffset = alignToTabBar && hasTabBar ? tabBarHeight : 0;
+  const footerBottomPadding =
+    withBottomInset && !hasTabBar ? bottomInsetRef.current : 0;
   const horizontalPadding = noPadding ? 0 : 12;
   const verticalPadding = noPadding ? 0 : 4;
+  const baseBottomSpacing = flushBottom ? 0 : noPadding ? 0 : 20;
   const contentBottomPadding =
-    (flushBottom ? 0 : noPadding ? 0 : 20) +
-    bottomGutter +
-    (footer ? footerHeight + 12 : 0);
-  const footerPaddingBottom = bottomGutter + (noPadding ? 8 : 12);
+    baseBottomSpacing +
+    (footer
+      ? footerHeight + footerOffset + footerBottomPadding
+      : footerBottomPadding);
 
-  const keyboardVerticalOffset = keyboardOffset ?? insets.top;
+  const handleFooterLayout = React.useCallback(
+    (event: LayoutChangeEvent) => {
+      setFooterHeight(event.nativeEvent.layout.height);
+    },
+    [],
+  );
 
   const renderHeader =
     headerTitle || onBackPress ? (
       <ScreenHeader
         title={headerTitle ?? ""}
         subtitle={headerSubtitle}
-        eyebrow={headerEyebrow}
         onBackPress={onBackPress}
         right={headerRight}
         compact={headerCompact}
@@ -108,18 +109,18 @@ const AppScreen: React.FC<AppScreenProps> = ({
       {children}
     </ScrollView>
   ) : (
-    <View
-      style={[
-        styles.inner,
-        {
+    <View style={[styles.inner]}>
+      <View
+        style={{
           paddingTop: verticalPadding,
           paddingHorizontal: horizontalPadding,
           paddingBottom: contentBottomPadding,
-        },
-      ]}
-    >
-      {renderHeader}
-      {children}
+          flex: 1,
+        }}
+      >
+        {renderHeader}
+        {children}
+      </View>
     </View>
   );
 
@@ -128,40 +129,42 @@ const AppScreen: React.FC<AppScreenProps> = ({
       style={[styles.safeArea, { backgroundColor }]}
       edges={["top", "left", "right"]}
     >
-      <KeyboardAvoidingView
-        style={styles.keyboard}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={keyboardVerticalOffset}
-      >
-        <View style={[styles.container, style]}>
+      <View style={styles.container}>
+        <KeyboardAvoidingView
+          style={styles.keyboard}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={insets.top}
+        >
           <View style={styles.contentArea}>{content}</View>
+        </KeyboardAvoidingView>
 
-          {footer ? (
-            <View
-              style={[
-                styles.footer,
-                {
-                  paddingHorizontal: horizontalPadding,
-                  paddingBottom: footerPaddingBottom,
-                  position: "absolute",
-                  left: 0,
-                  right: 0,
-                  bottom: bottomGutter,
-                  height: footerHeight,
-                },
-              ]}
-            >
-              {footer}
-            </View>
-          ) : null}
+        {footer ? (
+          <View
+            onLayout={handleFooterLayout}
+            style={[
+              styles.footer,
+              {
+                paddingHorizontal: horizontalPadding,
+                paddingTop: noPadding ? 8 : 12,
+                paddingBottom: footerBottomPadding,
+                backgroundColor,
+                position: "absolute",
+                left: 0,
+                right: 0,
+                bottom: footerOffset,
+              },
+            ]}
+          >
+            {footer}
+          </View>
+        ) : null}
 
-          {loading && (
-            <View style={styles.loadingOverlay}>
-              <ActivityIndicator size="large" color="#000" />
-            </View>
-          )}
-        </View>
-      </KeyboardAvoidingView>
+        {loading && (
+          <View style={styles.loadingOverlay}>
+            <ActivityIndicator size="large" color="#000" />
+          </View>
+        )}
+      </View>
     </SafeAreaView>
   );
 };
@@ -184,7 +187,7 @@ const styles = StyleSheet.create({
   inner: { flex: 1 },
   footer: {
     borderTopColor: "#e2e8f0",
-    backgroundColor: "#23aa2eff",
+    borderTopWidth: StyleSheet.hairlineWidth,
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
