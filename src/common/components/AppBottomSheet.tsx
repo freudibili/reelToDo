@@ -88,17 +88,10 @@ const AppBottomSheet = React.forwardRef<BottomSheet, AppBottomSheetProps>(
         handleStyle={styles.handle}
       >
         <BottomSheetView
-          style={[
-            styles.content,
-            { backgroundColor: colors.surface, borderColor: colors.border },
-            style,
-          ]}
+          style={[styles.content, { backgroundColor: colors.surface }, style]}
         >
           <Pressable
-            style={[
-              styles.closeBtn,
-              { backgroundColor: colors.overlay },
-            ]}
+            style={[styles.closeBtn, { backgroundColor: colors.overlay }]}
             onPress={onClose}
           >
             <Text style={[styles.closeText, { color: colors.text }]}>×</Text>
@@ -132,15 +125,11 @@ const styles = StyleSheet.create({
   handle: {
     backgroundColor: "transparent",
   },
-  handleIndicator: {
-  },
+  handleIndicator: {},
   content: {
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
     paddingBottom: 12,
     overflow: "hidden",
     flex: 1,
-    borderWidth: StyleSheet.hairlineWidth,
   },
   body: {
     flex: 1,

@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { Text, StyleSheet, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
+import { useFocusEffect } from "@react-navigation/native";
 import AuthLayout from "../components/AuthLayout";
 import AuthTextField from "../components/AuthTextField";
 import AuthButton from "../components/AuthButton";
@@ -27,6 +28,20 @@ const ForgotPasswordScreen = () => {
   const error = useAppSelector(selectAuthError);
   const status = useAppSelector(selectAuthRequestStatus("passwordReset"));
 
+  useFocusEffect(
+    useCallback(() => {
+      dispatch(clearError());
+    }, [dispatch])
+  );
+
+  const handleBack = useCallback(() => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace("/auth");
+    }
+  }, [router]);
+
   const onSubmit = async () => {
     if (!email) return;
     dispatch(clearError());
@@ -43,13 +58,8 @@ const ForgotPasswordScreen = () => {
       title={t("auth:forgotPassword.title")}
       subtitle={t("auth:forgotPassword.subtitle")}
       loading={status === "pending"}
-      footer={
-        <TouchableOpacity onPress={() => router.replace("/auth/signin")}>
-          <Text style={[styles.link, { color: colors.primary }]}>
-            {t("auth:signIn.title")}
-          </Text>
-        </TouchableOpacity>
-      }
+      showBackButton
+      onBackPress={handleBack}
     >
       {error ? (
         <Text
@@ -95,11 +105,6 @@ const ForgotPasswordScreen = () => {
         loading={status === "pending"}
         disabled={!email}
       />
-      <TouchableOpacity onPress={() => router.push("/auth/otp")}>
-        <Text style={[styles.link, { color: colors.primary }]}>
-          {t("auth:forgotPassword.haveCode")}
-        </Text>
-      </TouchableOpacity>
     </AuthLayout>
   );
 };

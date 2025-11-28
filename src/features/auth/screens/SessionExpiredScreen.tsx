@@ -6,11 +6,13 @@ import AuthLayout from "../components/AuthLayout";
 import AuthButton from "../components/AuthButton";
 import { useAppDispatch } from "@core/store/hook";
 import { acknowledgeSessionExpiry } from "@features/auth/store/authSlice";
+import { useAppTheme } from "@common/theme/appTheme";
 
 const SessionExpiredScreen = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { t } = useTranslation();
+  const { colors } = useAppTheme();
 
   const handleRelog = () => {
     dispatch(acknowledgeSessionExpiry());
@@ -27,7 +29,9 @@ const SessionExpiredScreen = () => {
       title={t("auth:sessionExpired.title")}
       subtitle={t("auth:sessionExpired.subtitle")}
     >
-      <Text style={styles.body}>{t("auth:sessionExpired.body")}</Text>
+      <Text style={[styles.body, { color: colors.text }]}>
+        {t("auth:sessionExpired.body")}
+      </Text>
       <AuthButton label={t("auth:sessionExpired.relog")} onPress={handleRelog} />
       <AuthButton
         label={t("auth:sessionExpired.backToAuth")}

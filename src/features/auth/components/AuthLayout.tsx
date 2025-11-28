@@ -13,6 +13,8 @@ type AuthLayoutProps = {
   withCard?: boolean;
   tone?: "light" | "dark";
   backgroundColor?: string;
+  onBackPress?: () => void;
+  showBackButton?: boolean;
 };
 
 const AuthLayout: React.FC<AuthLayoutProps> = ({
@@ -25,6 +27,8 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
   withCard = false,
   tone = "light",
   backgroundColor,
+  onBackPress,
+  showBackButton = false,
 }) => {
   const { colors } = useAppTheme();
   const isDark = tone === "dark";
@@ -42,6 +46,10 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
       alignToTabBar={false}
       loading={loading}
       flushBottom
+      headerTitle={showBackButton ? "" : undefined}
+      headerSubtitle={undefined}
+      onBackPress={showBackButton ? onBackPress : undefined}
+      headerCompact={showBackButton}
     >
       <View
         style={[
@@ -81,7 +89,7 @@ const styles = StyleSheet.create({
   container: {
     paddingTop: 18,
     gap: 16,
-    minHeight: "100%",
+    flex: 1,
   },
   centered: {
     justifyContent: "center",

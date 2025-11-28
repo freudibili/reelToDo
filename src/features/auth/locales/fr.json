@@ -18,6 +18,7 @@
     "cta": "Connexion",
     "useMagicLink": "Lien magique"
   },
+  "or": "OU",
   "landing": {
     "title": "Bienvenue",
     "subtitle": "Choisissez comment accéder à ReelToDo",
@@ -34,29 +35,19 @@
   "magicLink": {
     "title": "Lien magique",
     "subtitle": "Nous envoyons un lien sécurisé par email",
-    "submit": "Envoyer le lien",
-    "ctaOtp": "J'ai déjà un code"
+    "submit": "Envoyer le lien"
   },
   "emailCheck": {
     "title": "Vérifiez votre boîte mail",
     "subtitle": "Nous avons envoyé un lien ou code à {{email}}",
     "magicMessage": "Ouvrez l'email et cliquez sur le lien pour continuer.",
     "resetMessage": "Utilisez le lien pour réinitialiser votre mot de passe et sécuriser votre compte.",
-    "enterCode": "Entrer le code manuellement",
     "back": "Retour"
-  },
-  "otp": {
-    "title": "Entrez votre code",
-    "subtitle": "Nous avons envoyé un code à 6 chiffres à {{email}}",
-    "helper": "Collez le code reçu par email. Si vous avez déjà cliqué sur le lien magique, vous pouvez être connecté automatiquement.",
-    "codeLabel": "Code",
-    "submit": "Vérifier"
   },
   "forgotPassword": {
     "title": "Mot de passe oublié",
     "subtitle": "Nous envoyons un lien de réinitialisation",
-    "submit": "Envoyer le lien",
-    "haveCode": "Déjà un code ?"
+    "submit": "Envoyer le lien"
   },
   "resetPassword": {
     "title": "Nouveau mot de passe",

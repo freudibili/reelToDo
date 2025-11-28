@@ -40,8 +40,6 @@ const AuthButton: React.FC<AuthButtonProps> = ({
       : mode === "dark"
         ? colors.background
         : colors.surface;
-  const borderColor = isGhost ? colors.border : "transparent";
-  const borderWidth = isGhost ? 1 : 0;
 
   return (
     <TouchableOpacity
@@ -49,8 +47,6 @@ const AuthButton: React.FC<AuthButtonProps> = ({
         styles.button,
         {
           backgroundColor,
-          borderColor,
-          borderWidth,
           opacity: disabled ? 0.6 : 1,
         },
       ]}

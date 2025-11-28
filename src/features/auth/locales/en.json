@@ -9,6 +9,7 @@
     "forgot": "Forgot password?",
     "useMagicLink": "Magic link"
   },
+  "or": "OR",
   "social": {
     "or": "or continue with"
   },
@@ -37,29 +38,19 @@
   "magicLink": {
     "title": "Magic link",
     "subtitle": "We’ll send you a link to sign in securely",
-    "submit": "Send link",
-    "ctaOtp": "I have a code"
+    "submit": "Send link"
   },
   "emailCheck": {
     "title": "Check your inbox",
     "subtitle": "We sent a link or code to {{email}}",
     "magicMessage": "Open the email we just sent and tap the link to continue.",
     "resetMessage": "Use the link we sent to reset your password and secure your account.",
-    "enterCode": "Enter code manually",
     "back": "Back"
-  },
-  "otp": {
-    "title": "Enter your code",
-    "subtitle": "We sent a 6-digit code to {{email}}",
-    "helper": "Paste the code from your email. If you tapped the magic link already, you may be signed in automatically.",
-    "codeLabel": "Code",
-    "submit": "Verify"
   },
   "forgotPassword": {
     "title": "Forgot password",
     "subtitle": "We’ll send you a reset link",
-    "submit": "Send reset link",
-    "haveCode": "Already have a code?"
+    "submit": "Send reset link"
   },
   "resetPassword": {
     "title": "Set a new password",

@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import React, { useCallback, useEffect, useState } from "react";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
+import { useFocusEffect } from "@react-navigation/native";
+import { Icon } from "react-native-paper";
 import AuthLayout from "../components/AuthLayout";
 import AuthTextField from "../components/AuthTextField";
 import AuthButton from "../components/AuthButton";
-import MagicLinkButton from "../components/MagicLinkButton";
 import { useAppDispatch, useAppSelector } from "@core/store/hook";
 import {
   selectAuthError,
@@ -22,10 +23,26 @@ const SignUpScreen = () => {
   const { colors, mode } = useAppTheme();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [verificationSent, setVerificationSent] = useState(false);
 
   const error = useAppSelector(selectAuthError);
   const passwordStatus = useAppSelector(selectAuthRequestStatus("signUp"));
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
+
+  useFocusEffect(
+    useCallback(() => {
+      dispatch(clearError());
+      setVerificationSent(false);
+    }, [dispatch])
+  );
+
+  const handleBack = useCallback(() => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace("/auth");
+    }
+  }, [router]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -35,6 +52,7 @@ const SignUpScreen = () => {
 
   const onSubmitPassword = async () => {
     if (!email || !password) return;
+    setVerificationSent(false);
     dispatch(clearError());
     try {
       const result = await dispatch(
@@ -42,10 +60,7 @@ const SignUpScreen = () => {
       ).unwrap();
 
       if (!result.session) {
-        router.push({
-          pathname: "/auth/otp",
-          params: { email, type: "signup" },
-        });
+        setVerificationSent(true);
       } else {
         router.replace("/");
       }
@@ -59,6 +74,8 @@ const SignUpScreen = () => {
       title={t("auth:signUp.title")}
       subtitle={t("auth:signUp.subtitle")}
       loading={passwordStatus === "pending"}
+      showBackButton
+      onBackPress={handleBack}
     >
       {error ? (
         <Text
@@ -73,6 +90,21 @@ const SignUpScreen = () => {
           ]}
         >
           {error}
+        </Text>
+      ) : null}
+      {verificationSent ? (
+        <Text
+          style={[
+            styles.info,
+            {
+              color: colors.primary,
+              borderColor: colors.border,
+              backgroundColor:
+                mode === "dark" ? colors.mutedSurface : colors.overlay,
+            },
+          ]}
+        >
+          {t("auth:emailCheck.magicMessage")}
         </Text>
       ) : null}
       <AuthTextField
@@ -98,26 +130,38 @@ const SignUpScreen = () => {
         loading={passwordStatus === "pending"}
         disabled={!email || !password}
       />
-      <MagicLinkButton
-        label={t("auth:signUp.useMagicLink")}
-        onPress={() =>
-          router.push({
-            pathname: "/auth/magic-link",
-            params: email ? { email } : undefined,
-          })
-        }
-      />
-      <View style={styles.secondaryAction}>
-        <Text
-          style={[styles.secondaryLabel, { color: colors.secondaryText }]}
-        >
-          {t("auth:signUp.hasAccount")}
+      <View style={styles.dividerRow}>
+        <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
+        <Text style={[styles.dividerText, { color: colors.secondaryText }]}>
+          {t("auth:or")}
         </Text>
-        <AuthButton
-          label={t("auth:signUp.cta")}
-          variant="ghost"
-          onPress={() => router.replace("/auth/signin")}
-        />
+        <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
+      </View>
+      <View style={styles.altRow}>
+        <TouchableOpacity onPress={() => router.replace("/auth/signin")}>
+          <Text style={[styles.altLink, { color: colors.primary }]}>
+            {t("auth:signUp.cta")}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() =>
+            router.push({
+              pathname: "/auth/magic-link",
+              params: email ? { email } : undefined,
+            })
+          }
+        >
+          <View style={styles.magicLinkRow}>
+            <Icon
+              source="star-four-points"
+              size={16}
+              color={colors.primary}
+            />
+            <Text style={[styles.altLink, { color: colors.primary }]}>
+              {t("auth:signUp.useMagicLink")}
+            </Text>
+          </View>
+        </TouchableOpacity>
       </View>
     </AuthLayout>
   );
@@ -137,7 +181,40 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 6,
   },
-  secondaryLabel: {
+  dividerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginTop: 12,
+    marginBottom: 12,
+  },
+  dividerLine: {
+    flex: 1,
+    height: StyleSheet.hairlineWidth,
+  },
+  dividerText: {
+    fontSize: 12,
+    fontWeight: "700",
+    letterSpacing: 0.6,
+  },
+  altRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: -2,
+  },
+  altLink: {
+    fontWeight: "700",
     fontSize: 14,
+  },
+  magicLinkRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  info: {
+    borderWidth: 1,
+    padding: 10,
+    borderRadius: 10,
   },
 });

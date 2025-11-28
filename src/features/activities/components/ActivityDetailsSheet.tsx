@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Pressable, StyleSheet, Text, View, Platform } from "react-native";
+import React, { useMemo } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { IconButton } from "react-native-paper";
 import { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import ActivityHero from "@common/components/ActivityHero";
@@ -16,11 +16,9 @@ import { categoryNeedsDate } from "../utils/activityHelper";
 import type { Activity } from "../utils/types";
 import { useTranslation } from "react-i18next";
 import InfoRow from "./InfoRow";
-import DateTimePicker, {
-  type DateTimePickerEvent,
-} from "@react-native-community/datetimepicker";
 import { useConfirmDialog } from "@common/hooks/useConfirmDialog";
 import { useAppTheme } from "@common/theme/appTheme";
+import { usePlatformDateTimePicker } from "../hooks/usePlatformDateTimePicker";
 
 interface Props {
   activity: Activity | null;
@@ -45,9 +43,24 @@ const ActivityDetailsSheet: React.FC<Props> = ({
 }) => {
   const { t } = useTranslation();
   const { confirm } = useConfirmDialog();
-  const { colors } = useAppTheme();
-  const [pickerVisible, setPickerVisible] = useState(false);
+  const { colors, mode } = useAppTheme();
   if (!activity) return null;
+  const baseDate = useMemo(
+    () =>
+      activity.planned_at
+        ? new Date(activity.planned_at)
+        : activity.main_date
+          ? new Date(activity.main_date)
+          : new Date(),
+    [activity]
+  );
+
+  const { openPicker, pickerModal } = usePlatformDateTimePicker({
+    value: baseDate,
+    onChange: (date) => onChangePlannedDate(activity, date),
+    cardColor: colors.card,
+    themeVariant: mode === "dark" ? "dark" : "light",
+  });
 
   const officialDateLabel = formatDisplayDate(activity.main_date);
   const plannedDateLabel = formatDisplayDateTime(activity.planned_at);
@@ -66,15 +79,6 @@ const ActivityDetailsSheet: React.FC<Props> = ({
   const hasDateForCalendar =
     !!primaryDateValue &&
     !Number.isNaN(new Date(primaryDateValue).getTime());
-
-  const handleDateChange = (
-    _event: DateTimePickerEvent,
-    selected?: Date
-  ) => {
-    setPickerVisible(false);
-    if (!selected) return;
-    onChangePlannedDate(activity, selected);
-  };
 
   const planActionLabel = plannedDateLabel
     ? t("activities:planned.ctaEdit")
@@ -96,7 +100,7 @@ const ActivityDetailsSheet: React.FC<Props> = ({
       key: "plan",
       label: planActionLabel,
       icon: plannedDateLabel ? "calendar-edit" : "calendar-plus",
-      onPress: () => setPickerVisible(true),
+      onPress: openPicker,
     },
     {
       key: "maps",
@@ -153,19 +157,7 @@ const ActivityDetailsSheet: React.FC<Props> = ({
         <ActionRail actions={actions} />
       </View>
 
-      {pickerVisible ? (
-        <DateTimePicker
-          value={
-            activity.planned_at
-              ? new Date(activity.planned_at)
-              : activity.main_date
-                ? new Date(activity.main_date)
-                : new Date()
-          }
-          mode={Platform.OS === "ios" ? "datetime" : "date"}
-          onChange={handleDateChange}
-        />
-      ) : null}
+      {pickerModal}
 
       <ActivityHero
         title={activity.title ?? t("common:labels.activity")}
@@ -196,7 +188,7 @@ const ActivityDetailsSheet: React.FC<Props> = ({
           styles.planCard,
           { backgroundColor: colors.card, borderColor: colors.border },
         ]}
-        onPress={() => setPickerVisible(true)}
+        onPress={openPicker}
       >
         <View style={styles.planTextCol}>
           <Text style={[styles.sectionHeaderText, { color: colors.text }]}>
@@ -216,15 +208,15 @@ const ActivityDetailsSheet: React.FC<Props> = ({
           ) : null}
         </View>
         <View style={styles.planActions}>
-            <IconButton
-              mode="contained-tonal"
-              icon={plannedDateLabel ? "pencil" : "calendar-plus"}
-              onPress={() => setPickerVisible(true)}
-              containerColor={colors.overlay}
-              iconColor={colors.primary}
-              size={22}
-              style={styles.iconButton}
-            />
+          <IconButton
+            mode="contained-tonal"
+            icon={plannedDateLabel ? "pencil" : "calendar-plus"}
+            onPress={openPicker}
+            containerColor={colors.overlay}
+            iconColor={colors.primary}
+            size={22}
+            style={styles.iconButton}
+          />
           {plannedDateLabel ? (
             <IconButton
               mode="contained-tonal"

@@ -4,7 +4,6 @@ import { useSelector } from "react-redux";
 import { View, ActivityIndicator } from "react-native";
 import {
   selectIsAuthenticated,
-  selectPendingOtpType,
   selectRequiresPasswordChange,
   selectSessionExpired,
 } from "@features/auth/store/authSelectors";
@@ -14,7 +13,6 @@ const AuthGate = () => {
   const isAuth = useSelector(selectIsAuthenticated);
   const requiresPasswordChange = useSelector(selectRequiresPasswordChange);
   const sessionExpired = useSelector(selectSessionExpired);
-  const pendingOtpType = useSelector(selectPendingOtpType);
   const [ready, setReady] = useState(false);
   const router = useRouter();
   const segments = useSegments();
@@ -42,13 +40,6 @@ const AuthGate = () => {
       return;
     }
 
-    if (!isAuth && inAuth && currentAuthRoute === "otp") {
-      if (pendingOtpType === "magiclink") {
-        router.replace("/auth/magic-link");
-        return;
-      }
-    }
-
     if (!isAuth && !inAuth) {
       router.replace("/auth");
     } else if (isAuth && inAuth) {
@@ -59,7 +50,6 @@ const AuthGate = () => {
     isAuth,
     requiresPasswordChange,
     sessionExpired,
-    pendingOtpType,
     segments,
     router,
   ]);

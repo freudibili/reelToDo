@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
+import { useFocusEffect } from "@react-navigation/native";
+import { Icon } from "react-native-paper";
 import AuthLayout from "../components/AuthLayout";
 import AuthTextField from "../components/AuthTextField";
 import AuthButton from "../components/AuthButton";
-import MagicLinkButton from "../components/MagicLinkButton";
 import { useAppDispatch, useAppSelector } from "@core/store/hook";
 import { clearError, signInWithPassword } from "@features/auth/store/authSlice";
 import {
@@ -26,6 +27,20 @@ const SignInScreen = () => {
   const error = useAppSelector(selectAuthError);
   const passwordStatus = useAppSelector(selectAuthRequestStatus("signIn"));
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
+
+  useFocusEffect(
+    useCallback(() => {
+      dispatch(clearError());
+    }, [dispatch])
+  );
+
+  const handleBack = useCallback(() => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace("/auth");
+    }
+  }, [router]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -49,6 +64,8 @@ const SignInScreen = () => {
       title={t("auth:signIn.title")}
       subtitle={t("auth:signIn.subtitle")}
       loading={passwordStatus === "pending"}
+      showBackButton
+      onBackPress={handleBack}
     >
       {error ? (
         <Text
@@ -83,34 +100,48 @@ const SignInScreen = () => {
         returnKeyType="done"
       />
       <AuthButton
-        label={t("auth:signIn.submit")}
-        onPress={onPasswordSubmit}
-        loading={passwordStatus === "pending"}
-        disabled={!email || !password}
-      />
+      label={t("auth:signIn.submit")}
+      onPress={onPasswordSubmit}
+      loading={passwordStatus === "pending"}
+      disabled={!email || !password}
+    />
       <TouchableOpacity onPress={() => router.push("/auth/forgot-password")}>
         <Text style={[styles.forgot, { color: colors.primary }]}>
           {t("auth:signIn.forgot")}
         </Text>
       </TouchableOpacity>
-      <MagicLinkButton
-        label={t("auth:signIn.useMagicLink")}
-        onPress={() =>
-          router.push({
-            pathname: "/auth/magic-link",
-            params: email ? { email } : undefined,
-          })
-        }
-      />
-      <View style={styles.secondaryAction}>
-        <Text style={[styles.secondaryLabel, { color: colors.secondaryText }]}>
-          {t("auth:signIn.noAccount")}
+      <View style={styles.dividerRow}>
+        <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
+        <Text style={[styles.dividerText, { color: colors.secondaryText }]}>
+          {t("auth:or")}
         </Text>
-        <AuthButton
-          label={t("auth:signUp.title")}
-          variant="ghost"
-          onPress={() => router.replace("/auth/signup")}
-        />
+        <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
+      </View>
+      <View style={styles.altRow}>
+        <TouchableOpacity onPress={() => router.replace("/auth/signup")}>
+          <Text style={[styles.altLink, { color: colors.primary }]}>
+            {t("auth:signUp.title")}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() =>
+            router.push({
+              pathname: "/auth/magic-link",
+              params: email ? { email } : undefined,
+            })
+          }
+        >
+          <View style={styles.magicLinkRow}>
+            <Icon
+              source="star-four-points"
+              size={16}
+              color={colors.primary}
+            />
+            <Text style={[styles.altLink, { color: colors.primary }]}>
+              {t("auth:signIn.useMagicLink")}
+            </Text>
+          </View>
+        </TouchableOpacity>
       </View>
     </AuthLayout>
   );
@@ -137,7 +168,35 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
-  secondaryLabel: {
+  dividerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginTop: 12,
+    marginBottom: 12,
+  },
+  dividerLine: {
+    flex: 1,
+    height: StyleSheet.hairlineWidth,
+  },
+  dividerText: {
+    fontSize: 12,
+    fontWeight: "700",
+    letterSpacing: 0.6,
+  },
+  altRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: -2,
+  },
+  altLink: {
+    fontWeight: "700",
     fontSize: 14,
+  },
+  magicLinkRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
   },
 });

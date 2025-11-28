@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { Text, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
+import { useFocusEffect } from "@react-navigation/native";
 import AuthLayout from "../components/AuthLayout";
 import AuthTextField from "../components/AuthTextField";
-import AuthButton from "../components/AuthButton";
+import MagicLinkButton from "../components/MagicLinkButton";
 import { useAppDispatch, useAppSelector } from "@core/store/hook";
 import {
   requestMagicLink,
@@ -28,6 +29,21 @@ const MagicLinkScreen = () => {
   const error = useAppSelector(selectAuthError);
   const status = useAppSelector(selectAuthRequestStatus("magicLink"));
 
+  useFocusEffect(
+    useCallback(() => {
+      dispatch(clearError());
+      setLinkSent(false);
+    }, [dispatch])
+  );
+
+  const handleBack = useCallback(() => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace("/auth");
+    }
+  }, [router]);
+
   const onSubmit = async () => {
     if (!email) return;
     dispatch(clearError());
@@ -45,22 +61,8 @@ const MagicLinkScreen = () => {
       subtitle={t("auth:magicLink.subtitle")}
       loading={status === "pending"}
       withCard={false}
-      footer={
-        <View style={styles.footerLinks}>
-          <AuthButton
-            label={t("auth:emailCheck.back")}
-            variant="secondary"
-            onPress={() =>
-              router.canGoBack() ? router.back() : router.replace("/auth")
-            }
-          />
-          <TouchableOpacity onPress={() => router.replace("/auth/signin")}>
-            <Text style={[styles.link, { color: colors.primary }]}>
-              {t("auth:signIn.title")}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      }
+      showBackButton
+      onBackPress={handleBack}
     >
       {error ? (
         <Text
@@ -100,7 +102,7 @@ const MagicLinkScreen = () => {
         value={email}
         onChangeText={setEmail}
       />
-      <AuthButton
+      <MagicLinkButton
         label={t("auth:magicLink.submit")}
         onPress={onSubmit}
         loading={status === "pending"}
@@ -117,11 +119,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     fontSize: 14,
   },
-  backLink: {
-    fontWeight: "600",
-    fontSize: 14,
-    marginBottom: 4,
-  },
   error: {
     borderWidth: 1,
     padding: 10,
@@ -131,8 +128,5 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 10,
     borderRadius: 10,
-  },
-  footerLinks: {
-    gap: 10,
   },
 });

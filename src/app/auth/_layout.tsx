@@ -8,7 +8,6 @@ const AuthLayout = () => {
       <Stack.Screen name="signin" />
       <Stack.Screen name="signup" />
       <Stack.Screen name="magic-link" />
-      <Stack.Screen name="otp" />
       <Stack.Screen name="forgot-password" />
       <Stack.Screen name="reset-password" />
       <Stack.Screen name="session-expired" />
