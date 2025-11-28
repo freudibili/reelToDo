@@ -225,6 +225,18 @@ const activitiesSlice = createSlice({
         state.items[idx] = action.payload;
       }
     },
+    activityPatched: (
+      state,
+      action: PayloadAction<{ id: string; changes: Partial<Activity> }>
+    ) => {
+      const idx = state.items.findIndex((a) => a.id === action.payload.id);
+      if (idx >= 0) {
+        state.items[idx] = {
+          ...state.items[idx],
+          ...action.payload.changes,
+        } as Activity;
+      }
+    },
     activityDeleted: (state, action: PayloadAction<string>) => {
       state.items = state.items.filter((a) => a.id !== action.payload);
       state.favoriteIds = state.favoriteIds.filter((x) => x !== action.payload);
@@ -369,6 +381,7 @@ const activitiesSlice = createSlice({
 export const {
   activityInserted,
   activityUpdated,
+  activityPatched,
   activityDeleted,
   favoriteToggledLocal,
   userActivityUpdated,

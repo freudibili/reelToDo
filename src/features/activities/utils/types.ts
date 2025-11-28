@@ -21,6 +21,9 @@ export interface Activity {
   confidence: number | null;
   created_at: string;
   distance?: number | null;
+  location_status?: "confirmed" | "suggested" | "unconfirmed" | "missing";
+  location_confirmed_at?: string | null;
+  location_confirmed_by?: string | null;
   needs_location_confirmation: boolean;
   needs_date_confirmation: boolean;
 }

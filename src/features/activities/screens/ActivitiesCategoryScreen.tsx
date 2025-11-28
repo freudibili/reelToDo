@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useRef, useState } from "react";
-import { View, Text, StyleSheet, Alert } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useAppDispatch, useAppSelector } from "@core/store/hook";
 import { activitiesSelectors } from "../store/activitiesSelectors";
@@ -21,9 +21,6 @@ import {
   openActivityInMaps,
   openActivitySource,
 } from "../services/linksService";
-import LocationChangeModal from "@common/components/LocationChangeModal";
-import type { PlaceDetails } from "@features/import/services/locationService";
-import { ActivitiesService } from "../services/activitiesService";
 
 const ActivitiesCategoryScreen = () => {
   const { category: categoryParam } = useLocalSearchParams<{
@@ -44,7 +41,6 @@ const ActivitiesCategoryScreen = () => {
   );
   const activities = useAppSelector(categorySelector);
   const favoriteIds = useAppSelector(activitiesSelectors.favoriteIds);
-  const userId = useAppSelector((state) => state.auth.user?.id ?? null);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selectedSelector = useMemo(
@@ -56,10 +52,6 @@ const ActivitiesCategoryScreen = () => {
   );
   const [sheetVisible, setSheetVisible] = useState(false);
   const sheetRef = useRef(null);
-  const [locationModalVisible, setLocationModalVisible] = useState(false);
-  const [locationModalActivity, setLocationModalActivity] =
-    useState<Activity | null>(null);
-  const [locationSubmitting, setLocationSubmitting] = useState(false);
 
   const handleSelect = useCallback((activity: Activity) => {
     setSelectedId(activity.id);
@@ -116,44 +108,6 @@ const ActivitiesCategoryScreen = () => {
     [dispatch]
   );
 
-  const handleOpenLocationModal = useCallback((activity: Activity) => {
-    setLocationModalActivity(activity);
-    setLocationModalVisible(true);
-  }, []);
-
-  const handleCloseLocationModal = useCallback(() => {
-    setLocationModalVisible(false);
-    setLocationModalActivity(null);
-  }, []);
-
-  const handleSubmitLocation = useCallback(
-    async (place: PlaceDetails) => {
-      if (!locationModalActivity) return;
-      setLocationSubmitting(true);
-      try {
-        await ActivitiesService.submitLocationSuggestion({
-          activityId: locationModalActivity.id,
-          userId,
-          place,
-          note: null,
-        });
-        Alert.alert(
-          t("activities:report.successTitle"),
-          t("activities:report.successMessage")
-        );
-        handleCloseLocationModal();
-      } catch (e) {
-        Alert.alert(
-          t("activities:report.errorTitle"),
-          t("activities:report.errorMessage")
-        );
-      } finally {
-        setLocationSubmitting(false);
-      }
-    },
-    [handleCloseLocationModal, locationModalActivity, t, userId]
-  );
-
   return (
     <Screen
       scrollable
@@ -204,30 +158,9 @@ const ActivitiesCategoryScreen = () => {
               );
             }}
             onChangePlannedDate={handleSetPlannedDate}
-            onChangeLocation={handleOpenLocationModal}
           />
         </AppBottomSheet>
       )}
-
-      <LocationChangeModal
-        visible={locationModalVisible && !!locationModalActivity}
-        onClose={handleCloseLocationModal}
-        onSelectPlace={handleSubmitLocation}
-        submitting={locationSubmitting}
-        initialValue={
-          locationModalActivity?.address ?? locationModalActivity?.location_name
-        }
-        title={t("activities:report.title")}
-        subtitle={
-          locationModalActivity
-            ? t("activities:report.subtitle", {
-                title:
-                  locationModalActivity.title ??
-                  t("common:labels.activity"),
-              })
-            : undefined
-        }
-      />
     </Screen>
   );
 };

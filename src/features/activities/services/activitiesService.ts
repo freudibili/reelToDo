@@ -1,5 +1,6 @@
 import { supabase } from "@config/supabase";
 import type { PlaceDetails } from "@features/import/services/locationService";
+import type { Activity } from "../utils/types";
 
 export const ActivitiesService = {
   async fetchActivities(userId?: string | null) {
@@ -186,21 +187,37 @@ export const ActivitiesService = {
     const payload = {
       activity_id: activityId,
       user_id: userId,
-      suggested_address: place.formattedAddress,
-      suggested_name: place.name,
       place_id: place.placeId,
+      address: place.formattedAddress ?? place.name ?? "",
       latitude: place.latitude,
       longitude: place.longitude,
-      city: place.city,
-      country: place.country,
       note: note ?? null,
       status: "pending",
+      source: "app",
     };
 
     const { error } = await supabase
-      .from("activity_location_suggestions")
+      .from("location_suggestions")
       .insert(payload);
 
     if (error) throw error;
+
+    await supabase
+      .from("activities")
+      .update({
+        location_status: "suggested",
+        needs_location_confirmation: true,
+      })
+      .eq("id", activityId);
+  },
+
+  async fetchActivityById(activityId: string): Promise<Activity | null> {
+    const { data, error } = await supabase
+      .from("activities")
+      .select("*")
+      .eq("id", activityId)
+      .maybeSingle();
+    if (error) throw error;
+    return data as Activity | null;
   },
 };

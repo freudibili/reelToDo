@@ -1,5 +1,5 @@
-import React, { useMemo } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import React, { useMemo, useState, useCallback } from "react";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { IconButton } from "react-native-paper";
 import { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import ActivityHero from "@common/components/ActivityHero";
@@ -21,6 +21,11 @@ import { useConfirmDialog } from "@common/hooks/useConfirmDialog";
 import { useAppTheme } from "@common/theme/appTheme";
 import { usePlatformDateTimePicker } from "../hooks/usePlatformDateTimePicker";
 import LocationAssistButton from "./LocationAssistButton";
+import LocationChangeModal from "@common/components/LocationChangeModal";
+import { useAppDispatch, useAppSelector } from "@core/store/hook";
+import { ActivitiesService } from "../services/activitiesService";
+import type { PlaceDetails } from "@features/import/services/locationService";
+import { activityPatched } from "../store/activitiesSlice";
 
 interface Props {
   activity: Activity | null;
@@ -31,7 +36,6 @@ interface Props {
   onOpenSource: (activity: Activity) => void;
   onAddToCalendar: (activity: Activity) => void;
   onChangePlannedDate: (activity: Activity, date: Date | null) => void;
-  onChangeLocation?: (activity: Activity) => void;
 }
 
 const ActivityDetailsSheet: React.FC<Props> = ({
@@ -43,11 +47,14 @@ const ActivityDetailsSheet: React.FC<Props> = ({
   onOpenSource,
   onAddToCalendar,
   onChangePlannedDate,
-  onChangeLocation,
 }) => {
   const { t } = useTranslation();
   const { confirm } = useConfirmDialog();
   const { colors, mode } = useAppTheme();
+  const dispatch = useAppDispatch();
+  const userId = useAppSelector((state) => state.auth.user?.id ?? null);
+  const [locationModalVisible, setLocationModalVisible] = useState(false);
+  const [locationSubmitting, setLocationSubmitting] = useState(false);
   if (!activity) return null;
   const baseDate = useMemo(
     () =>
@@ -145,103 +152,163 @@ const ActivityDetailsSheet: React.FC<Props> = ({
     },
   ];
 
+  const handleOpenLocationModal = useCallback(() => {
+    setLocationModalVisible(true);
+  }, []);
+
+  const handleCloseLocationModal = useCallback(() => {
+    setLocationModalVisible(false);
+  }, []);
+
+  const handleSubmitLocation = useCallback(
+    async (place: PlaceDetails) => {
+      if (!activity) return;
+      setLocationSubmitting(true);
+      try {
+        await ActivitiesService.submitLocationSuggestion({
+          activityId: activity.id,
+          userId,
+          place,
+          note: null,
+        });
+        dispatch(
+          activityPatched({
+            id: activity.id,
+            changes: {
+              location_status: "suggested",
+              needs_location_confirmation: true,
+            },
+          })
+        );
+        Alert.alert(
+          t("activities:report.successTitle"),
+          t("activities:report.successMessage")
+        );
+        handleCloseLocationModal();
+      } catch (e) {
+        Alert.alert(
+          t("activities:report.errorTitle"),
+          t("activities:report.errorMessage")
+        );
+      } finally {
+        setLocationSubmitting(false);
+      }
+    },
+    [activity, dispatch, handleCloseLocationModal, t, userId]
+  );
+
   return (
-    <BottomSheetScrollView
-      contentContainerStyle={[styles.scrollContent, { backgroundColor: colors.surface }]}
-      nestedScrollEnabled
-    >
-      <ActivitySummaryHeader
-        title={activity.title ?? t("common:labels.activity")}
-        category={activity.category}
-        location={locationLabel}
-        dateLabel={primaryDateLabel ?? officialDateLabel}
-        style={styles.headerBlock}
-      />
-
-      <View style={styles.actionsRailWrapper}>
-        <ActionRail actions={actions} />
-      </View>
-
-      {pickerModal}
-
-      <ActivityHero
-        title={activity.title ?? t("common:labels.activity")}
-        category={activity.category}
-        location={locationLabel}
-        dateLabel={primaryDateLabel}
-        imageUrl={activity.image_url}
-        showOverlayContent={false}
-      />
-      <View style={styles.sectionHeader}>
-        <Text style={[styles.sectionHeaderText, { color: colors.text }]}>
-          {t("activities:details.overview")}
-        </Text>
-        <View style={[styles.sectionUnderline, { backgroundColor: colors.primary }]} />
-      </View>
-      <InfoRow
-        icon="map-marker"
-        value={activity.address ?? t("activities:details.addressMissing")}
-        rightSlot={
-          onChangeLocation ? (
-            <LocationAssistButton activity={activity} onChangeLocation={onChangeLocation} />
-          ) : null
-        }
-      />
-      {needsDate ? (
-        <InfoRow
-          icon="calendar"
-          value={officialDateLabel ?? t("activities:details.dateMissing")}
-        />
-      ) : null}
-      <Pressable
-        style={[
-          styles.planCard,
-          { backgroundColor: colors.card, borderColor: colors.border },
-        ]}
-        onPress={openPicker}
+    <>
+      <BottomSheetScrollView
+        contentContainerStyle={[styles.scrollContent, { backgroundColor: colors.surface }]}
+        nestedScrollEnabled
       >
-        <View style={styles.planTextCol}>
-          <Text style={[styles.sectionHeaderText, { color: colors.text }]}>
-            {t("activities:planned.title")}
-          </Text>
-          <DateBadge
-            label={plannedDateLabel ?? t("activities:planned.empty")}
-            tone={plannedDateLabel ? "default" : "muted"}
-          />
-          {activity.main_date ? (
-            <Text style={[styles.muted, { color: colors.mutedText }]}>
-              {sameAsOfficial
-                ? t("activities:planned.matchesOfficial")
-                : t("activities:planned.officialLabel", {
-                    value: formatDisplayDateTime(activity.main_date),
-                  })}
-            </Text>
-          ) : null}
+        <ActivitySummaryHeader
+          title={activity.title ?? t("common:labels.activity")}
+          category={activity.category}
+          location={locationLabel}
+          dateLabel={primaryDateLabel ?? officialDateLabel}
+          style={styles.headerBlock}
+        />
+
+        <View style={styles.actionsRailWrapper}>
+          <ActionRail actions={actions} />
         </View>
-        <View style={styles.planActions}>
-          <IconButton
-            mode="contained-tonal"
-            icon={plannedDateLabel ? "pencil" : "calendar-plus"}
-            onPress={openPicker}
-            containerColor={colors.accent}
-            iconColor="#ffffff"
-            size={22}
-            style={styles.iconButton}
+
+        {pickerModal}
+
+        <ActivityHero
+          title={activity.title ?? t("common:labels.activity")}
+          category={activity.category}
+          location={locationLabel}
+          dateLabel={primaryDateLabel}
+          imageUrl={activity.image_url}
+          showOverlayContent={false}
+        />
+        <View style={styles.sectionHeader}>
+          <Text style={[styles.sectionHeaderText, { color: colors.text }]}>
+            {t("activities:details.overview")}
+          </Text>
+          <View style={[styles.sectionUnderline, { backgroundColor: colors.primary }]} />
+        </View>
+        <InfoRow
+          icon="map-marker"
+          value={activity.address ?? t("activities:details.addressMissing")}
+          rightSlot={
+            <LocationAssistButton
+              activity={activity}
+              onChangeLocation={handleOpenLocationModal}
+            />
+          }
+        />
+        {needsDate ? (
+          <InfoRow
+            icon="calendar"
+            value={officialDateLabel ?? t("activities:details.dateMissing")}
           />
-          {plannedDateLabel ? (
+        ) : null}
+        <Pressable
+          style={[
+            styles.planCard,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+          onPress={openPicker}
+        >
+          <View style={styles.planTextCol}>
+            <Text style={[styles.sectionHeaderText, { color: colors.text }]}>
+              {t("activities:planned.title")}
+            </Text>
+            <DateBadge
+              label={plannedDateLabel ?? t("activities:planned.empty")}
+              tone={plannedDateLabel ? "default" : "muted"}
+            />
+            {activity.main_date ? (
+              <Text style={[styles.muted, { color: colors.mutedText }]}>
+                {sameAsOfficial
+                  ? t("activities:planned.matchesOfficial")
+                  : t("activities:planned.officialLabel", {
+                      value: formatDisplayDateTime(activity.main_date),
+                    })}
+              </Text>
+            ) : null}
+          </View>
+          <View style={styles.planActions}>
             <IconButton
               mode="contained-tonal"
-              icon="trash-can-outline"
-              onPress={() => onChangePlannedDate(activity, null)}
+              icon={plannedDateLabel ? "pencil" : "calendar-plus"}
+              onPress={openPicker}
               containerColor={colors.accent}
               iconColor="#ffffff"
               size={22}
               style={styles.iconButton}
             />
-          ) : null}
-        </View>
-      </Pressable>
-    </BottomSheetScrollView>
+            {plannedDateLabel ? (
+              <IconButton
+                mode="contained-tonal"
+                icon="trash-can-outline"
+                onPress={() => onChangePlannedDate(activity, null)}
+                containerColor={colors.accent}
+                iconColor="#ffffff"
+                size={22}
+                style={styles.iconButton}
+              />
+            ) : null}
+          </View>
+        </Pressable>
+      </BottomSheetScrollView>
+
+      <LocationChangeModal
+        visible={locationModalVisible}
+        onClose={handleCloseLocationModal}
+        onSelectPlace={handleSubmitLocation}
+        submitting={locationSubmitting}
+        initialValue={activity.address ?? activity.location_name ?? undefined}
+        title={t("activities:report.title")}
+        subtitle={t("activities:report.subtitle", {
+          title: activity.title ?? t("common:labels.activity"),
+        })}
+      />
+    </>
   );
 };
 
