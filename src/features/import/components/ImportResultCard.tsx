@@ -7,6 +7,11 @@ import ImportDetailsForm, {
 } from "./ImportDetailsForm";
 import type { Activity } from "@features/activities/utils/types";
 import type { UpdateActivityPayload } from "../utils/types";
+import {
+  formatActivityLocation,
+  formatDisplayDate,
+} from "@features/activities/utils/activityDisplay";
+import { categoryNeedsDate } from "@features/activities/utils/activityHelper";
 import { useTranslation } from "react-i18next";
 import { useAppTheme } from "@common/theme/appTheme";
 
@@ -16,6 +21,8 @@ interface ImportResultCardProps {
   onSave: (payload: UpdateActivityPayload) => void;
   onCancel: () => void;
   onDirtyChange: (dirty: boolean) => void;
+  userId?: string | null;
+  alreadyHadActivity?: boolean;
 }
 
 const ImportResultCard: React.FC<ImportResultCardProps> = ({
@@ -24,9 +31,15 @@ const ImportResultCard: React.FC<ImportResultCardProps> = ({
   onSave,
   onCancel,
   onDirtyChange,
+  userId,
+  alreadyHadActivity = false,
 }) => {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
+  const titleKey = "import:result.title";
+  const subtitleKey = alreadyHadActivity
+    ? "import:result.alreadyOwned"
+    : "import:result.subtitle";
 
   return (
     <View
@@ -41,16 +54,31 @@ const ImportResultCard: React.FC<ImportResultCardProps> = ({
         </View>
         <View>
           <Text style={[styles.title, { color: colors.text }]}>
-            {t("import:result.title", "Analysis ready")}
+            {t(titleKey, "Analysis ready")}
           </Text>
           <Text style={[styles.subtitle, { color: colors.secondaryText }]}>
-            {t(
-              "import:result.subtitle",
-              "Review the details we found and tweak if needed."
-            )}
+            {t(subtitleKey, "Review the details we found and tweak if needed.")}
           </Text>
         </View>
       </View>
+
+      {alreadyHadActivity ? (
+        <View style={styles.summary}>
+          <Text style={[styles.summaryTitle, { color: colors.text }]}>
+            {activity.title ?? t("common:labels.activity")}
+          </Text>
+          <Text style={[styles.summaryMeta, { color: colors.secondaryText }]}>
+            {formatActivityLocation(activity) ??
+              t("import:details.locationFallback")}
+          </Text>
+          {categoryNeedsDate(activity.category) && (
+            <Text style={[styles.summaryMeta, { color: colors.secondaryText }]}>
+              {formatDisplayDate(activity.main_date) ??
+                t("activities:details.dateMissing")}
+            </Text>
+          )}
+        </View>
+      ) : null}
 
       <ImportDetailsForm
         ref={detailsRef}
@@ -58,6 +86,7 @@ const ImportResultCard: React.FC<ImportResultCardProps> = ({
         onSave={onSave}
         onCancel={onCancel}
         onDirtyChange={onDirtyChange}
+        userId={userId}
       />
     </View>
   );
@@ -95,6 +124,17 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   subtitle: {
+    fontSize: 13,
+  },
+  summary: {
+    marginTop: 8,
+    gap: 2,
+  },
+  summaryTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  summaryMeta: {
     fontSize: 13,
   },
 });

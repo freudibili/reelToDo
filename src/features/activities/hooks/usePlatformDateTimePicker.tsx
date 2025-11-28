@@ -15,14 +15,12 @@ type UsePlatformDateTimePickerProps = {
   value: Date;
   onChange: (date: Date) => void;
   cardColor: string;
-  themeVariant?: "light" | "dark";
 };
 
 export const usePlatformDateTimePicker = ({
   value,
   onChange,
   cardColor,
-  themeVariant = "light",
 }: UsePlatformDateTimePickerProps) => {
   const [visible, setVisible] = useState(false);
 
@@ -61,7 +59,6 @@ export const usePlatformDateTimePicker = ({
       mode: "time",
       is24Hour: true,
       onChange: handleAndroidTimeChange(mergedDate),
-      themeVariant,
     });
   };
 
@@ -71,7 +68,6 @@ export const usePlatformDateTimePicker = ({
         value,
         mode: "date",
         onChange: handleAndroidDateChange,
-        themeVariant,
       });
       return;
     }
@@ -95,7 +91,6 @@ export const usePlatformDateTimePicker = ({
             mode="datetime"
             display="spinner"
             onChange={handleIosChange}
-            themeVariant={themeVariant}
           />
         </View>
       </Modal>

@@ -109,29 +109,31 @@ const ActivitiesCategoryScreen = () => {
   );
 
   return (
-    <Screen
-      scrollable
-      flushBottom
-      headerTitle={categoryLabel || t("activities:category.fallbackTitle")}
-      headerSubtitle={t("activities:category.subtitle", {
-        count: activities.length,
-      })}
-      onBackPress={() => router.back()}
-      headerCompact
-    >
-      <View style={styles.list}>
-        {activities.map((activity) => (
-          <View key={activity.id} style={styles.cardSpacer}>
-            <ActivityCard activity={activity} onPress={handleSelect} />
-          </View>
-        ))}
+    <>
+      <Screen
+        scrollable
+        flushBottom
+        headerTitle={categoryLabel || t("activities:category.fallbackTitle")}
+        headerSubtitle={t("activities:category.subtitle", {
+          count: activities.length,
+        })}
+        onBackPress={() => router.back()}
+        headerCompact
+      >
+        <View style={styles.list}>
+          {activities.map((activity) => (
+            <View key={activity.id} style={styles.cardSpacer}>
+              <ActivityCard activity={activity} onPress={handleSelect} />
+            </View>
+          ))}
 
-        {activities.length === 0 && (
-          <View style={styles.empty}>
-            <Text>{t("activities:category.empty")}</Text>
-          </View>
-        )}
-      </View>
+          {activities.length === 0 && (
+            <View style={styles.empty}>
+              <Text>{t("activities:category.empty")}</Text>
+            </View>
+          )}
+        </View>
+      </Screen>
 
       {sheetVisible && (
         <AppBottomSheet
@@ -161,7 +163,7 @@ const ActivitiesCategoryScreen = () => {
           />
         </AppBottomSheet>
       )}
-    </Screen>
+    </>
   );
 };
 

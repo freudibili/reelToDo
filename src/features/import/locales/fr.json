@@ -20,11 +20,19 @@
     "saveChanges": "Enregistrer les modifications",
     "cancel": "Annuler"
   },
+  "result": {
+    "title": "Analyse terminée",
+    "subtitle": "Vérifie les informations trouvées et ajuste si besoin.",
+    "alreadyOwnedTitle": "Tu as déjà cette activité",
+    "alreadyOwnedSubtitle": "Vérifie ce qu'on a trouvé et mets à jour si tu veux.",
+    "alreadyOwned": "Tu as déjà enregistré cette activité. Tu peux quand même mettre à jour les détails ci-dessous."
+  },
   "locationSection": {
     "label": "Lieu",
     "notFound": "On n'a pas trouvé le lieu de cette activité.",
     "notAccurate": "Ce lieu peut ne pas être exact. Merci de vérifier.",
     "edit": "Modifier le lieu",
+    "suggestHelper": "Lieu confirmé. Propose une nouvelle adresse si c'est incorrect.",
     "confirmed": "Lieu confirmé. Tu peux toujours l'ajuster si besoin.",
     "modalTitle": "Mettre à jour le lieu",
     "modalSubtitle": "Recherche et sélectionne la bonne adresse."

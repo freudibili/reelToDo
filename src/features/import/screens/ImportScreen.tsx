@@ -36,6 +36,15 @@ import ImportErrorState from "../components/ImportErrorState";
 import type { Activity } from "@features/activities/utils/types";
 import { UpdateActivityPayload } from "../utils/types";
 import { useTranslation } from "react-i18next";
+import { Pressable, Text } from "react-native";
+import ActivitySummaryHeader from "@common/components/ActivitySummaryHeader";
+import ActivityHero from "@common/components/ActivityHero";
+import {
+  formatActivityLocation,
+  formatDisplayDate,
+} from "@features/activities/utils/activityDisplay";
+import { categoryNeedsDate } from "@features/activities/utils/activityHelper";
+import { useAppTheme } from "@common/theme/appTheme";
 
 const isValidHttpUrl = (input: string) => {
   if (!input) return false;
@@ -56,28 +65,71 @@ const ImportScreen = () => {
   const user = useAppSelector(selectAuthUser);
   const { confirm } = useConfirmDialog();
   const { t } = useTranslation();
+  const { colors, mode } = useAppTheme();
 
   const loading = useAppSelector(selectImportLoading);
   const error = useAppSelector(selectImportError);
   const activity = useAppSelector(selectImportedActivity) as Activity | null;
+  const activities = useAppSelector((state) => state.activities.items);
+  const knownActivityIdsRef = useRef<Set<string>>(new Set());
+  const hasSharedParam = !!shared && !Array.isArray(shared);
+  const showError = error && !activity;
   const sharedData = useMemo<ShareIntent | null>(() => {
     if (!shared || Array.isArray(shared)) return null;
-    try {
-      return JSON.parse(shared) as ShareIntent;
-    } catch {
-      return null;
-    }
+
+    const attemptParse = (raw: string) => {
+      try {
+        return JSON.parse(raw) as ShareIntent;
+      } catch {
+        return null;
+      }
+    };
+
+    // Try decoded then raw.
+    return (
+      attemptParse(shared) ||
+      attemptParse(
+        (() => {
+          try {
+            return decodeURIComponent(shared);
+          } catch {
+            return shared;
+          }
+        })()
+      )
+    );
   }, [shared]);
+  const sharedUrl = useMemo(() => {
+    const candidate = sharedData?.webUrl;
+    if (candidate && isValidHttpUrl(candidate)) return candidate;
+    if (sharedData?.text) {
+      const match = sharedData.text.match(/https?:\/\/\\S+/i);
+      if (match && isValidHttpUrl(match[0])) {
+        return match[0];
+      }
+    }
+    return null;
+  }, [sharedData]);
   const [manualLink, setManualLink] = useState("");
-  const screenLoading =
-    loading || (!!sharedData?.webUrl && !activity && !error);
+  const screenLoading = loading || (hasSharedParam && !activity && !showError);
+  const alreadyHadActivity = activity
+    ? knownActivityIdsRef.current.has(activity.id)
+    : false;
+  const displayActivity = useMemo(() => {
+    if (!activity) return null;
+    const linked = activities.find((item) => item.id === activity.id);
+    return linked ?? activity;
+  }, [activities, activity]);
+  const displayNeedsDate = displayActivity
+    ? categoryNeedsDate(displayActivity.category)
+    : false;
 
   const hasAnalyzedRef = useRef(false);
   const detailsRef = useRef<ImportDetailsFormHandle>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const trimmedLink = manualLink.trim();
   const canAnalyzeManual =
-    isValidHttpUrl(trimmedLink) && !loading && !sharedData?.webUrl;
+    isValidHttpUrl(trimmedLink) && !loading && !sharedUrl;
 
   useFocusEffect(
     useCallback(() => {
@@ -85,6 +137,7 @@ const ImportScreen = () => {
       setManualLink("");
       setHasUnsavedChanges(false);
       hasAnalyzedRef.current = false;
+      knownActivityIdsRef.current = new Set(activities.map((item) => item.id));
     }, [dispatch])
   );
 
@@ -114,16 +167,25 @@ const ImportScreen = () => {
   }, [loading, triggerAnalyze, trimmedLink, user?.id]);
 
   useEffect(() => {
-    if (sharedData?.webUrl && user?.id) {
-      triggerAnalyze(sharedData);
+    if (!sharedUrl && sharedData?.text && !manualLink) {
+      setManualLink(sharedData.text);
     }
-  }, [sharedData, triggerAnalyze, user?.id]);
+  }, [sharedData?.text, manualLink, sharedUrl]);
+
+  useEffect(() => {
+    if (sharedUrl && user?.id) {
+      triggerAnalyze({
+        webUrl: sharedUrl,
+        text: sharedData?.text ?? sharedUrl,
+      } as ShareIntent);
+    }
+  }, [sharedData?.text, sharedUrl, triggerAnalyze, user?.id]);
 
   useEffect(() => {
     if (activity) {
-      setHasUnsavedChanges(true);
+      setHasUnsavedChanges(!alreadyHadActivity);
     }
-  }, [activity]);
+  }, [activity, alreadyHadActivity]);
 
   useEffect(() => {
     if (activity || error) {
@@ -210,9 +272,15 @@ const ImportScreen = () => {
     <Screen
       loading={screenLoading}
       scrollable
-      onBackPress={fromActivities ? handleBackPress : undefined}
+      onBackPress={
+        alreadyHadActivity
+          ? handleGoHome
+          : fromActivities
+            ? handleBackPress
+            : undefined
+      }
       footer={
-        activity ? (
+        activity && !alreadyHadActivity ? (
           <ImportFooter
             disabled={!hasUnsavedChanges}
             onCancel={handleCancelDetails}
@@ -226,11 +294,11 @@ const ImportScreen = () => {
           title={t("import:header.title")}
           subtitle={t("import:header.subtitle")}
         />
-        {error ? (
+        {showError ? (
           <ImportErrorState message={error} onGoHome={handleGoHome} />
         ) : null}
 
-        {!sharedData?.webUrl ? (
+        {!hasSharedParam ? (
           <ManualLinkCard
             value={manualLink}
             onChange={setManualLink}
@@ -247,14 +315,80 @@ const ImportScreen = () => {
           />
         ) : null}
 
-        {activity ? (
-          <ImportResultCard
-            activity={activity}
-            detailsRef={detailsRef}
-            onSave={handleSaveDetails}
-            onCancel={handleCancelDetails}
-            onDirtyChange={setHasUnsavedChanges}
-          />
+        {displayActivity ? (
+          alreadyHadActivity ? (
+            <View
+              style={[
+                styles.alreadyHaveCard,
+                { backgroundColor: colors.card, borderColor: colors.border },
+              ]}
+            >
+              <ActivitySummaryHeader
+                title={displayActivity.title ?? t("common:labels.activity")}
+                category={displayActivity.category}
+                location={
+                  formatActivityLocation(displayActivity) ??
+                  t("import:details.locationFallback")
+                }
+                dateLabel={
+                  displayNeedsDate
+                    ? formatDisplayDate(displayActivity.main_date) ??
+                      t("activities:details.dateMissing")
+                    : undefined
+                }
+                style={styles.headerBlock}
+              />
+              <ActivityHero
+                title={displayActivity.title ?? t("common:labels.activity")}
+                category={displayActivity.category}
+                location={
+                  formatActivityLocation(displayActivity) ??
+                  t("import:details.locationFallback")
+                }
+                dateLabel={
+                  displayNeedsDate
+                    ? formatDisplayDate(displayActivity.main_date) ??
+                      t("activities:details.dateMissing")
+                    : undefined
+                }
+                imageUrl={displayActivity.image_url}
+                showOverlayContent={false}
+              />
+              {alreadyHadActivity ? (
+                <Text style={[styles.alreadyHaveTitle, { color: colors.text }]}>
+                  {t("import:result.alreadyOwned")}
+                </Text>
+              ) : null}
+              <Pressable
+                style={[
+                  styles.returnHomeBtn,
+                  { backgroundColor: colors.primary },
+                ]}
+                onPress={handleGoHome}
+              >
+                <Text
+                  style={[
+                    styles.returnHomeText,
+                    {
+                      color:
+                        mode === "dark" ? colors.background : colors.surface,
+                    },
+                  ]}
+                >
+                  {t("import:errorState.homeCta", "Back to home")}
+                </Text>
+              </Pressable>
+            </View>
+          ) : (
+            <ImportResultCard
+              activity={activity}
+              detailsRef={detailsRef}
+              onSave={handleSaveDetails}
+              onCancel={handleCancelDetails}
+              onDirtyChange={setHasUnsavedChanges}
+              userId={user?.id ?? null}
+            />
+          )
         ) : null}
       </View>
     </Screen>
@@ -266,6 +400,30 @@ const styles = StyleSheet.create({
     gap: 16,
     alignItems: "stretch",
     marginTop: 16,
+  },
+  alreadyHaveCard: {
+    marginTop: 12,
+    padding: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    gap: 10,
+  },
+  alreadyHaveTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  returnHomeBtn: {
+    alignSelf: "flex-start",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+  },
+  returnHomeText: {
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  headerBlock: {
+    paddingHorizontal: 4,
   },
 });
 

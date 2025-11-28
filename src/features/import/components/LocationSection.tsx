@@ -13,6 +13,10 @@ interface LocationSectionProps {
   confirmed: boolean;
   onChange: (place: PlaceDetails) => void;
   editRequest?: number;
+  mode?: "edit" | "suggest";
+  onSuggest?: (place: PlaceDetails) => Promise<void> | void;
+  submitting?: boolean;
+  activityTitle?: string;
 }
 
 const LocationSection: React.FC<LocationSectionProps> = ({
@@ -22,6 +26,10 @@ const LocationSection: React.FC<LocationSectionProps> = ({
   confirmed,
   onChange,
   editRequest = 0,
+  mode: sectionMode = "edit",
+  onSuggest,
+  submitting = false,
+  activityTitle,
 }) => {
   const { t } = useTranslation();
   const [modalVisible, setModalVisible] = useState(false);
@@ -29,9 +37,22 @@ const LocationSection: React.FC<LocationSectionProps> = ({
   const { colors, mode } = useAppTheme();
 
   const hasAddress = !!address;
+  const isSuggestMode = sectionMode === "suggest";
   const needsConfirmation = !confirmed || !hasAddress;
 
-  const handleSelectPlace = (place: PlaceDetails) => {
+  const handleSelectPlace = async (place: PlaceDetails) => {
+    if (isSuggestMode) {
+      if (onSuggest) {
+        try {
+          await onSuggest(place);
+          setModalVisible(false);
+        } catch {
+          // Keep modal open so the user can try again.
+        }
+      }
+      return;
+    }
+
     onChange(place);
     setModalVisible(false);
   };
@@ -56,23 +77,18 @@ const LocationSection: React.FC<LocationSectionProps> = ({
     >
       <InfoRow icon="map-marker" value={infoValue} />
 
-      {needsConfirmation ? (
-        <Text style={[styles.helperText, { color: colors.secondaryText }]}>
-          {hasAddress
-            ? t("import:locationSection.notAccurate")
-            : t("import:locationSection.notFound")}
-        </Text>
-      ) : (
-        <Text style={[styles.helperText, { color: colors.secondaryText }]}>
-          {t("import:locationSection.confirmed")}
-        </Text>
-      )}
+      <Text style={[styles.helperText, { color: colors.secondaryText }]}>
+        {!hasAddress
+          ? t("import:locationSection.notFound")
+          : isSuggestMode
+            ? t("import:locationSection.suggestHelper")
+            : needsConfirmation
+              ? t("import:locationSection.notAccurate")
+              : t("import:locationSection.confirmed")}
+      </Text>
 
       <Pressable
-        style={[
-          styles.primaryBtn,
-          { backgroundColor: colors.primary },
-        ]}
+        style={[styles.primaryBtn, { backgroundColor: colors.primary }]}
         onPress={() => setModalVisible(true)}
       >
         <Text
@@ -81,7 +97,9 @@ const LocationSection: React.FC<LocationSectionProps> = ({
             { color: mode === "dark" ? colors.background : colors.surface },
           ]}
         >
-          {t("import:locationSection.edit")}
+          {isSuggestMode
+            ? t("activities:details.reportLocation")
+            : t("import:locationSection.edit")}
         </Text>
       </Pressable>
 
@@ -90,8 +108,19 @@ const LocationSection: React.FC<LocationSectionProps> = ({
         initialValue={address || locationName}
         onSelectPlace={handleSelectPlace}
         onClose={() => setModalVisible(false)}
-        title={t("import:locationSection.modalTitle")}
-        subtitle={t("import:locationSection.modalSubtitle")}
+        submitting={submitting}
+        title={
+          isSuggestMode
+            ? t("activities:report.title")
+            : t("import:locationSection.modalTitle")
+        }
+        subtitle={
+          isSuggestMode
+            ? t("activities:report.subtitle", {
+                title: activityTitle ?? t("common:labels.activity"),
+              })
+            : t("import:locationSection.modalSubtitle")
+        }
       />
     </View>
   );
@@ -99,9 +128,9 @@ const LocationSection: React.FC<LocationSectionProps> = ({
 
 const styles = StyleSheet.create({
   section: {
-    marginTop: 16,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
+    marginTop: 20,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
     borderRadius: 12,
     borderWidth: 1,
   },
@@ -112,14 +141,14 @@ const styles = StyleSheet.create({
   },
   helperText: {
     fontSize: 13,
-    marginTop: 2,
+    marginTop: 8,
   },
   previewText: {
     fontSize: 14,
     marginTop: 6,
   },
   primaryBtn: {
-    marginTop: 10,
+    marginTop: 14,
     borderRadius: 999,
     paddingVertical: 10,
     paddingHorizontal: 16,

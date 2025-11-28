@@ -20,11 +20,19 @@
     "saveChanges": "Save changes",
     "cancel": "Cancel"
   },
+  "result": {
+    "title": "Analysis ready",
+    "subtitle": "Review the details we found and tweak if needed.",
+    "alreadyOwnedTitle": "You already have this one",
+    "alreadyOwnedSubtitle": "Review what we found and update details if you want.",
+    "alreadyOwned": "Looks like you already saved this one. You can still update details below."
+  },
   "locationSection": {
     "label": "Location",
     "notFound": "Seems we didn’t find the place for this activity.",
     "notAccurate": "This location might not be accurate. Please check it.",
     "edit": "Edit location",
+    "suggestHelper": "This location is confirmed. Suggest an update if it looks wrong.",
     "confirmed": "Address confirmed. You can still adjust it if needed.",
     "modalTitle": "Update location",
     "modalSubtitle": "Search and pick the correct address."

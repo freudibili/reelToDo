@@ -70,14 +70,11 @@ const ActivityDetailsSheet: React.FC<Props> = ({
     value: baseDate,
     onChange: (date) => onChangePlannedDate(activity, date),
     cardColor: colors.card,
-    themeVariant: mode === "dark" ? "dark" : "light",
   });
 
   const officialDateLabel = formatDisplayDate(activity.main_date);
   const plannedDateLabel = formatDisplayDateTime(activity.planned_at);
-  const primaryDateLabel = formatDisplayDateTime(
-    getPrimaryDateValue(activity)
-  );
+  const primaryDateLabel = formatDisplayDateTime(getPrimaryDateValue(activity));
   const locationLabel =
     formatActivityLocation(activity) ??
     t("activities:details.locationFallback");
@@ -88,8 +85,7 @@ const ActivityDetailsSheet: React.FC<Props> = ({
   );
   const primaryDateValue = getPrimaryDateValue(activity);
   const hasDateForCalendar =
-    !!primaryDateValue &&
-    !Number.isNaN(new Date(primaryDateValue).getTime());
+    !!primaryDateValue && !Number.isNaN(new Date(primaryDateValue).getTime());
 
   const planActionLabel = plannedDateLabel
     ? t("activities:planned.ctaEdit")
@@ -200,7 +196,10 @@ const ActivityDetailsSheet: React.FC<Props> = ({
   return (
     <>
       <BottomSheetScrollView
-        contentContainerStyle={[styles.scrollContent, { backgroundColor: colors.surface }]}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { backgroundColor: colors.surface },
+        ]}
         nestedScrollEnabled
       >
         <ActivitySummaryHeader
@@ -229,7 +228,12 @@ const ActivityDetailsSheet: React.FC<Props> = ({
           <Text style={[styles.sectionHeaderText, { color: colors.text }]}>
             {t("activities:details.overview")}
           </Text>
-          <View style={[styles.sectionUnderline, { backgroundColor: colors.primary }]} />
+          <View
+            style={[
+              styles.sectionUnderline,
+              { backgroundColor: colors.primary },
+            ]}
+          />
         </View>
         <InfoRow
           icon="map-marker"
@@ -255,9 +259,6 @@ const ActivityDetailsSheet: React.FC<Props> = ({
           onPress={openPicker}
         >
           <View style={styles.planTextCol}>
-            <Text style={[styles.sectionHeaderText, { color: colors.text }]}>
-              {t("activities:planned.title")}
-            </Text>
             <DateBadge
               label={plannedDateLabel ?? t("activities:planned.empty")}
               tone={plannedDateLabel ? "default" : "muted"}

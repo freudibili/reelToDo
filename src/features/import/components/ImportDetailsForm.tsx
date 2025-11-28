@@ -4,7 +4,7 @@ import React, {
   useImperativeHandle,
   useState,
 } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, Alert } from "react-native";
 
 import type { Activity } from "@features/activities/utils/types";
 import ActivityHero from "@common/components/ActivityHero";
@@ -21,12 +21,16 @@ import { PlaceDetails } from "../services/locationService";
 import type { ImportDraftDetails, UpdateActivityPayload } from "../utils/types";
 import { useTranslation } from "react-i18next";
 import { useAppTheme } from "@common/theme/appTheme";
+import { ActivitiesService } from "@features/activities/services/activitiesService";
+import { activityPatched } from "@features/activities/store/activitiesSlice";
+import { useAppDispatch } from "@core/store/hook";
 
 interface ImportDetailsFormProps {
   activity: Activity;
   onSave: (payload: UpdateActivityPayload) => void;
   onCancel: () => void;
   onDirtyChange?: (dirty: boolean) => void;
+  userId?: string | null;
 }
 
 export interface ImportDetailsFormHandle {
@@ -36,14 +40,24 @@ export interface ImportDetailsFormHandle {
 const ImportDetailsForm = React.forwardRef<
   ImportDetailsFormHandle,
   ImportDetailsFormProps
->(({ activity, onSave, onCancel: _onCancel, onDirtyChange }, ref) => {
+>(({ activity, onSave, onCancel: _onCancel, onDirtyChange, userId }, ref) => {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
+  const dispatch = useAppDispatch();
   const [dirty, setDirty] = useState(false);
   const [draft, setDraft] = useState<ImportDraftDetails>(() => ({
     location: null,
     date: activity.main_date ? new Date(activity.main_date) : null,
   }));
+  const [suggestingLocation, setSuggestingLocation] = useState(false);
+
+  const isOwner = !!userId && activity.user_id === userId;
+  const hasExistingLocation =
+    !!activity.address ||
+    !!activity.location_name ||
+    activity.latitude !== null ||
+    activity.longitude !== null;
+  const canEditLocation = isOwner || !hasExistingLocation;
 
   const markDirty = useCallback(() => {
     if (!dirty) {
@@ -58,8 +72,8 @@ const ImportDetailsForm = React.forwardRef<
       date: activity.main_date ? new Date(activity.main_date) : null,
     });
 
-    setDirty(true);
-    onDirtyChange?.(true);
+    setDirty(false);
+    onDirtyChange?.(false);
   }, [
     activity.id,
     activity.location_name,
@@ -75,6 +89,42 @@ const ImportDetailsForm = React.forwardRef<
     };
     onSave(payload);
   }, [draft, onSave]);
+
+  const handleSuggestLocation = useCallback(
+    async (place: PlaceDetails) => {
+      setSuggestingLocation(true);
+      try {
+        await ActivitiesService.submitLocationSuggestion({
+          activityId: activity.id,
+          userId: userId ?? null,
+          place,
+          note: null,
+        });
+        dispatch(
+          activityPatched({
+            id: activity.id,
+            changes: {
+              location_status: "suggested",
+              needs_location_confirmation: true,
+            },
+          })
+        );
+        Alert.alert(
+          t("activities:report.successTitle"),
+          t("activities:report.successMessage")
+        );
+      } catch (e) {
+        Alert.alert(
+          t("activities:report.errorTitle"),
+          t("activities:report.errorMessage")
+        );
+        throw e;
+      } finally {
+        setSuggestingLocation(false);
+      }
+    },
+    [activity.id, dispatch, t, userId]
+  );
 
   useImperativeHandle(ref, () => ({
     save: handleSavePress,
@@ -142,6 +192,10 @@ const ImportDetailsForm = React.forwardRef<
         locationName={draft.location?.name ?? activity.location_name ?? ""}
         address={draft.location?.formattedAddress ?? activity.address ?? ""}
         confirmed={!activity.needs_location_confirmation}
+        mode={canEditLocation ? "edit" : "suggest"}
+        onSuggest={canEditLocation ? undefined : handleSuggestLocation}
+        submitting={suggestingLocation}
+        activityTitle={activity.title ?? t("common:labels.activity")}
         onChange={handleLocationChange}
       />
 
