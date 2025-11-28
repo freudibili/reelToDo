@@ -5,6 +5,7 @@ import { Icon } from "react-native-paper";
 interface ActionPillProps {
   label: string;
   icon: string;
+  iconColor?: string;
   onPress: () => void;
   disabled?: boolean;
   tone?: "default" | "danger";
@@ -15,6 +16,7 @@ interface ActionPillProps {
 const ActionPill: React.FC<ActionPillProps> = ({
   label,
   icon,
+  iconColor,
   onPress,
   disabled,
   tone = "default",
@@ -36,7 +38,8 @@ const ActionPill: React.FC<ActionPillProps> = ({
         source={icon}
         size={18}
         color={
-          tone === "danger" ? "#b91c1c" : disabled ? "#94a3b8" : "#075985"
+          iconColor ??
+          (tone === "danger" ? "#b91c1c" : disabled ? "#94a3b8" : "#075985")
         }
       />
       <Text

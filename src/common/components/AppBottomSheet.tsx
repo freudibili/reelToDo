@@ -16,7 +16,7 @@ import { useAppTheme } from "@common/theme/appTheme";
 
 interface AppBottomSheetProps {
   index: number;
-  snapPoints: (string | number)[];
+  snapPoints?: (string | number)[];
   onClose: () => void;
   children: React.ReactNode;
   style?: ViewStyle;
@@ -40,6 +40,7 @@ const AppBottomSheet = React.forwardRef<BottomSheet, AppBottomSheetProps>(
     const { colors, mode } = useAppTheme();
     const insets = useSafeAreaInsets();
     const bottomSpacing = Math.max(insets.bottom, 8);
+    const resolvedSnapPoints = snapPoints ?? ["25%", "60%", "90%"];
 
     const content = scrollable ? (
       <BottomSheetScrollView
@@ -69,7 +70,7 @@ const AppBottomSheet = React.forwardRef<BottomSheet, AppBottomSheetProps>(
       <BottomSheet
         ref={ref}
         index={index}
-        snapPoints={snapPoints}
+        snapPoints={resolvedSnapPoints}
         enablePanDownToClose
         onClose={onClose}
         enableOverDrag

@@ -104,11 +104,6 @@ const MapScreen = () => {
     };
   }, [userRegion, activities]);
 
-  const snapPoints = useMemo(() => {
-    if (sheetMode === "list") return ["45%"];
-    return ["50%"];
-  }, [sheetMode]);
-
   const handleCloseSheet = useCallback(() => {
     sheetRef.current?.close?.();
     setSheetIndex(-1);
@@ -117,13 +112,16 @@ const MapScreen = () => {
   }, []);
 
   // ⬇️ ici la modif : on snap à l'index 0 au lieu d'expand
-  const openDetails = useCallback((activity: Activity) => {
-    dispatch(mapActions.setLastFocusedActivity(activity.id));
-    setSelectedId(activity.id);
-    setSheetMode("details");
-    setSheetIndex(0);
-    sheetRef.current?.snapToIndex?.(0);
-  }, [dispatch]);
+  const openDetails = useCallback(
+    (activity: Activity) => {
+      dispatch(mapActions.setLastFocusedActivity(activity.id));
+      setSelectedId(activity.id);
+      setSheetMode("details");
+      setSheetIndex(0);
+      sheetRef.current?.snapToIndex?.(0);
+    },
+    [dispatch]
+  );
 
   const handleMapSelect = useCallback(
     (activity: Activity) => {
@@ -206,7 +204,7 @@ const MapScreen = () => {
       if (activity.latitude != null && activity.longitude != null) {
         mapRef.current?.focusActivity(activity);
       }
-      openDetails(activity); // va ouvrir en 50%
+      openDetails(activity);
     },
     [openDetails]
   );
@@ -262,12 +260,12 @@ const MapScreen = () => {
                 styles.chipText,
                 selectedCategory === null && styles.chipTextActive,
                 { color: colors.text },
-                  selectedCategory === null && { color: "#fff" },
-                ]}
-              >
-                {t("activities:map.all")}
-              </Text>
-            </Pressable>
+                selectedCategory === null && { color: "#fff" },
+              ]}
+            >
+              {t("activities:map.all")}
+            </Text>
+          </Pressable>
           {categories.map((cat) => (
             <Pressable
               key={cat}
@@ -327,7 +325,6 @@ const MapScreen = () => {
       <AppBottomSheet
         ref={sheetRef}
         index={sheetIndex}
-        snapPoints={snapPoints}
         onClose={handleCloseSheet}
         scrollable={sheetMode === "details"}
       >
@@ -379,8 +376,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 6,
   },
-  chipActive: {
-  },
+  chipActive: {},
   chipText: {
     fontSize: 13,
   },

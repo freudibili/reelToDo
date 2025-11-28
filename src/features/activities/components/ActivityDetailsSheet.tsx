@@ -122,6 +122,7 @@ const ActivityDetailsSheet: React.FC<Props> = ({
       key: "favorite",
       label: t("activities:details.actions.favorite"),
       icon: isFavorite ? "heart" : "heart-outline",
+      iconColor: isFavorite ? "#d64545" : undefined,
       onPress: () => onToggleFavorite(activity),
     },
     {

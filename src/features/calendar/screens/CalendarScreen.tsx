@@ -99,7 +99,6 @@ const CalendarScreen = () => {
   const [sheetVisible, setSheetVisible] = useState(false);
   const effectiveSelected = selectedFromStore ?? selected;
   const sheetRef = useRef(null);
-  const snapPoints = useMemo(() => ["35%", "70%"], []);
 
   useEffect(() => {
     dispatch(fetchActivities());
@@ -261,7 +260,6 @@ const CalendarScreen = () => {
         <AppBottomSheet
           ref={sheetRef}
           index={1}
-          snapPoints={snapPoints}
           onClose={handleClose}
           scrollable
         >

@@ -152,9 +152,11 @@ const DayActivitiesList: React.FC<Props> = ({
                     {title}
                   </Text>
                   {isFavorite ? (
-                    <Text style={[styles.favoriteTag, { color: colors.primary }]}>
-                      ★
-                    </Text>
+                    <Icon
+                      source="heart"
+                      size={14}
+                      color="#d64545"
+                    />
                   ) : null}
                 </View>
 

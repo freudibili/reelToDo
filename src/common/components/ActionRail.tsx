@@ -7,6 +7,7 @@ export interface ActionRailItem {
   key: string;
   label: string;
   icon: string;
+  iconColor?: string;
   onPress: () => void;
   disabled?: boolean;
   tone?: "default" | "danger";
@@ -37,6 +38,7 @@ const ActionRail: React.FC<ActionRailProps> = ({
         key={action.key}
         label={action.label}
         icon={action.icon}
+        iconColor={action.iconColor}
         onPress={action.onPress}
         disabled={action.disabled}
         tone={action.tone}

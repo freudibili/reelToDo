@@ -53,7 +53,6 @@ const ActivitiesScreen = () => {
   );
   const [sheetVisible, setSheetVisible] = useState(false);
   const sheetRef = useRef(null);
-  const snapPoints = useMemo(() => ["25%", "60%", "90%"], []);
 
   useEffect(() => {
     dispatch(fetchActivities());
@@ -148,7 +147,6 @@ const ActivitiesScreen = () => {
         <AppBottomSheet
           ref={sheetRef}
           index={1}
-          snapPoints={snapPoints}
           onClose={handleClose}
           scrollable
         >

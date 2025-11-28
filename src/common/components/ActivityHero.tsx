@@ -7,6 +7,7 @@ import {
   View,
 } from "react-native";
 import { useTranslation } from "react-i18next";
+import { Icon } from "react-native-paper";
 
 interface ActivityHeroProps {
   title: string;
@@ -69,9 +70,11 @@ const ActivityHero: React.FC<ActivityHeroProps> = ({
           <View style={styles.scrim} />
           {onToggleFavorite ? (
             <Pressable style={styles.favoriteBtn} onPress={onToggleFavorite}>
-              <Text style={styles.favoriteIcon}>
-                {isFavorite ? "♥" : "♡"}
-              </Text>
+              <Icon
+                source={isFavorite ? "heart" : "heart-outline"}
+                size={18}
+                color={isFavorite ? "#d64545" : "#fff"}
+              />
             </Pressable>
           ) : null}
           {showOverlayContent ? renderHeroContent() : null}
@@ -81,9 +84,11 @@ const ActivityHero: React.FC<ActivityHeroProps> = ({
           <Text style={styles.placeholderInitial}>{initial}</Text>
           {onToggleFavorite ? (
             <Pressable style={styles.favoriteBtn} onPress={onToggleFavorite}>
-              <Text style={styles.favoriteIcon}>
-                {isFavorite ? "♥" : "♡"}
-              </Text>
+              <Icon
+                source={isFavorite ? "heart" : "heart-outline"}
+                size={18}
+                color="#d64545"
+              />
             </Pressable>
           ) : null}
           {showOverlayContent ? renderHeroContent() : null}
@@ -173,9 +178,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     zIndex: 2,
-  },
-  favoriteIcon: {
-    color: "#fff",
-    fontSize: 17,
   },
 });

@@ -52,7 +52,6 @@ const ActivitiesCategoryScreen = () => {
   );
   const [sheetVisible, setSheetVisible] = useState(false);
   const sheetRef = useRef(null);
-  const snapPoints = useMemo(() => ["25%", "60%", "90%"], []);
 
   const handleSelect = useCallback((activity: Activity) => {
     setSelectedId(activity.id);
@@ -138,7 +137,6 @@ const ActivitiesCategoryScreen = () => {
         <AppBottomSheet
           ref={sheetRef}
           index={1}
-          snapPoints={snapPoints}
           onClose={handleClose}
           scrollable
         >
