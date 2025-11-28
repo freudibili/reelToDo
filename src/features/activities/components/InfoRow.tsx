@@ -7,9 +7,10 @@ import { useAppTheme } from "@common/theme/appTheme";
 type Props = {
   icon: string;
   value: string;
+  rightSlot?: React.ReactNode;
 };
 
-const InfoRow: React.FC<Props> = ({ icon, value }) => {
+const InfoRow: React.FC<Props> = ({ icon, value, rightSlot }) => {
   const { colors } = useAppTheme();
 
   return (
@@ -27,6 +28,7 @@ const InfoRow: React.FC<Props> = ({ icon, value }) => {
         textStyle={styles.hiddenText}
       />
       <Text style={[styles.infoValue, { color: colors.text }]}>{value}</Text>
+      {rightSlot ? <View style={styles.rightSlot}>{rightSlot}</View> : null}
     </View>
   );
 };
@@ -53,6 +55,9 @@ const styles = StyleSheet.create({
   infoValue: {
     fontSize: 14,
     flex: 1,
+  },
+  rightSlot: {
+    marginLeft: 8,
   },
   hiddenText: { display: "none" },
 });

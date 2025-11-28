@@ -1,10 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
-import LocationAutocompleteInput from "./LocationAutocompleteInput";
 import { PlaceDetails } from "../services/locationService";
 import { useTranslation } from "react-i18next";
 import InfoRow from "@features/activities/components/InfoRow";
 import { useAppTheme } from "@common/theme/appTheme";
+import LocationChangeModal from "@common/components/LocationChangeModal";
 
 interface LocationSectionProps {
   infoValue: string;
@@ -24,7 +24,7 @@ const LocationSection: React.FC<LocationSectionProps> = ({
   editRequest = 0,
 }) => {
   const { t } = useTranslation();
-  const [editing, setEditing] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
   const lastEditRequestRef = useRef(editRequest);
   const { colors, mode } = useAppTheme();
 
@@ -33,18 +33,18 @@ const LocationSection: React.FC<LocationSectionProps> = ({
 
   const handleSelectPlace = (place: PlaceDetails) => {
     onChange(place);
-    setEditing(false);
+    setModalVisible(false);
   };
 
   useEffect(() => {
     if (editRequest !== lastEditRequestRef.current) {
-      setEditing(true);
+      setModalVisible(true);
       lastEditRequestRef.current = editRequest;
     }
   }, [editRequest]);
 
   useEffect(() => {
-    setEditing(false);
+    setModalVisible(false);
   }, [locationName, address, confirmed]);
 
   return (
@@ -73,7 +73,7 @@ const LocationSection: React.FC<LocationSectionProps> = ({
           styles.primaryBtn,
           { backgroundColor: colors.primary },
         ]}
-        onPress={() => setEditing((prev) => !prev)}
+        onPress={() => setModalVisible(true)}
       >
         <Text
           style={[
@@ -85,14 +85,14 @@ const LocationSection: React.FC<LocationSectionProps> = ({
         </Text>
       </Pressable>
 
-      {editing && (
-        <View style={styles.locationContainer}>
-          <LocationAutocompleteInput
-            initialValue={address}
-            onSelectPlace={handleSelectPlace}
-          />
-        </View>
-      )}
+      <LocationChangeModal
+        visible={modalVisible}
+        initialValue={address || locationName}
+        onSelectPlace={handleSelectPlace}
+        onClose={() => setModalVisible(false)}
+        title={t("import:locationSection.modalTitle")}
+        subtitle={t("import:locationSection.modalSubtitle")}
+      />
     </View>
   );
 };
@@ -128,9 +128,6 @@ const styles = StyleSheet.create({
   primaryBtnText: {
     fontSize: 13,
     fontWeight: "700",
-  },
-  locationContainer: {
-    marginTop: 14,
   },
 });
 

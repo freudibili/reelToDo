@@ -32,6 +32,10 @@ import {
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { Icon } from "react-native-paper";
+import { Alert } from "react-native";
+import LocationChangeModal from "@common/components/LocationChangeModal";
+import type { PlaceDetails } from "@features/import/services/locationService";
+import { ActivitiesService } from "../services/activitiesService";
 
 const ActivitiesScreen = () => {
   const dispatch = useAppDispatch();
@@ -53,6 +57,10 @@ const ActivitiesScreen = () => {
   );
   const [sheetVisible, setSheetVisible] = useState(false);
   const sheetRef = useRef(null);
+  const [locationModalVisible, setLocationModalVisible] = useState(false);
+  const [locationModalActivity, setLocationModalActivity] =
+    useState<Activity | null>(null);
+  const [locationSubmitting, setLocationSubmitting] = useState(false);
 
   useEffect(() => {
     dispatch(fetchActivities());
@@ -118,6 +126,44 @@ const ActivitiesScreen = () => {
     router.push({ pathname: "/import", params: { from: "activities" } });
   }, [router]);
 
+  const handleOpenLocationModal = useCallback((activity: Activity) => {
+    setLocationModalActivity(activity);
+    setLocationModalVisible(true);
+  }, []);
+
+  const handleCloseLocationModal = useCallback(() => {
+    setLocationModalVisible(false);
+    setLocationModalActivity(null);
+  }, []);
+
+  const handleSubmitLocation = useCallback(
+    async (place: PlaceDetails) => {
+      if (!locationModalActivity) return;
+      setLocationSubmitting(true);
+      try {
+        await ActivitiesService.submitLocationSuggestion({
+          activityId: locationModalActivity.id,
+          userId,
+          place,
+          note: null,
+        });
+        Alert.alert(
+          t("activities:report.successTitle"),
+          t("activities:report.successMessage")
+        );
+        handleCloseLocationModal();
+      } catch (e) {
+        Alert.alert(
+          t("activities:report.errorTitle"),
+          t("activities:report.errorMessage")
+        );
+      } finally {
+        setLocationSubmitting(false);
+      }
+    },
+    [handleCloseLocationModal, locationModalActivity, t, userId]
+  );
+
   return (
     <Screen
       loading={loading && !initialized}
@@ -168,9 +214,30 @@ const ActivitiesScreen = () => {
               );
             }}
             onChangePlannedDate={handleSetPlannedDate}
+            onChangeLocation={handleOpenLocationModal}
           />
         </AppBottomSheet>
       )}
+
+      <LocationChangeModal
+        visible={locationModalVisible && !!locationModalActivity}
+        onClose={handleCloseLocationModal}
+        onSelectPlace={handleSubmitLocation}
+        submitting={locationSubmitting}
+        initialValue={
+          locationModalActivity?.address ?? locationModalActivity?.location_name
+        }
+        title={t("activities:report.title")}
+        subtitle={
+          locationModalActivity
+            ? t("activities:report.subtitle", {
+                title:
+                  locationModalActivity.title ??
+                  t("common:labels.activity"),
+              })
+            : undefined
+        }
+      />
     </Screen>
   );
 };

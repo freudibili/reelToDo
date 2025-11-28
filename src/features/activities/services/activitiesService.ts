@@ -1,4 +1,5 @@
 import { supabase } from "@config/supabase";
+import type { PlaceDetails } from "@features/import/services/locationService";
 
 export const ActivitiesService = {
   async fetchActivities(userId?: string | null) {
@@ -173,5 +174,33 @@ export const ActivitiesService = {
 
     if (insertError) throw insertError;
     return inserted;
+  },
+
+  async submitLocationSuggestion(params: {
+    activityId: string;
+    userId: string | null;
+    place: PlaceDetails;
+    note?: string | null;
+  }) {
+    const { activityId, userId, place, note } = params;
+    const payload = {
+      activity_id: activityId,
+      user_id: userId,
+      suggested_address: place.formattedAddress,
+      suggested_name: place.name,
+      place_id: place.placeId,
+      latitude: place.latitude,
+      longitude: place.longitude,
+      city: place.city,
+      country: place.country,
+      note: note ?? null,
+      status: "pending",
+    };
+
+    const { error } = await supabase
+      .from("activity_location_suggestions")
+      .insert(payload);
+
+    if (error) throw error;
   },
 };

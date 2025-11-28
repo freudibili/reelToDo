@@ -25,7 +25,9 @@
     "notFound": "Seems we didn’t find the place for this activity.",
     "notAccurate": "This location might not be accurate. Please check it.",
     "edit": "Edit location",
-    "confirmed": "Address confirmed. You can still adjust it if needed."
+    "confirmed": "Address confirmed. You can still adjust it if needed.",
+    "modalTitle": "Update location",
+    "modalSubtitle": "Search and pick the correct address."
   },
   "dateSection": {
     "label": "Date",

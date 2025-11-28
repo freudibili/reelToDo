@@ -21,6 +21,14 @@
     "locationFallback": "Location to confirm or refine",
     "addressMissing": "Address not provided",
     "dateMissing": "Date not provided",
+    "reportLocation": "Suggest a better location",
+    "suggestLocationTitle": "Suggest a better spot?",
+    "suggestLocationMessage": "If this location feels off, you can suggest the correct one for everyone.",
+    "suggestLocationConfirm": "Suggest a new one",
+    "reportLocationSubject": "Fix location: {{title}}",
+    "reportLocationPrompt": "Describe what is wrong with the location:",
+    "reportLocationErrorTitle": "Can't open mail app",
+    "reportLocationError": "Please email support@reeltodo.app to flag this location.",
     "actions": {
       "favorite": "Favorite",
       "removeFavorite": "Remove favorite",
@@ -29,6 +37,20 @@
       "source": "Source",
       "delete": "Delete"
     }
+  },
+  "report": {
+    "title": "Suggest a better location",
+    "subtitle": "Help us fix the location for {{title}}.",
+    "addressLabel": "Correct location",
+    "addressPlaceholder": "Search for the right address",
+    "noteLabel": "Note",
+    "notePlaceholder": "Add context (optional)",
+    "submit": "Send",
+    "submitting": "Sending...",
+    "successTitle": "Thanks!",
+    "successMessage": "We'll review and update this location.",
+    "errorTitle": "Couldn't send",
+    "errorMessage": "Please try again later."
   },
   "category": {
     "subtitle_one": "{{count}} activity",

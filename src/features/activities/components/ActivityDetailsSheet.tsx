@@ -5,6 +5,7 @@ import { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import ActivityHero from "@common/components/ActivityHero";
 import ActivitySummaryHeader from "@common/components/ActivitySummaryHeader";
 import ActionRail, { type ActionRailItem } from "@common/components/ActionRail";
+import DateBadge from "@common/components/DateBadge";
 import {
   formatActivityLocation,
   formatDisplayDate,
@@ -19,6 +20,7 @@ import InfoRow from "./InfoRow";
 import { useConfirmDialog } from "@common/hooks/useConfirmDialog";
 import { useAppTheme } from "@common/theme/appTheme";
 import { usePlatformDateTimePicker } from "../hooks/usePlatformDateTimePicker";
+import LocationAssistButton from "./LocationAssistButton";
 
 interface Props {
   activity: Activity | null;
@@ -29,6 +31,7 @@ interface Props {
   onOpenSource: (activity: Activity) => void;
   onAddToCalendar: (activity: Activity) => void;
   onChangePlannedDate: (activity: Activity, date: Date | null) => void;
+  onChangeLocation?: (activity: Activity) => void;
 }
 
 const ActivityDetailsSheet: React.FC<Props> = ({
@@ -40,6 +43,7 @@ const ActivityDetailsSheet: React.FC<Props> = ({
   onOpenSource,
   onAddToCalendar,
   onChangePlannedDate,
+  onChangeLocation,
 }) => {
   const { t } = useTranslation();
   const { confirm } = useConfirmDialog();
@@ -177,6 +181,11 @@ const ActivityDetailsSheet: React.FC<Props> = ({
       <InfoRow
         icon="map-marker"
         value={activity.address ?? t("activities:details.addressMissing")}
+        rightSlot={
+          onChangeLocation ? (
+            <LocationAssistButton activity={activity} onChangeLocation={onChangeLocation} />
+          ) : null
+        }
       />
       {needsDate ? (
         <InfoRow
@@ -195,9 +204,10 @@ const ActivityDetailsSheet: React.FC<Props> = ({
           <Text style={[styles.sectionHeaderText, { color: colors.text }]}>
             {t("activities:planned.title")}
           </Text>
-          <Text style={[styles.subtle, { color: colors.secondaryText }]}>
-            {plannedDateLabel ?? t("activities:planned.empty")}
-          </Text>
+          <DateBadge
+            label={plannedDateLabel ?? t("activities:planned.empty")}
+            tone={plannedDateLabel ? "default" : "muted"}
+          />
           {activity.main_date ? (
             <Text style={[styles.muted, { color: colors.mutedText }]}>
               {sameAsOfficial
@@ -213,18 +223,18 @@ const ActivityDetailsSheet: React.FC<Props> = ({
             mode="contained-tonal"
             icon={plannedDateLabel ? "pencil" : "calendar-plus"}
             onPress={openPicker}
-            containerColor={colors.overlay}
-            iconColor={colors.primary}
+            containerColor={colors.accent}
+            iconColor="#ffffff"
             size={22}
             style={styles.iconButton}
           />
           {plannedDateLabel ? (
             <IconButton
               mode="contained-tonal"
-              icon="close"
+              icon="trash-can-outline"
               onPress={() => onChangePlannedDate(activity, null)}
-              containerColor={colors.overlay}
-              iconColor={colors.primary}
+              containerColor={colors.accent}
+              iconColor="#ffffff"
               size={22}
               style={styles.iconButton}
             />

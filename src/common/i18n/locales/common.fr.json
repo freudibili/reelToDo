@@ -36,5 +36,12 @@
   },
   "status": {
     "searching": "Recherche…"
+  },
+  "locationPicker": {
+    "title": "Choisir un lieu",
+    "subtitle": "Recherche et sélectionne le bon endroit.",
+    "placeholder": "Rechercher une adresse ou un lieu",
+    "confirm": "Utiliser ce lieu",
+    "submitting": "Enregistrement..."
   }
 }

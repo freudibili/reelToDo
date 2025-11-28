@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet, ViewStyle } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useAppTheme } from "@common/theme/appTheme";
+import DateBadge from "./DateBadge";
 
 interface ActivitySummaryHeaderProps {
   title: string;
@@ -33,11 +34,7 @@ const ActivitySummaryHeader: React.FC<ActivitySummaryHeaderProps> = ({
           {metaLine}
         </Text>
       ) : null}
-      {dateLabel ? (
-        <Text style={[styles.metaMuted, { color: colors.mutedText }]}>
-          {dateLabel}
-        </Text>
-      ) : null}
+      <DateBadge label={dateLabel} />
     </View>
   );
 };
@@ -56,8 +53,5 @@ const styles = StyleSheet.create({
   },
   meta: {
     fontSize: 14,
-  },
-  metaMuted: {
-    fontSize: 13,
   },
 });

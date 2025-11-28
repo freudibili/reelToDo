@@ -25,7 +25,9 @@
     "notFound": "On n'a pas trouvé le lieu de cette activité.",
     "notAccurate": "Ce lieu peut ne pas être exact. Merci de vérifier.",
     "edit": "Modifier le lieu",
-    "confirmed": "Lieu confirmé. Tu peux toujours l'ajuster si besoin."
+    "confirmed": "Lieu confirmé. Tu peux toujours l'ajuster si besoin.",
+    "modalTitle": "Mettre à jour le lieu",
+    "modalSubtitle": "Recherche et sélectionne la bonne adresse."
   },
   "dateSection": {
     "label": "Date",

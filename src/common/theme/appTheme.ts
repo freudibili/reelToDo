@@ -18,6 +18,10 @@ export type AppTheme = {
     card: string;
     mutedSurface: string;
     border: string;
+    accent: string;
+    accentSurface: string;
+    accentBorder: string;
+    accentText: string;
     primary: string;
     text: string;
     mutedText: string;
@@ -33,6 +37,10 @@ const lightPalette: AppTheme["colors"] = {
   card: "#f1f5f9",
   mutedSurface: "#eef2ff",
   border: "#e2e8f0",
+  accent: "#075985",
+  accentSurface: "#e0f2fe",
+  accentBorder: "#bae6fd",
+  accentText: "#075985",
   primary: "#0f172a",
   text: "#0f172a",
   mutedText: "#475569",
@@ -47,6 +55,10 @@ const darkPalette: AppTheme["colors"] = {
   card: "#111827",
   mutedSurface: "#0d1629",
   border: "#1f2937",
+  accent: "#075985",
+  accentSurface: "rgba(14,165,233,0.22)",
+  accentBorder: "rgba(125,211,252,0.65)",
+  accentText: "#e0f2fe",
   primary: "#7dd3fc",
   text: "#e5e7eb",
   mutedText: "#cbd5e1",

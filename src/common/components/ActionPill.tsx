@@ -2,6 +2,8 @@ import React from "react";
 import { Pressable, StyleSheet, Text, View, ViewStyle } from "react-native";
 import { Icon } from "react-native-paper";
 
+import { useAppTheme } from "@common/theme/appTheme";
+
 interface ActionPillProps {
   label: string;
   icon: string;
@@ -22,39 +24,51 @@ const ActionPill: React.FC<ActionPillProps> = ({
   tone = "default",
   style,
   textStyle,
-}) => (
-  <Pressable
-    style={[
-      styles.actionBtn,
-      tone === "danger" && styles.dangerBtn,
-      disabled && styles.disabled,
-      style,
-    ].filter(Boolean)}
-    onPress={onPress}
-    disabled={disabled}
-  >
-    <View style={styles.actionContent}>
-      <Icon
-        source={icon}
-        size={18}
-        color={
-          iconColor ??
-          (tone === "danger" ? "#b91c1c" : disabled ? "#94a3b8" : "#075985")
-        }
-      />
-      <Text
-        style={[
-          styles.actionBtnText,
-          tone === "danger" && styles.dangerBtnText,
-          disabled && styles.disabledText,
-          textStyle,
-        ]}
-      >
-        {label}
-      </Text>
-    </View>
-  </Pressable>
-);
+}) => {
+  const { colors } = useAppTheme();
+  const primaryColor = tone === "danger" ? colors.danger : colors.accent;
+  const textColor = tone === "danger" ? colors.danger : colors.accentText;
+  const backgroundColor =
+    tone === "danger" ? styles.dangerBtn.backgroundColor : colors.accentSurface;
+  const borderColor =
+    tone === "danger" ? styles.dangerBtn.borderColor : colors.accentBorder;
+
+  return (
+    <Pressable
+      style={[
+        styles.actionBtn,
+        {
+          backgroundColor,
+          borderColor,
+        },
+        tone === "danger" && styles.dangerBtn,
+        disabled && styles.disabled,
+        style,
+      ].filter(Boolean)}
+      onPress={onPress}
+      disabled={disabled}
+    >
+      <View style={styles.actionContent}>
+        <Icon
+          source={icon}
+          size={18}
+          color={iconColor ?? (disabled ? colors.secondaryText : primaryColor)}
+        />
+        <Text
+          style={[
+            styles.actionBtnText,
+            { color: textColor },
+            tone === "danger" && { color: colors.danger },
+            disabled && styles.disabledText,
+            textStyle,
+          ]}
+        >
+          {label}
+        </Text>
+      </View>
+    </Pressable>
+  );
+};
 
 export default ActionPill;
 
