@@ -61,6 +61,7 @@ const config: ExpoConfig = {
   },
   plugins: [
     "expo-audio",
+    "expo-localization",
     "expo-share-intent",
     [
       "expo-location",
