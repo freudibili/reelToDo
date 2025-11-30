@@ -1,7 +1,7 @@
 import { Redirect } from "expo-router";
 
 const IndexRoute = () => {
-  return <Redirect href="/activities" />;
+  return <Redirect href="/home" />;
 };
 
 export default IndexRoute;

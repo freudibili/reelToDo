@@ -12,7 +12,7 @@ const TabsLayout = () => {
 
   return (
     <Tabs
-      initialRouteName="activities"
+      initialRouteName="home"
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: colors.primary,
@@ -30,6 +30,15 @@ const TabsLayout = () => {
         name="index"
         options={{
           href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="home"
+        options={{
+          title: t("navigation.tabs.home"),
+          tabBarIcon: ({ color, size }) => (
+            <Icon source="compass-outline" color={color} size={size} />
+          ),
         }}
       />
       <Tabs.Screen

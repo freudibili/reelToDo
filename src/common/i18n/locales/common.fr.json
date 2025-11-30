@@ -27,7 +27,8 @@
   },
   "navigation": {
     "tabs": {
-      "activities": "Accueil",
+      "home": "Accueil",
+      "activities": "Activités",
       "map": "Carte",
       "calendar": "Agenda",
       "import": "Import",

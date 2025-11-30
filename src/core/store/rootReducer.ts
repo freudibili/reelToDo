@@ -5,6 +5,7 @@ import importReducer from "@features/import/store/importSlice";
 import settingsReducer from "@features/settings/store/settingsSlice";
 import calendarReducer from "@features/calendar/store/calendarSlice";
 import mapReducer from "@features/map/store/mapSlice";
+import homeExploreReducer from "@features/home/store/homeExploreSlice";
 
 const rootReducer = combineReducers({
   auth: authReducer,
@@ -13,6 +14,7 @@ const rootReducer = combineReducers({
   settings: settingsReducer,
   calendar: calendarReducer,
   map: mapReducer,
+  homeExplore: homeExploreReducer,
 });
 
 export default rootReducer;
