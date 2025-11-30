@@ -1,6 +1,15 @@
 import { createSelector } from "@reduxjs/toolkit";
 import type { RootState } from "@core/store";
 import type { Activity } from "../utils/types";
+import {
+  buildCategoryCards,
+  categoryConstants,
+  type CategoryCardItem,
+} from "../utils/categorySummary";
+import {
+  getFavoriteActivitiesSorted,
+  getRecentActivities,
+} from "../utils/recentActivities";
 
 const selectSlice = (state: RootState) => state.activities;
 
@@ -27,16 +36,40 @@ const groupedByCategory = createSelector([items], (list) => {
   }));
 });
 
+const recentActivities = createSelector([items], (list) =>
+  getRecentActivities(list, 10)
+);
+
+const favoriteActivities = createSelector([items, favoriteIds], (list, favs) =>
+  getFavoriteActivitiesSorted(list, favs)
+);
+
+const categoryCards = createSelector(
+  [items, favoriteActivities],
+  (list, favorites) =>
+    buildCategoryCards(list, {
+      includeRecent: true,
+      recentLimit: 10,
+      includeFavorites: true,
+      favoriteActivities: favorites,
+    })
+);
+
 const byId = (id: string) =>
   createSelector([items], (list) => list.find((a) => a.id === id) ?? null);
 
 const byCategory = (category: string) =>
-  createSelector([items], (list) =>
-    list.filter(
-      (a) =>
-        (a.category || "other").toLowerCase() === category.toLowerCase() ||
-        (category === "other" && !a.category)
-    )
+  createSelector([items, favoriteIds], (list, favorites) =>
+    category.toLowerCase() === categoryConstants.RECENT_CATEGORY_ID
+      ? getRecentActivities(list, 10)
+      : category.toLowerCase() === categoryConstants.FAVORITES_CATEGORY_ID
+        ? getFavoriteActivitiesSorted(list, favorites)
+        : list.filter(
+            (a) =>
+              (a.category || "other").toLowerCase() ===
+                category.toLowerCase() ||
+              (category === "other" && !a.category)
+          )
   );
 
 const isFavorite = (activityId: string) =>
@@ -47,8 +80,13 @@ export const activitiesSelectors = {
   loading,
   initialized,
   groupedByCategory,
+  categoryCards,
+  recentActivities,
+  favoriteActivities,
   favoriteIds,
   isFavorite,
   byId,
   byCategory,
 };
+
+export type { CategoryCardItem };

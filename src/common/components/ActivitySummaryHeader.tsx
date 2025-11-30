@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ViewStyle } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useAppTheme } from "@common/theme/appTheme";
 import DateBadge from "./DateBadge";
+import { formatCategoryName } from "@features/activities/utils/categorySummary";
 
 interface ActivitySummaryHeaderProps {
   title: string;
@@ -22,7 +23,12 @@ const ActivitySummaryHeader: React.FC<ActivitySummaryHeaderProps> = ({
   const { t } = useTranslation();
   const { colors } = useAppTheme();
   const displayTitle = title || t("labels.activity");
-  const metaLine = [category, location].filter(Boolean).join(" • ");
+  const metaLine = [
+    category ? formatCategoryName(category) : null,
+    location,
+  ]
+    .filter(Boolean)
+    .join(" • ");
 
   return (
     <View style={[styles.container, style]}>

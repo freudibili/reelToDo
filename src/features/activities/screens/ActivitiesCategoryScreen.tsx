@@ -21,6 +21,7 @@ import {
   openActivityInMaps,
   openActivitySource,
 } from "../services/linksService";
+import { formatCategoryName } from "../utils/categorySummary";
 
 const ActivitiesCategoryScreen = () => {
   const { category: categoryParam } = useLocalSearchParams<{
@@ -93,8 +94,7 @@ const ActivitiesCategoryScreen = () => {
     [confirm, dispatch, t]
   );
 
-  const categoryLabel =
-    category?.charAt(0).toUpperCase() + category?.slice(1).toLowerCase();
+  const categoryLabel = formatCategoryName(category);
 
   const handleSetPlannedDate = useCallback(
     (activity: Activity, planned: Date | null) => {
@@ -123,7 +123,12 @@ const ActivitiesCategoryScreen = () => {
         <View style={styles.list}>
           {activities.map((activity) => (
             <View key={activity.id} style={styles.cardSpacer}>
-              <ActivityCard activity={activity} onPress={handleSelect} />
+              <ActivityCard
+                activity={activity}
+                onPress={handleSelect}
+                isFavorite={favoriteIds.includes(activity.id)}
+                onToggleFavorite={(item) => handleToggleFavorite(item.id)}
+              />
             </View>
           ))}
 

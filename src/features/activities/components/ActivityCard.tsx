@@ -12,11 +12,15 @@ import { useTranslation } from "react-i18next";
 interface Props {
   activity: Activity;
   onPress: (activity: Activity) => void;
+  isFavorite?: boolean;
+  onToggleFavorite?: (activity: Activity) => void;
 }
 
 const ActivityCard: React.FC<Props> = ({
   activity,
   onPress,
+  isFavorite = false,
+  onToggleFavorite,
 }) => {
   const { t } = useTranslation();
   const locationLabel = formatActivityLocation(activity);
@@ -36,6 +40,19 @@ const ActivityCard: React.FC<Props> = ({
         ) : (
           <View style={styles.imagePlaceholder} />
         )}
+        {onToggleFavorite ? (
+          <Pressable
+            hitSlop={10}
+            onPress={() => onToggleFavorite(activity)}
+            style={styles.favoriteBtn}
+          >
+            <Icon
+              source={isFavorite ? "heart" : "heart-outline"}
+              size={18}
+              color={isFavorite ? "#ef4444" : "#fff"}
+            />
+          </Pressable>
+        ) : null}
         <View style={styles.titleOverlay}>
           <Text style={styles.title} numberOfLines={2} ellipsizeMode="tail">
             {activity.title ?? t("activities:card.untitled")}
@@ -111,6 +128,18 @@ const styles = StyleSheet.create({
     color: "#e5e7eb",
     fontSize: 13,
     flexShrink: 1,
+  },
+  favoriteBtn: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: "rgba(0,0,0,0.45)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 2,
   },
 });
 

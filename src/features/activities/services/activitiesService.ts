@@ -14,6 +14,7 @@ export const ActivitiesService = {
         activity_date_id,
         calendar_event_id,
         planned_at,
+        favorited_at,
         is_favorite,
         activities (*)
       `
@@ -26,6 +27,7 @@ export const ActivitiesService = {
     return data.map((row) => ({
       ...row.activities,
       is_favorite: row.is_favorite,
+      favorited_at: row.favorited_at,
       planned_at: row.planned_at,
       activity_date_id: row.activity_date_id,
       calendar_event_id: row.calendar_event_id,

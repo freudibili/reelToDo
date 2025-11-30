@@ -243,10 +243,21 @@ const activitiesSlice = createSlice({
     },
     favoriteToggledLocal: (state, action: PayloadAction<string>) => {
       const id = action.payload;
+      const now = new Date().toISOString();
       if (state.favoriteIds.includes(id)) {
         state.favoriteIds = state.favoriteIds.filter((x) => x !== id);
+        const idx = state.items.findIndex((a) => a.id === id);
+        if (idx >= 0) {
+          state.items[idx].favorited_at = null;
+          state.items[idx].is_favorite = false;
+        }
       } else {
         state.favoriteIds.push(id);
+        const idx = state.items.findIndex((a) => a.id === id);
+        if (idx >= 0) {
+          state.items[idx].favorited_at = now;
+          state.items[idx].is_favorite = true;
+        }
       }
     },
     userActivityUpdated: (
@@ -311,12 +322,14 @@ const activitiesSlice = createSlice({
     });
     builder.addCase(addFavorite.fulfilled, (state, action) => {
       const id = action.payload;
+      const now = new Date().toISOString();
       if (!state.favoriteIds.includes(id)) {
         state.favoriteIds.push(id);
       }
       const idx = state.items.findIndex((a) => a.id === id);
       if (idx >= 0) {
         state.items[idx].is_favorite = true;
+        state.items[idx].favorited_at = now;
       }
     });
     builder.addCase(removeFavorite.fulfilled, (state, action) => {
@@ -325,6 +338,7 @@ const activitiesSlice = createSlice({
       const idx = state.items.findIndex((a) => a.id === id);
       if (idx >= 0) {
         state.items[idx].is_favorite = false;
+        state.items[idx].favorited_at = null;
       }
     });
     builder.addCase(deleteActivity.fulfilled, (state, action) => {

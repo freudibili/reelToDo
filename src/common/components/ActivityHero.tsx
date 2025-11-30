@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Icon } from "react-native-paper";
+import { formatCategoryName } from "@features/activities/utils/categorySummary";
 
 interface ActivityHeroProps {
   title: string;
@@ -33,7 +34,7 @@ const ActivityHero: React.FC<ActivityHeroProps> = ({
   const { t } = useTranslation();
   const fallbackTitle = t("labels.activity");
   const displayTitle = title || fallbackTitle;
-  const displayCategory = category || fallbackTitle;
+  const displayCategory = category ? formatCategoryName(category) : fallbackTitle;
   const chips = [location, dateLabel].filter(Boolean) as string[];
   const initial =
     title?.trim()?.[0]?.toUpperCase() ||

@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, Pressable, StyleSheet, ScrollView } from "react-native";
+import { formatCategoryName } from "../utils/categorySummary";
 
 interface Props {
   categories: string[];
@@ -24,7 +25,7 @@ const ActivitiesCategoryBar: React.FC<Props> = ({
               style={[styles.chip, active && styles.chipActive]}
             >
               <Text style={active ? styles.textActive : styles.text}>
-                {cat}
+                {formatCategoryName(cat)}
               </Text>
             </Pressable>
           );

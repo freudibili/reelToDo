@@ -5,6 +5,7 @@ export interface Activity {
   activity_date_id?: string | null;
   calendar_event_id?: string | null;
   is_favorite?: boolean;
+  favorited_at?: string | null;
   title: string | null;
   category: string | null;
   location_name: string | null;

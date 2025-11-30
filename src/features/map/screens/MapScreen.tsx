@@ -41,6 +41,7 @@ import {
   openActivitySource,
 } from "@features/activities/services/linksService";
 import { useAppTheme } from "@common/theme/appTheme";
+import { formatCategoryName } from "@features/activities/utils/categorySummary";
 
 const MapScreen = () => {
   const dispatch = useAppDispatch();
@@ -283,7 +284,7 @@ const MapScreen = () => {
                   selectedCategory === cat && { color: "#fff" },
                 ]}
               >
-                {cat}
+                {formatCategoryName(cat)}
               </Text>
             </Pressable>
           ))}
