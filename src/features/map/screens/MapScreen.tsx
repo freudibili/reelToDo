@@ -227,13 +227,8 @@ const MapScreen = () => {
   const isLoading = !initialized || loading || !initialRegion;
 
   return (
-    <Screen noPadding loading={isLoading} backgroundColor={colors.background}>
-      <View
-        style={[
-          styles.header,
-          { backgroundColor: colors.surface, borderBottomColor: colors.border },
-        ]}
-      >
+    <Screen noPadding loading={isLoading}>
+      <View style={[styles.header, { borderBottomColor: colors.border }]}>
         <Text style={[styles.title, { color: colors.text }]}>
           {t("activities:map.title")}
         </Text>
@@ -340,16 +335,16 @@ const MapScreen = () => {
             activity={selected}
             isFavorite={selected ? favoriteIds.includes(selected.id) : false}
             onDelete={handleDelete}
-          onToggleFavorite={handleToggleFavorite}
-          onOpenMaps={handleOpenMaps}
-          onOpenSource={handleOpenSource}
-          onAddToCalendar={handleAddToCalendar}
-          onChangePlannedDate={handleSetPlannedDate}
-        />
-      )}
-    </AppBottomSheet>
-  </Screen>
-);
+            onToggleFavorite={handleToggleFavorite}
+            onOpenMaps={handleOpenMaps}
+            onOpenSource={handleOpenSource}
+            onAddToCalendar={handleAddToCalendar}
+            onChangePlannedDate={handleSetPlannedDate}
+          />
+        )}
+      </AppBottomSheet>
+    </Screen>
+  );
 };
 
 export default MapScreen;

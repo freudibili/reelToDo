@@ -15,10 +15,24 @@
       "distribution": "internal"
     },
     "production": {
-      "autoIncrement": true
+      "distribution": "store",
+      "autoIncrement": true,
+      "channel": "production"
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "ios": {
+        "ascAppId": "6755927569",
+        "appleTeamId": "7SMAN9U5D9",
+        "ascApiKeyId": "6L324K3959",
+        "ascApiKeyIssuerId": "9c0dacf4-3cec-41f0-9939-318e2ed0fa57",
+        "ascApiKeyPath": "./credentials/AuthKey_6L324K3959.p8"
+      },
+      "android": {
+        "serviceAccountKeyPath": "./credentials/reeltodo-477606-326ebb963bab.json",
+        "track": "internal"
+      }
+    }
   }
 }

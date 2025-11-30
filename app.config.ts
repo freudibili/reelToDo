@@ -1,15 +1,20 @@
 import { ExpoConfig } from "expo/config";
 import "dotenv/config";
 
+const appVersion = "1.0.0";
+
 const config: ExpoConfig = {
   name: "ReelToDo",
   slug: "ReelToDo",
   scheme: "reeltodo",
-  version: "1.0.0",
+  version: appVersion,
   orientation: "portrait",
   icon: "./assets/icon.png",
   userInterfaceStyle: "light",
   newArchEnabled: true,
+  updates: {
+    url: "https://u.expo.dev/85b20dc6-dd0c-4438-92f0-23a53f754cc4",
+  },
   splash: {
     image: "./assets/splash-icon.png",
     resizeMode: "contain",
@@ -18,6 +23,12 @@ const config: ExpoConfig = {
   ios: {
     supportsTablet: true,
     bundleIdentifier: "com.fredericstudio.reeltodo",
+    runtimeVersion: appVersion,
+    entitlements: {
+      "com.apple.security.application-groups": [
+        "group.com.fredericstudio.reeltodo",
+      ],
+    },
     infoPlist: {
       CFBundleURLTypes: [
         {
@@ -55,12 +66,14 @@ const config: ExpoConfig = {
         apiKey: process.env.GOOGLE_MAPS_API_KEY,
       },
     },
+    runtimeVersion: {
+      policy: "appVersion",
+    },
   },
   web: {
     favicon: "./assets/favicon.png",
   },
   plugins: [
-    "expo-audio",
     "expo-localization",
     "expo-share-intent",
     [
