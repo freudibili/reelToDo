@@ -1,13 +1,14 @@
 import React from "react";
 import { Image, Linking, Pressable, StyleSheet, Text, View } from "react-native";
-import { SleepSpot } from "../mock/homeExploreData";
+import { EventSpot, PoiSpot } from "../mock/homeExploreData";
 import { useAppTheme } from "@common/theme/appTheme";
 
-type SleepListProps = {
-  places: SleepSpot[];
+type SpotListProps = {
+  titleLabel?: string;
+  items: (EventSpot | PoiSpot)[];
 };
 
-const SleepList: React.FC<SleepListProps> = ({ places }) => {
+const SpotList: React.FC<SpotListProps> = ({ items }) => {
   const { colors } = useAppTheme();
 
   const openMaps = (url?: string) => {
@@ -17,50 +18,35 @@ const SleepList: React.FC<SleepListProps> = ({ places }) => {
 
   return (
     <View style={styles.list}>
-      {places.map((place) => (
+      {items.map((item) => (
         <View
-          key={place.id}
+          key={item.id}
           style={[
             styles.card,
             { backgroundColor: colors.surface, borderColor: colors.border },
           ]}
         >
-          {place.photoUrl ? (
-            <Image source={{ uri: place.photoUrl }} style={styles.image} />
+          {item.photoUrl ? (
+            <Image source={{ uri: item.photoUrl }} style={styles.image} />
           ) : null}
-          <View style={styles.headerRow}>
-            <View style={styles.headerText}>
-              <Text style={[styles.title, { color: colors.text }]}>
-                {place.name}
-              </Text>
-              <Text style={[styles.type, { color: colors.mutedText }]}>
-                {place.type}
-                {place.distance ? ` · ${place.distance}` : ""}
-              </Text>
-            </View>
-            <View
-              style={[
-                styles.priceTag,
-                { backgroundColor: colors.accentSurface, borderColor: colors.accentBorder },
-              ]}
-            >
-              <Text style={[styles.priceText, { color: colors.accentText }]}>
-                {place.priceRange}
-              </Text>
-            </View>
+          <View style={styles.header}>
+            <Text style={[styles.title, { color: colors.text }]}>{item.name}</Text>
+            <Text style={[styles.category, { color: colors.mutedText }]}>
+              {item.category} · {item.distance}
+            </Text>
           </View>
           <Text style={[styles.description, { color: colors.text }]}>
-            {place.description}
+            {item.description}
           </Text>
           <Pressable
             style={[
               styles.cta,
               { backgroundColor: colors.surface, borderColor: colors.border },
             ]}
-            onPress={() => openMaps(place.mapsUrl)}
+            onPress={() => openMaps(item.mapsUrl)}
           >
             <Text style={[styles.ctaText, { color: colors.accentText }]}>
-              {place.mapsUrl ? "Open in Maps" : "Save for later"}
+              {item.mapsUrl ? "Open in Maps" : "More details"}
             </Text>
           </Pressable>
         </View>
@@ -69,7 +55,7 @@ const SleepList: React.FC<SleepListProps> = ({ places }) => {
   );
 };
 
-export default SleepList;
+export default SpotList;
 
 const styles = StyleSheet.create({
   list: {
@@ -79,41 +65,24 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     borderWidth: StyleSheet.hairlineWidth,
     padding: 12,
-    gap: 10,
+    gap: 8,
   },
   image: {
     width: "100%",
     height: 150,
     borderRadius: 12,
   },
-  headerRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 10,
-    alignItems: "flex-start",
-  },
-  headerText: {
-    flex: 1,
+  header: {
     gap: 4,
   },
   title: {
     fontSize: 15,
     fontWeight: "800",
   },
-  type: {
+  category: {
     fontSize: 12,
     fontWeight: "700",
     letterSpacing: 0.2,
-  },
-  priceTag: {
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    borderRadius: 10,
-    borderWidth: StyleSheet.hairlineWidth,
-  },
-  priceText: {
-    fontSize: 12,
-    fontWeight: "800",
   },
   description: {
     fontSize: 14,

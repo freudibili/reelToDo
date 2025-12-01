@@ -14,8 +14,10 @@ import {
   setBudget,
   resetSuggestions,
   fetchHomeExplore,
+  generateJourney,
 } from "../store/homeExploreSlice";
 import { homeExploreSelectors } from "../store/homeExploreSelectors";
+import { useRouter } from "expo-router";
 
 const categoryOptions: { label: string; value: CategoryTag }[] = [
   { label: "Highlights", value: "highlights" },
@@ -36,6 +38,7 @@ const budgetLevels: BudgetLevel[] = ["€", "€€", "€€€"];
 const HomeExploreScreen: React.FC = () => {
   const { colors } = useAppTheme();
   const dispatch = useAppDispatch();
+  const router = useRouter();
   const location = useAppSelector(homeExploreSelectors.location);
   const tripLength = useAppSelector(homeExploreSelectors.tripLength);
   const selectedCategories = useAppSelector(homeExploreSelectors.categories);
@@ -43,13 +46,20 @@ const HomeExploreScreen: React.FC = () => {
   const results = useAppSelector(homeExploreSelectors.results);
   const loadingResults = useAppSelector(homeExploreSelectors.loading);
   const hasSearched = useAppSelector(homeExploreSelectors.hasSearched);
+  const journeyLoading = useAppSelector(homeExploreSelectors.journeyLoading);
+  const journey = useAppSelector(homeExploreSelectors.journey);
 
   const handleSearch = () => {
     dispatch(fetchHomeExplore());
+    dispatch(generateJourney());
   };
 
   const handleResetFilters = () => {
     dispatch(resetSuggestions());
+  };
+
+  const handleOpenItinerary = (id: string) => {
+    router.push({ pathname: "/journeys/[id]", params: { id } });
   };
 
   return (
@@ -58,7 +68,7 @@ const HomeExploreScreen: React.FC = () => {
       headerTitle="Plan something"
       backgroundColor={colors.background}
       flushBottom
-      loading={loadingResults}
+      loading={loadingResults || journeyLoading}
     >
       <View style={styles.stack}>
         <LocationCard
@@ -93,9 +103,11 @@ const HomeExploreScreen: React.FC = () => {
           <ResultsSection
             results={results}
             location={location}
-            loading={loadingResults}
+            loading={loadingResults || journeyLoading}
             hasSearched={hasSearched}
             onChangeFilters={handleResetFilters}
+            onOpenJourney={journey ? () => router.push({ pathname: "/journeys/[id]", params: { id: "latest" } }) : undefined}
+            onOpenItinerary={handleOpenItinerary}
           />
         </View>
       </View>

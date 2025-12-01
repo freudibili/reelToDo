@@ -1,18 +1,25 @@
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Linking, Pressable, StyleSheet, Text, View } from "react-native";
 import { Itinerary } from "../mock/homeExploreData";
 import { useAppTheme } from "@common/theme/appTheme";
 
 type ItineraryListProps = {
   itineraries: Itinerary[];
   location: string;
+  onOpenItinerary?: (itinerary: Itinerary) => void;
 };
 
 const ItineraryList: React.FC<ItineraryListProps> = ({
   itineraries,
   location,
+  onOpenItinerary,
 }) => {
   const { colors } = useAppTheme();
+
+  const openMaps = (url?: string) => {
+    if (!url) return;
+    Linking.openURL(url);
+  };
 
   return (
     <View style={styles.list}>
@@ -24,6 +31,9 @@ const ItineraryList: React.FC<ItineraryListProps> = ({
             { backgroundColor: colors.surface, borderColor: colors.border },
           ]}
         >
+          {item.mapImageUrl ? (
+            <Image source={{ uri: item.mapImageUrl }} style={styles.mapImage} />
+          ) : null}
           <View style={styles.cardHeader}>
             <Text style={[styles.cardTitle, { color: colors.text }]}>
               {item.title}
@@ -45,6 +55,19 @@ const ItineraryList: React.FC<ItineraryListProps> = ({
           <Text style={[styles.description, { color: colors.text }]}>
             {item.description}
           </Text>
+          {item.directions?.distanceText || item.directions?.durationText ? (
+            <View
+              style={[
+                styles.directionsRow,
+                { backgroundColor: colors.surface, borderColor: colors.border },
+              ]}
+            >
+              <Text style={[styles.directionsText, { color: colors.mutedText }]}>
+                {item.directions?.distanceText ? `${item.directions.distanceText} • ` : ""}
+                {item.directions?.durationText ?? ""}
+              </Text>
+            </View>
+          ) : null}
           <View style={styles.stops}>
             {item.stops.map((stop, idx) => (
               <View
@@ -72,8 +95,13 @@ const ItineraryList: React.FC<ItineraryListProps> = ({
               styles.button,
               { backgroundColor: colors.accent, shadowColor: colors.accent },
             ]}
+            onPress={() =>
+              onOpenItinerary ? onOpenItinerary(item) : openMaps(item.mapsUrl)
+            }
           >
-            <Text style={styles.buttonText}>See itinerary</Text>
+            <Text style={styles.buttonText}>
+              {onOpenItinerary ? "Open journey" : item.mapsUrl ? "Open in Google Maps" : "See itinerary"}
+            </Text>
           </Pressable>
         </View>
       ))}
@@ -92,6 +120,11 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     borderWidth: StyleSheet.hairlineWidth,
     gap: 10,
+  },
+  mapImage: {
+    width: "100%",
+    height: 160,
+    borderRadius: 12,
   },
   cardHeader: {
     flexDirection: "row",
@@ -149,6 +182,18 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "700",
     lineHeight: 18,
+  },
+  directionsRow: {
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+    alignSelf: "flex-start",
+  },
+  directionsText: {
+    fontSize: 12,
+    fontWeight: "700",
+    letterSpacing: 0.2,
   },
   button: {
     paddingVertical: 12,

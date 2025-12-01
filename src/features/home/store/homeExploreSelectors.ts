@@ -9,4 +9,11 @@ export const homeExploreSelectors = {
   loading: (state: RootState) => state.homeExplore.loading,
   hasSearched: (state: RootState) => state.homeExplore.hasSearched,
   error: (state: RootState) => state.homeExplore.error,
+  journey: (state: RootState) => state.homeExplore.journey,
+  journeyLoading: (state: RootState) => state.homeExplore.journeyLoading,
+  journeyError: (state: RootState) => state.homeExplore.journeyError,
+  itineraryById:
+    (id: string) =>
+    (state: RootState) =>
+      state.homeExplore.results.itineraries.find((it) => it.id === id) ?? null,
 };

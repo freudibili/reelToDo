@@ -11,6 +11,7 @@ import ItineraryList from "./ItineraryList";
 import EatList from "./EatList";
 import SleepList from "./SleepList";
 import PackingList from "./PackingList";
+import SpotList from "./SpotList";
 import { HomeExploreData } from "../mock/homeExploreData";
 import { useAppTheme } from "@common/theme/appTheme";
 
@@ -20,6 +21,8 @@ type ResultsSectionProps = {
   loading: boolean;
   hasSearched: boolean;
   onChangeFilters: () => void;
+  onOpenItinerary?: (id: string) => void;
+  onOpenJourney?: () => void;
 };
 
 const ResultsSection: React.FC<ResultsSectionProps> = ({
@@ -28,6 +31,8 @@ const ResultsSection: React.FC<ResultsSectionProps> = ({
   loading,
   hasSearched,
   onChangeFilters,
+  onOpenItinerary,
+  onOpenJourney,
 }) => {
   const { colors } = useAppTheme();
 
@@ -132,11 +137,22 @@ const ResultsSection: React.FC<ResultsSectionProps> = ({
     <View style={styles.wrapper}>
       <View style={styles.resultsHeader}>
         <Text style={[styles.resultsTitle, { color: colors.text }]}>
-          Ideas for {location}
+          Ideas for {results.location ?? location}
         </Text>
         <Text style={[styles.resultsSubtitle, { color: colors.mutedText }]}>
           Mix and match itineraries, food, stays, and packing prep.
         </Text>
+        {onOpenJourney ? (
+          <Pressable
+            style={[
+              styles.journeyCta,
+              { backgroundColor: colors.accent, shadowColor: colors.accent },
+            ]}
+            onPress={onOpenJourney}
+          >
+            <Text style={styles.journeyCtaText}>Open generated journey</Text>
+          </Pressable>
+        ) : null}
       </View>
 
       {loading ? (
@@ -152,7 +168,11 @@ const ResultsSection: React.FC<ResultsSectionProps> = ({
             "Itineraries",
             "Ready-made days you can follow",
             results.itineraries.length > 0,
-            <ItineraryList itineraries={results.itineraries} location={location} />,
+            <ItineraryList
+              itineraries={results.itineraries}
+              location={location}
+              onOpenItinerary={(itinerary) => onOpenItinerary?.(itinerary.id)}
+            />,
             "No itineraries found with these filters yet."
           )}
           {renderSection(
@@ -163,11 +183,25 @@ const ResultsSection: React.FC<ResultsSectionProps> = ({
             "No food spots match this budget. Try broadening it."
           )}
           {renderSection(
+            "Events",
+            "Live shows, pop-ups, and happenings",
+            results.events.length > 0,
+            <SpotList items={results.events} />,
+            "No events matched this search yet."
+          )}
+          {renderSection(
             "Where to sleep",
             "A few places to rest",
             results.sleeps.length > 0,
             <SleepList places={results.sleeps} />,
             "No stays fit these filters. Soften the tags or budget."
+          )}
+          {renderSection(
+            "Points of interest",
+            "Landmarks and viewpoints worth a stop",
+            results.points.length > 0,
+            <SpotList items={results.points} />,
+            "No nearby sights matched yet."
           )}
           {renderSection(
             "What to bring",
@@ -199,6 +233,23 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "600",
     lineHeight: 18,
+  },
+  journeyCta: {
+    marginTop: 6,
+    alignSelf: "flex-start",
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 12,
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 2,
+  },
+  journeyCtaText: {
+    color: "#ffffff",
+    fontSize: 13.5,
+    fontWeight: "800",
+    letterSpacing: 0.2,
   },
   section: {
     gap: 10,

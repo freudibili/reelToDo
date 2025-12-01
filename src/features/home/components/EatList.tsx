@@ -1,5 +1,5 @@
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Linking, Pressable, StyleSheet, Text, View } from "react-native";
 import { EatSpot } from "../mock/homeExploreData";
 import { useAppTheme } from "@common/theme/appTheme";
 
@@ -9,6 +9,11 @@ type EatListProps = {
 
 const EatList: React.FC<EatListProps> = ({ places }) => {
   const { colors } = useAppTheme();
+
+  const handleOpenMap = (url?: string) => {
+    if (!url) return;
+    Linking.openURL(url);
+  };
 
   return (
     <View style={styles.list}>
@@ -20,6 +25,9 @@ const EatList: React.FC<EatListProps> = ({ places }) => {
             { backgroundColor: colors.surface, borderColor: colors.border },
           ]}
         >
+          {place.photoUrl ? (
+            <Image source={{ uri: place.photoUrl }} style={styles.image} />
+          ) : null}
           <View style={styles.headerRow}>
             <Text style={[styles.title, { color: colors.text }]}>
               {place.name}
@@ -49,9 +57,10 @@ const EatList: React.FC<EatListProps> = ({ places }) => {
               styles.cta,
               { backgroundColor: colors.surface, borderColor: colors.border },
             ]}
+            onPress={() => handleOpenMap(place.mapsUrl)}
           >
             <Text style={[styles.ctaText, { color: colors.accentText }]}>
-              View details
+              {place.mapsUrl ? "Open in Maps" : "View details"}
             </Text>
           </Pressable>
         </View>
@@ -71,6 +80,11 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     padding: 12,
     gap: 8,
+  },
+  image: {
+    width: "100%",
+    height: 150,
+    borderRadius: 12,
   },
   headerRow: {
     flexDirection: "row",

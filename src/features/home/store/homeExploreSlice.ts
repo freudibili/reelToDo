@@ -7,6 +7,8 @@ import type {
 } from "../mock/homeExploreData";
 import { homeExploreData } from "../mock/homeExploreData";
 import { HomeExploreService } from "../services/homeExploreService";
+import { JourneyService } from "../services/journeyService";
+import type { JourneyPlan } from "../types/journey";
 
 type HomeExploreState = {
   location: string;
@@ -17,6 +19,9 @@ type HomeExploreState = {
   loading: boolean;
   error: string | null;
   hasSearched: boolean;
+  journey: JourneyPlan | null;
+  journeyLoading: boolean;
+  journeyError: string | null;
 };
 
 const initialState: HomeExploreState = {
@@ -28,6 +33,9 @@ const initialState: HomeExploreState = {
   loading: false,
   error: null,
   hasSearched: false,
+  journey: null,
+  journeyLoading: false,
+  journeyError: null,
 };
 
 export const fetchHomeExplore = createAsyncThunk<
@@ -46,6 +54,38 @@ export const fetchHomeExplore = createAsyncThunk<
     return data;
   } catch (err: any) {
     return rejectWithValue(err.message ?? "Unable to load ideas");
+  }
+});
+
+export const generateJourney = createAsyncThunk<
+  JourneyPlan,
+  void,
+  { state: RootState; rejectValue: string }
+>("homeExplore/generateJourney", async (_, { getState, rejectWithValue }) => {
+  const state = getState().homeExplore;
+  const mapCategoryToFilter = (value: CategoryTag): string => {
+    if (value === "walks") return "city_walks";
+    if (value === "food") return "restaurants";
+    if (value === "bars" || value === "nightlife") return "nightlife";
+    if (value === "museums") return "museums";
+    if (value === "cafes") return "cafes";
+    if (value === "hikes") return "hikes";
+    if (value === "family") return "family";
+    if (value === "markets") return "events";
+    return value;
+  };
+  try {
+    const data = await JourneyService.generateJourney({
+      location: state.location,
+      days: state.tripLength,
+      startDate: null,
+      categories: state.categories,
+      filters: state.categories.map(mapCategoryToFilter),
+      budget: state.budget,
+    });
+    return data;
+  } catch (err: any) {
+    return rejectWithValue(err.message ?? "Unable to generate journey");
   }
 });
 
@@ -74,6 +114,9 @@ const homeExploreSlice = createSlice({
       state.results = homeExploreData;
       state.hasSearched = false;
       state.error = null;
+      state.journey = null;
+      state.journeyError = null;
+      state.journeyLoading = false;
     },
   },
   extraReducers: (builder) => {
@@ -91,6 +134,18 @@ const homeExploreSlice = createSlice({
         state.loading = false;
         state.error = action.payload ?? "Unable to load ideas";
         state.hasSearched = true;
+      })
+      .addCase(generateJourney.pending, (state) => {
+        state.journeyLoading = true;
+        state.journeyError = null;
+      })
+      .addCase(generateJourney.fulfilled, (state, action) => {
+        state.journeyLoading = false;
+        state.journey = action.payload;
+      })
+      .addCase(generateJourney.rejected, (state, action) => {
+        state.journeyLoading = false;
+        state.journeyError = action.payload ?? "Unable to generate journey";
       });
   },
 });
