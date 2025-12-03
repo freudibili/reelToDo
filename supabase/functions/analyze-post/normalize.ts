@@ -55,39 +55,74 @@ export const normalizeCategory = (value: string | null): string | null => {
   if (!value) return null;
   const low = value.toLowerCase();
 
-  if (low.includes("hike") || low.includes("trail")) return "outdoor-hike";
-  if (low.includes("view") || low.includes("viewpoint"))
+  if (low.includes("hike") || low.includes("trail") || low.includes("walk")) {
+    return "outdoor-hike";
+  }
+  if (
+    low.includes("view") || low.includes("viewpoint") ||
+    low.includes("panorama")
+  ) {
     return "outdoor-viewpoint";
+  }
   if (low.includes("beach")) return "outdoor-beach";
   if (low.includes("park")) return "outdoor-park";
-  if (low.includes("nature") || low.includes("outdoor") || low.includes("travel"))
+  if (
+    low.includes("nature") ||
+    low.includes("outdoor") ||
+    low.includes("travel") ||
+    low.includes("sunrise")
+  ) {
     return "outdoor-nature-spot";
-  if (low.includes("sunrise")) return "outdoor-nature-spot";
+  }
 
   if (low.includes("cafe") || low.includes("coffee")) return "food-cafe";
-  if (low.includes("restaurant") || low.includes("food"))
+  if (
+    low.includes("restaurant") || low.includes("food") ||
+    low.includes("lunch") || low.includes("dinner")
+  ) {
     return "food-restaurant";
-  if (low.includes("bar")) return "food-bar";
-  if (low.includes("street food")) return "food-street-food";
+  }
+  if (low.includes("bar") || low.includes("cocktail")) return "food-bar";
+  if (low.includes("street food") || low.includes("food truck")) {
+    return "food-street-food";
+  }
 
   if (low.includes("market")) return "event-market";
-  if (low.includes("festival")) return "event-festival";
-  if (low.includes("concert")) return "event-concert";
-  if (low.includes("exhibition")) return "event-exhibition";
+  if (low.includes("festival") || low.includes("fest")) return "event-festival";
+  if (low.includes("concert") || low.includes("live music")) {
+    return "event-concert";
+  }
+  if (low.includes("exhibition") || low.includes("expo")) {
+    return "event-exhibition";
+  }
 
   if (low.includes("museum")) return "culture-museum";
-  if (low.includes("monument")) return "culture-monument";
-  if (low.includes("architecture")) return "culture-architecture";
+  if (low.includes("monument") || low.includes("castle")) {
+    return "culture-monument";
+  }
+  if (low.includes("architecture") || low.includes("landmark")) {
+    return "culture-architecture";
+  }
 
-  if (low.includes("workshop") && low.includes("cook"))
+  if (low.includes("workshop") && low.includes("cook")) {
     return "workshop-cooking";
+  }
   if (low.includes("workshop") && low.includes("art")) return "workshop-art";
-  if (low.includes("workshop") && low.includes("wellness"))
+  if (
+    low.includes("workshop") &&
+    (low.includes("wellness") || low.includes("yoga") || low.includes("spa") ||
+      low.includes("retreat"))
+  ) {
     return "workshop-wellness";
+  }
 
   if (low.includes("club")) return "nightlife-club";
-  if (low.includes("nightlife") || low.includes("night bar"))
+  if (
+    low.includes("nightlife") || low.includes("night bar") ||
+    low.includes("late bar")
+  ) {
     return "nightlife-bar";
+  }
 
   if (low.includes("vintage")) return "shopping-vintage";
   if (low.includes("shop") || low.includes("local")) return "shopping-local";
@@ -110,21 +145,25 @@ export const inferCategoryFromContent = (input: {
     .join(" ")
     .toLowerCase();
 
-  if (hay.match(/\b(hike|trail|randonn[eé]e|wanderung)\b/))
+  if (hay.match(/\b(hike|trail|randonn[eé]e|wanderung)\b/)) {
     return "outdoor-hike";
-  if (hay.match(/\b(view|viewpoint|panorama|belvedere)\b/))
+  }
+  if (hay.match(/\b(view|viewpoint|panorama|belvedere)\b/)) {
     return "outdoor-viewpoint";
+  }
   if (hay.match(/\b(beach|plage|strand)\b/)) return "outdoor-beach";
   if (hay.match(/\b(park|parc)\b/)) return "outdoor-park";
   if (
     hay.match(/\b(nature|forest|forêt|wald)\b/) ||
     hay.match(/\b(outdoor|travel|sunrise)\b/)
-  )
+  ) {
     return "outdoor-nature-spot";
+  }
 
   if (hay.match(/\b(cafe|coffee|café)\b/)) return "food-cafe";
   if (hay.match(/\b(restaurant|food|lunch|dinner)\b/)) return "food-restaurant";
   if (hay.match(/\b(bar|cocktail)\b/)) return "food-bar";
+  if (hay.match(/\b(street food|food truck)\b/)) return "food-street-food";
 
   if (hay.match(/\b(market|march[eé]|markt)\b/)) return "event-market";
   if (hay.match(/\b(festival|fest)\b/)) return "event-festival";
@@ -132,17 +171,35 @@ export const inferCategoryFromContent = (input: {
   if (hay.match(/\b(exhibition|expo)\b/)) return "event-exhibition";
 
   if (hay.match(/\b(museum|mus[eé]e)\b/)) return "culture-museum";
-  if (hay.match(/\b(monument|castle|château|burg)\b/))
+  if (hay.match(/\b(monument|castle|château|burg)\b/)) {
     return "culture-monument";
+  }
+  if (hay.match(/\b(architecture|landmark)\b/)) return "culture-architecture";
 
-  if (hay.match(/\b(workshop|cours|ateliers)\b/)) return "workshop-art";
+  if (
+    hay.match(/\b(workshop|cours|ateliers)\b/) &&
+    hay.match(/\b(cook|cuisine|kitchen)\b/)
+  ) {
+    return "workshop-cooking";
+  }
+  if (
+    hay.match(/\b(workshop|cours|ateliers)\b/) && hay.match(/\b(art|atelier)\b/)
+  ) {
+    return "workshop-art";
+  }
+  if (
+    hay.match(/\b(workshop|cours|ateliers)\b/) &&
+    hay.match(/\b(wellness|yoga|spa|retreat)\b/)
+  ) {
+    return "workshop-wellness";
+  }
 
   return null;
 };
 
 export const mergeIfNull = <T extends Record<string, any>>(
   primary: T,
-  secondary: Partial<T>
+  secondary: Partial<T>,
 ): T => {
   const result: Record<string, any> = { ...primary };
   for (const key of Object.keys(secondary)) {
@@ -155,14 +212,20 @@ export const mergeIfNull = <T extends Record<string, any>>(
 };
 
 export const normalizeActivity = (activity: any) => {
-  const normalizeDates = (): { start: string; end: string | null; recurrence_rule: any }[] => {
+  const normalizeDates = (): {
+    start: string;
+    end: string | null;
+    recurrence_rule: any;
+  }[] => {
     const singleDate = activity.date ?? null;
 
     const fromArray = Array.isArray(activity.dates) ? activity.dates : [];
     const mappedArray = fromArray
       .map((d: any) => {
         if (!d) return null;
-        if (typeof d === "string") return { start: d, end: null, recurrence_rule: null };
+        if (typeof d === "string") {
+          return { start: d, end: null, recurrence_rule: null };
+        }
         if (typeof d === "object" && d.start) {
           return {
             start: d.start,
@@ -174,12 +237,15 @@ export const normalizeActivity = (activity: any) => {
       })
       .filter(
         (
-          d: { start: string; end: string | null; recurrence_rule: any } | null
-        ): d is { start: string; end: string | null; recurrence_rule: any } => Boolean(d)
+          d: { start: string; end: string | null; recurrence_rule: any } | null,
+        ): d is { start: string; end: string | null; recurrence_rule: any } =>
+          Boolean(d),
       );
 
     if (mappedArray.length > 0) return mappedArray;
-    if (singleDate) return [{ start: singleDate, end: null, recurrence_rule: null }];
+    if (singleDate) {
+      return [{ start: singleDate, end: null, recurrence_rule: null }];
+    }
     return [];
   };
 
@@ -197,8 +263,9 @@ export const normalizeActivity = (activity: any) => {
     tags: Array.isArray(activity.tags) ? activity.tags : [],
     creator: activity.creator ?? null,
     image_url: activity.image_url ?? null,
-    confidence:
-      typeof activity.confidence === "number" ? activity.confidence : 0.9,
+    confidence: typeof activity.confidence === "number"
+      ? activity.confidence
+      : 0.9,
     source_url: activity.source_url
       ? normalizeActivityUrl(activity.source_url)
       : null,
@@ -208,7 +275,7 @@ export const normalizeActivity = (activity: any) => {
 export const generateTitle = (
   category: string,
   baseName: string,
-  city: string | null
+  city: string | null,
 ): string => {
   const cleanBase = baseName.replace(/^#/, "").trim();
   const suffix = city ? ` (${city})` : "";

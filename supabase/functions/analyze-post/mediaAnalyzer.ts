@@ -56,6 +56,7 @@ export type AnalyzerMappedActivity = {
   longitude: number | null;
   date: string | null;
   dates?: string[];
+  locations?: MediaAnalyzerLocation[] | null;
   tags: string[];
   creator: string | null;
   source_url: string | null;
@@ -94,28 +95,60 @@ const safeTags = (value: unknown): string[] => {
 };
 
 const pickBestLocation = (
-  locations: MediaAnalyzerLocation[] | undefined
+  locations: MediaAnalyzerLocation[] | undefined,
 ): MediaAnalyzerLocation | null => {
   if (!Array.isArray(locations) || locations.length === 0) return null;
 
   const withCoords = locations.find(
-    (l) => cleanNumber(l?.latitude) !== null && cleanNumber(l?.longitude) !== null
+    (l) =>
+      cleanNumber(l?.latitude) !== null && cleanNumber(l?.longitude) !== null,
   );
   if (withCoords) return withCoords;
 
-  const withPlace =
-    locations.find(
-      (l) => cleanString(l?.name) || cleanString(l?.address) || cleanString(l?.city)
-    ) ?? null;
+  const withPlace = locations.find(
+    (l) =>
+      cleanString(l?.name) || cleanString(l?.address) || cleanString(l?.city),
+  ) ?? null;
   if (withPlace) return withPlace;
 
   return locations[0] ?? null;
 };
 
-const formatKeyInfo = (keyInfo?: MediaAnalyzerKeyInfo | null): string | null => {
+const cleanLocation = (loc: MediaAnalyzerLocation | null | undefined) => {
+  if (!loc) return null;
+  const cleaned: MediaAnalyzerLocation = {
+    name: cleanString(loc.name ?? null),
+    address: cleanString(loc.address ?? null),
+    city: cleanString(loc.city ?? null),
+    latitude: cleanNumber(loc.latitude ?? null),
+    longitude: cleanNumber(loc.longitude ?? null),
+  };
+  const hasAny = cleaned.name ||
+    cleaned.address ||
+    cleaned.city ||
+    cleaned.latitude !== null ||
+    cleaned.longitude !== null;
+  return hasAny ? cleaned : null;
+};
+
+const sanitizeLocations = (
+  locations: MediaAnalyzerLocation[] | undefined | null,
+): MediaAnalyzerLocation[] | null => {
+  if (!Array.isArray(locations)) return null;
+  const cleaned = locations
+    .map((loc) => cleanLocation(loc))
+    .filter((loc): loc is MediaAnalyzerLocation => Boolean(loc));
+  return cleaned.length > 0 ? cleaned : null;
+};
+
+const formatKeyInfo = (
+  keyInfo?: MediaAnalyzerKeyInfo | null,
+): string | null => {
   if (!keyInfo) return null;
   const parts = [
-    keyInfo.estimated_price ? `Estimated price: ${keyInfo.estimated_price}` : null,
+    keyInfo.estimated_price
+      ? `Estimated price: ${keyInfo.estimated_price}`
+      : null,
     keyInfo.transport ? `Transport: ${keyInfo.transport}` : null,
     keyInfo.best_time ? `Best time: ${keyInfo.best_time}` : null,
     keyInfo.duration ? `Duration: ${keyInfo.duration}` : null,
@@ -124,7 +157,7 @@ const formatKeyInfo = (keyInfo?: MediaAnalyzerKeyInfo | null): string | null => 
 };
 
 export const fetchMediaAnalyzer = async (
-  url: string
+  url: string,
 ): Promise<MediaAnalyzerResponse | null> => {
   if (!mediaAnalyzerUrl) return null;
 
@@ -133,14 +166,15 @@ export const fetchMediaAnalyzer = async (
       method: "POST",
       headers: {
         "content-type": "application/json",
-        ...(mediaAnalyzerApiToken ? { "x-api-key": mediaAnalyzerApiToken } : {}),
+        ...(mediaAnalyzerApiToken
+          ? { "x-api-key": mediaAnalyzerApiToken }
+          : {}),
       },
       body: JSON.stringify({ url }),
-      signal:
-        typeof AbortSignal !== "undefined" &&
-        typeof (AbortSignal as any).timeout === "function"
-          ? (AbortSignal as any).timeout(8000)
-          : undefined,
+      signal: typeof AbortSignal !== "undefined" &&
+          typeof (AbortSignal as any).timeout === "function"
+        ? (AbortSignal as any).timeout(30000)
+        : undefined,
     });
 
     if (!res.ok) {
@@ -157,17 +191,17 @@ export const fetchMediaAnalyzer = async (
       creator: json.creator ?? null,
       activity: activity
         ? {
-            category: activity.category ?? null,
-            title: activity.title ?? null,
-            locations: activity.locations ?? null,
-            dates: activity.dates ?? null,
-            key_info: activity.key_info ?? null,
-            tags: activity.tags ?? null,
-            creator: activity.creator ?? null,
-            source_url: activity.source_url ?? null,
-            thumbnailUrl: activity.thumbnailUrl ?? null,
-            confidence: activity.confidence ?? null,
-          }
+          category: activity.category ?? null,
+          title: activity.title ?? null,
+          locations: activity.locations ?? null,
+          dates: activity.dates ?? null,
+          key_info: activity.key_info ?? null,
+          tags: activity.tags ?? null,
+          creator: activity.creator ?? null,
+          source_url: activity.source_url ?? null,
+          thumbnailUrl: activity.thumbnailUrl ?? null,
+          confidence: activity.confidence ?? null,
+        }
         : null,
     });
     return json;
@@ -179,7 +213,7 @@ export const fetchMediaAnalyzer = async (
 
 export const mapMediaAnalyzer = (
   payload: MediaAnalyzerResponse | null,
-  url: string
+  url: string,
 ): { activity: AnalyzerMappedActivity | null; description: string | null } => {
   if (!payload?.activity) {
     const descOnly = cleanString(payload?.rawDescription ?? null);
@@ -187,18 +221,22 @@ export const mapMediaAnalyzer = (
   }
 
   const loc = pickBestLocation(payload.activity.locations);
-  const otherLocations = (payload.activity.locations ?? []).filter((l) => l !== loc);
-  const otherLocationsSummary =
-    otherLocations.length > 0
-      ? `Other locations mentioned: ${otherLocations
-          .map((l) =>
-            [cleanString(l?.name ?? null), cleanString(l?.city ?? null)]
-              .filter(Boolean)
-              .join(" - ")
-          )
-          .filter(Boolean)
-          .join(", ")}`
-      : null;
+  const sanitizedLocations = sanitizeLocations(payload.activity.locations);
+  const otherLocations = (payload.activity.locations ?? []).filter((l) =>
+    l !== loc
+  );
+  const otherLocationsSummary = otherLocations.length > 0
+    ? `Other locations mentioned: ${
+      otherLocations
+        .map((l) =>
+          [cleanString(l?.name ?? null), cleanString(l?.city ?? null)]
+            .filter(Boolean)
+            .join(" - ")
+        )
+        .filter(Boolean)
+        .join(", ")
+    }`
+    : null;
   const descriptionParts = [
     cleanString(payload.rawDescription ?? null),
     formatKeyInfo(payload.activity.key_info),
@@ -206,26 +244,24 @@ export const mapMediaAnalyzer = (
   ].filter(Boolean);
 
   const normalizedSource = normalizeActivityUrl(
-    payload.activity.source_url ?? payload.sourceUrl ?? url
+    payload.activity.source_url ?? payload.sourceUrl ?? url,
   );
 
   const mapped: AnalyzerMappedActivity = {
-    title:
-      cleanString(payload.activity.title) ??
+    title: cleanString(payload.activity.title) ??
       cleanString(payload.rawTitle ?? null) ??
       null,
     category: cleanCategory(payload.activity.category ?? null),
-    location_name:
-      cleanString(payload.activity.location_name ?? null) ??
+    location_name: cleanString(payload.activity.location_name ?? null) ??
       cleanString(loc?.name ?? null),
-    address: cleanString(payload.activity.address ?? null) ?? cleanString(loc?.address ?? null),
-    city: cleanString(payload.activity.city ?? null) ?? cleanString(loc?.city ?? null),
+    address: cleanString(payload.activity.address ?? null) ??
+      cleanString(loc?.address ?? null),
+    city: cleanString(payload.activity.city ?? null) ??
+      cleanString(loc?.city ?? null),
     country: null,
-    latitude:
-      cleanNumber(payload.activity.latitude ?? null) ??
+    latitude: cleanNumber(payload.activity.latitude ?? null) ??
       cleanNumber(loc?.latitude ?? null),
-    longitude:
-      cleanNumber(payload.activity.longitude ?? null) ??
+    longitude: cleanNumber(payload.activity.longitude ?? null) ??
       cleanNumber(loc?.longitude ?? null),
     date:
       Array.isArray(payload.activity.dates) && payload.activity.dates.length > 0
@@ -233,28 +269,28 @@ export const mapMediaAnalyzer = (
         : null,
     dates: Array.isArray(payload.activity.dates)
       ? payload.activity.dates
-          .map((d) => cleanString(d))
-          .filter((d): d is string => Boolean(d))
+        .map((d) => cleanString(d))
+        .filter((d): d is string => Boolean(d))
       : undefined,
+    locations: sanitizedLocations,
     tags: safeTags(payload.activity.tags ?? []),
-    creator:
-      cleanString(payload.activity.creator ?? null) ??
+    creator: cleanString(payload.activity.creator ?? null) ??
       cleanString(payload.creator ?? null),
     source_url: normalizedSource,
-    image_url:
-      cleanString(payload.activity.thumbnailUrl ?? null) ??
+    image_url: cleanString(payload.activity.thumbnailUrl ?? null) ??
       cleanString(payload.thumbnailUrl ?? null) ??
       (isDataUrl(payload.activity.thumbnailBase64 ?? null)
         ? null
         : cleanString(payload.activity.thumbnailBase64 ?? null)),
-    confidence:
-      typeof payload.activity.confidence === "number"
-        ? payload.activity.confidence
-        : null,
+    confidence: typeof payload.activity.confidence === "number"
+      ? payload.activity.confidence
+      : null,
   };
 
   return {
     activity: mapped,
-    description: descriptionParts.length > 0 ? descriptionParts.join("\n\n") : null,
+    description: descriptionParts.length > 0
+      ? descriptionParts.join("\n\n")
+      : null,
   };
 };
