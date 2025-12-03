@@ -96,7 +96,11 @@ const normalizeToken = (value: string | null | undefined) =>
 export const geocodePlace = async (
   name: string,
   context?: string | null,
-  opts?: { cityHint?: string | null; countryHint?: string | null }
+  opts?: {
+    cityHint?: string | null;
+    countryHint?: string | null;
+    regionHint?: string | null;
+  }
 ): Promise<GeocodedPlace | null> => {
   if (!GOOGLE_MAPS_API_KEY) {
     console.log("[google] no api key, skipping");
@@ -106,6 +110,7 @@ export const geocodePlace = async (
   const queryParts = [name];
   if (context) queryParts.push(context);
   if (opts?.cityHint) queryParts.push(opts.cityHint);
+  if (opts?.regionHint) queryParts.push(opts.regionHint);
   if (opts?.countryHint) queryParts.push(opts.countryHint);
 
   const query = queryParts.filter(Boolean).join(" ").trim();
@@ -129,6 +134,15 @@ export const geocodePlace = async (
   const countryComponent =
     first.address_components?.find(
       (c: any) => Array.isArray(c.types) && c.types.includes("country")
+    ) ?? null;
+  const regionComponent =
+    first.address_components?.find(
+      (c: any) => Array.isArray(c.types) &&
+        c.types.some(
+          (t: string) =>
+            t === "administrative_area_level_1" ||
+            t === "administrative_area_level_2"
+        )
     ) ?? null;
 
   let place: GeocodedPlace = {
@@ -162,6 +176,17 @@ export const geocodePlace = async (
         got: place.country,
       });
       return null;
+    }
+  }
+
+  if (opts?.regionHint && regionComponent) {
+    const hint = normalizeToken(opts.regionHint);
+    const got = normalizeToken(regionComponent.long_name);
+    if (hint && got && hint !== got) {
+      console.log("[google] region hint mismatch, keep result", {
+        hint: opts.regionHint,
+        got: regionComponent.long_name,
+      });
     }
   }
 

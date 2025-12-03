@@ -10,6 +10,7 @@ import {
   formatActivityLocation,
   formatDisplayDate,
   formatDisplayDateTime,
+  getOfficialDateValue,
   getPrimaryDateValue,
   isSameDateValue,
 } from "../utils/activityDisplay";
@@ -56,14 +57,15 @@ const ActivityDetailsSheet: React.FC<Props> = ({
   const [locationModalVisible, setLocationModalVisible] = useState(false);
   const [locationSubmitting, setLocationSubmitting] = useState(false);
   if (!activity) return null;
+  const officialDateValue = getOfficialDateValue(activity);
   const baseDate = useMemo(
     () =>
       activity.planned_at
         ? new Date(activity.planned_at)
-        : activity.main_date
-          ? new Date(activity.main_date)
+        : officialDateValue
+          ? new Date(officialDateValue)
           : new Date(),
-    [activity]
+    [activity.planned_at, officialDateValue]
   );
 
   const { openPicker, pickerModal } = usePlatformDateTimePicker({
@@ -72,17 +74,14 @@ const ActivityDetailsSheet: React.FC<Props> = ({
     cardColor: colors.card,
   });
 
-  const officialDateLabel = formatDisplayDate(activity.main_date);
+  const officialDateLabel = formatDisplayDate(officialDateValue);
   const plannedDateLabel = formatDisplayDateTime(activity.planned_at);
   const primaryDateLabel = formatDisplayDateTime(getPrimaryDateValue(activity));
   const locationLabel =
     formatActivityLocation(activity) ??
     t("activities:details.locationFallback");
   const needsDate = categoryNeedsDate(activity.category);
-  const sameAsOfficial = isSameDateValue(
-    activity.planned_at,
-    activity.main_date
-  );
+  const sameAsOfficial = isSameDateValue(activity.planned_at, officialDateValue);
   const primaryDateValue = getPrimaryDateValue(activity);
   const hasDateForCalendar =
     !!primaryDateValue && !Number.isNaN(new Date(primaryDateValue).getTime());
@@ -263,12 +262,12 @@ const ActivityDetailsSheet: React.FC<Props> = ({
               label={plannedDateLabel ?? t("activities:planned.empty")}
               tone={plannedDateLabel ? "default" : "muted"}
             />
-            {activity.main_date ? (
+            {officialDateValue ? (
               <Text style={[styles.muted, { color: colors.mutedText }]}>
                 {sameAsOfficial
                   ? t("activities:planned.matchesOfficial")
                   : t("activities:planned.officialLabel", {
-                      value: formatDisplayDateTime(activity.main_date),
+                      value: formatDisplayDateTime(officialDateValue),
                     })}
               </Text>
             ) : null}

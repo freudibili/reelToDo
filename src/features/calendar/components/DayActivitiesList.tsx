@@ -5,6 +5,7 @@ import type { Activity } from "@features/activities/utils/types";
 import {
   formatActivityLocation,
   formatDisplayDateTime,
+  getOfficialDateValue,
   getPrimaryDateValue,
   formatDisplayTime,
   hasTimeComponent,
@@ -94,11 +95,12 @@ const DayActivitiesList: React.FC<Props> = ({
           const locationLabel = formatActivityLocation(activity);
           const showTime = hasTimeComponent(primaryDate);
           const isPlanned = Boolean(activity.planned_at);
+          const officialDateValue = getOfficialDateValue(activity);
           const officialLabel =
             isPlanned &&
-            activity.main_date &&
-            !isSameDateValue(activity.main_date, primaryDate)
-              ? formatDisplayDateTime(activity.main_date)
+            officialDateValue &&
+            !isSameDateValue(officialDateValue, primaryDate)
+              ? formatDisplayDateTime(officialDateValue)
               : null;
           const iconName = isPlanned
             ? "calendar-check"

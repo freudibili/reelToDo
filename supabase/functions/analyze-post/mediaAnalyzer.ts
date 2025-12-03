@@ -1,5 +1,6 @@
 import { mediaAnalyzerApiToken, mediaAnalyzerUrl } from "./deps.ts";
 import { normalizeActivityUrl } from "./normalize.ts";
+import { geocodePlace } from "./googlePlaces.ts";
 
 type MediaAnalyzerLocation = {
   name?: string | null;
@@ -94,6 +95,76 @@ const safeTags = (value: unknown): string[] => {
     .filter((v) => v.length > 0);
 };
 
+const normalizeHintValue = (value?: string | null) =>
+  (value ?? "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+const buildHintContext = (...values: (string | null | undefined)[]) =>
+  values
+    .filter(Boolean)
+    .map((value) => normalizeHintValue(value))
+    .filter(Boolean)
+    .join(" ");
+
+const COUNTRY_HINTS: Array<{ label: string; tokens: string[] }> = [
+  { label: "Germany", tokens: ["germany", "deutschland"] },
+  { label: "Austria", tokens: ["austria", "österreich"] },
+  { label: "Switzerland", tokens: ["switzerland", "schweiz"] },
+  { label: "France", tokens: ["france", "frankreich"] },
+  { label: "Italy", tokens: ["italy", "italia"] },
+  { label: "Spain", tokens: ["spain", "españa"] },
+  { label: "Netherlands", tokens: ["netherlands", "niederlande"] },
+  { label: "United Kingdom", tokens: ["united kingdom", "uk", "england"] },
+  { label: "United States", tokens: ["united states", "usa", "america"] },
+];
+
+const REGION_HINTS: Array<{ label: string; tokens: string[] }> = [
+  {
+    label: "Baden-Württemberg",
+    tokens: [
+      "baden-württemberg",
+      "baden württemberg",
+      "badenwürttemberg",
+      "baden wurttemberg",
+      "baden",
+    ],
+  },
+  {
+    label: "Schwäbische Alb",
+    tokens: [
+      "schwäbische alb",
+      "schwabische alb",
+      "alb",
+      "schwäbische",
+    ],
+  },
+  {
+    label: "Bavaria",
+    tokens: ["bavaria", "bayern", "oberbayern", "niederbayern", "franken"],
+  },
+  { label: "North Rhine-Westphalia", tokens: ["nordrhein-westfalen", "nrw"] },
+  { label: "Saxony", tokens: ["saxony", "sachsen"] },
+  { label: "Tyrol", tokens: ["tyrol", "tirol"] },
+  { label: "Catalonia", tokens: ["catalonia", "catalunya"] },
+  { label: "Andalusia", tokens: ["andalusia", "andalusien"] },
+];
+
+const findHint = (
+  text: string,
+  hints: Array<{ label: string; tokens: string[] }>,
+): string | null => {
+  if (!text) return null;
+  const normalized = text;
+  for (const hint of hints) {
+    for (const token of hint.tokens) {
+      if (!token) continue;
+      if (normalized.includes(token.toLowerCase())) {
+        return hint.label;
+      }
+    }
+  }
+  return null;
+};
+
 const pickBestLocation = (
   locations: MediaAnalyzerLocation[] | undefined,
 ): MediaAnalyzerLocation | null => {
@@ -161,6 +232,8 @@ export const fetchMediaAnalyzer = async (
 ): Promise<MediaAnalyzerResponse | null> => {
   if (!mediaAnalyzerUrl) return null;
 
+  const timeoutMs = 60000;
+
   try {
     const res = await fetch(mediaAnalyzerUrl, {
       method: "POST",
@@ -173,7 +246,7 @@ export const fetchMediaAnalyzer = async (
       body: JSON.stringify({ url }),
       signal: typeof AbortSignal !== "undefined" &&
           typeof (AbortSignal as any).timeout === "function"
-        ? (AbortSignal as any).timeout(30000)
+        ? (AbortSignal as any).timeout(timeoutMs)
         : undefined,
     });
 
@@ -211,10 +284,10 @@ export const fetchMediaAnalyzer = async (
   }
 };
 
-export const mapMediaAnalyzer = (
+export const mapMediaAnalyzer = async (
   payload: MediaAnalyzerResponse | null,
   url: string,
-): { activity: AnalyzerMappedActivity | null; description: string | null } => {
+): Promise<{ activity: AnalyzerMappedActivity | null; description: string | null }> => {
   if (!payload?.activity) {
     const descOnly = cleanString(payload?.rawDescription ?? null);
     return { activity: null, description: descOnly };
@@ -255,7 +328,8 @@ export const mapMediaAnalyzer = (
     location_name: cleanString(payload.activity.location_name ?? null) ??
       cleanString(loc?.name ?? null),
     address: cleanString(payload.activity.address ?? null) ??
-      cleanString(loc?.address ?? null),
+      cleanString(loc?.address ?? null) ??
+      cleanString(loc?.name ?? null),
     city: cleanString(payload.activity.city ?? null) ??
       cleanString(loc?.city ?? null),
     country: null,
@@ -287,8 +361,58 @@ export const mapMediaAnalyzer = (
       : null,
   };
 
+  const tagsHint = (payload.activity.tags ?? []).join(" ");
+  const descriptionHint = payload.rawDescription
+    ? payload.rawDescription.slice(0, 200)
+    : null;
+  const contextHintParts = [
+    payload.activity.city,
+    payload.activity.address,
+    payload.activity.location_name,
+    tagsHint,
+    descriptionHint,
+    normalizedSource,
+  ];
+  const contextHint = contextHintParts.filter(Boolean).join(" ");
+  const blankHintText = buildHintContext(
+    payload.activity.city,
+    payload.activity.address,
+    payload.activity.location_name,
+    tagsHint,
+    payload.rawDescription,
+    normalizedSource,
+  );
+  const cityHint = cleanString(loc?.city ?? payload.activity.city ?? null);
+  const regionHint = findHint(blankHintText, REGION_HINTS);
+  const countryHint = findHint(blankHintText, COUNTRY_HINTS);
+  const geocodeTarget =
+    cleanString(mapped.location_name ?? payload.activity.location_name ?? null) ??
+    cleanString(loc?.name ?? null);
+  let enrichedActivity = { ...mapped };
+
+  if (!enrichedActivity.address && geocodeTarget) {
+    const geocoded = await geocodePlace(geocodeTarget, contextHint, {
+      cityHint,
+      regionHint,
+      countryHint,
+    });
+    if (geocoded) {
+      enrichedActivity = {
+        ...enrichedActivity,
+        address: enrichedActivity.address ?? geocoded.address ?? null,
+        location_name: enrichedActivity.location_name ??
+          geocoded.location_name ??
+          null,
+        city: enrichedActivity.city ?? geocoded.city ?? null,
+        country: enrichedActivity.country ?? geocoded.country ?? null,
+        latitude: enrichedActivity.latitude ?? geocoded.latitude ?? null,
+        longitude: enrichedActivity.longitude ?? geocoded.longitude ?? null,
+      };
+    }
+  }
+
   return {
-    activity: mapped,
+    activity: enrichedActivity,
     description: descriptionParts.length > 0
       ? descriptionParts.join("\n\n")
       : null,

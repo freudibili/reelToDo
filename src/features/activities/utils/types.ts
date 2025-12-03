@@ -1,3 +1,11 @@
+export type MediaAnalyzerLocation = {
+  name?: string | null;
+  address?: string | null;
+  city?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+};
+
 export interface Activity {
   id: string;
   user_id: string | null;
@@ -14,8 +22,8 @@ export interface Activity {
   country: string | null;
   latitude: number | null;
   longitude: number | null;
-  dates?: string[];
-  main_date: string | null;
+  dates?: string[] | null;
+  main_date?: string | null;
   tags: string[];
   creator: string | null;
   source_url: string | null;
@@ -28,15 +36,8 @@ export interface Activity {
   location_confirmed_by?: string | null;
   needs_location_confirmation: boolean;
   needs_date_confirmation: boolean;
-  analyzer_locations?:
-    | {
-        name?: string | null;
-        address?: string | null;
-        city?: string | null;
-        latitude?: number | null;
-        longitude?: number | null;
-      }[]
-    | null;
+  locations?: MediaAnalyzerLocation[] | null;
+  analyzer_locations?: MediaAnalyzerLocation[] | null;
 }
 
 export type ActivityCategory =

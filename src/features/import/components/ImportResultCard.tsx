@@ -10,6 +10,7 @@ import type { UpdateActivityPayload } from "../utils/types";
 import {
   formatActivityLocation,
   formatDisplayDate,
+  getOfficialDateValue,
 } from "@features/activities/utils/activityDisplay";
 import { categoryNeedsDate } from "@features/activities/utils/activityHelper";
 import { useTranslation } from "react-i18next";
@@ -36,6 +37,7 @@ const ImportResultCard: React.FC<ImportResultCardProps> = ({
 }) => {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
+  const officialDate = getOfficialDateValue(activity);
   const titleKey = "import:result.title";
   const subtitleKey = alreadyHadActivity
     ? "import:result.alreadyOwned"
@@ -73,7 +75,7 @@ const ImportResultCard: React.FC<ImportResultCardProps> = ({
           </Text>
           {categoryNeedsDate(activity.category) && (
             <Text style={[styles.summaryMeta, { color: colors.secondaryText }]}>
-              {formatDisplayDate(activity.main_date) ??
+              {formatDisplayDate(officialDate) ??
                 t("activities:details.dateMissing")}
             </Text>
           )}

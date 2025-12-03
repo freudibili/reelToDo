@@ -1,6 +1,7 @@
 import * as Calendar from "expo-calendar";
 import { supabase } from "@config/supabase";
 import type { Activity } from "@features/activities/utils/types";
+import { getOfficialDateValue } from "@features/activities/utils/activityDisplay";
 
 type ActivityDateInput = {
   start: string | Date;
@@ -88,7 +89,8 @@ export const createCalendarEventForActivity = async (
 
   const calendarId = await getOrCreateCalendarId();
 
-  const baseStart = activityDate?.start ?? activity.main_date;
+  const officialDateValue = getOfficialDateValue(activity);
+  const baseStart = activityDate?.start ?? officialDateValue;
   if (!baseStart) {
     console.warn("calendar: skipping create, missing activity date");
     return null;
@@ -119,7 +121,7 @@ export const createCalendarEventForActivity = async (
   if (!eventId) return null;
 
   const plannedAtIso =
-    activityDate?.start ?? activity.main_date ?? startDate.toISOString();
+    activityDate?.start ?? officialDateValue ?? startDate.toISOString();
 
   await supabase.from("user_activities").upsert(
     {
@@ -149,12 +151,13 @@ export const updateCalendarEventForActivity = async (
   const ok = await ensureCalendarPermission();
   if (!ok) return null;
 
+  const officialDateValue = getOfficialDateValue(activity);
   const startDate = plannedAt
     ? new Date(plannedAt)
     : activityDate
       ? new Date(activityDate.start)
-      : activity.main_date
-        ? new Date(activity.main_date)
+      : officialDateValue
+        ? new Date(officialDateValue)
         : new Date();
 
   const existing = await Calendar.getEventAsync(eventId).catch(() => null);

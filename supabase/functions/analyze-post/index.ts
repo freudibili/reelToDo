@@ -136,7 +136,7 @@ serve(async (req) => {
     console.log("[fn] mediaanalyzer unavailable");
   }
   const { activity: analyzerActivity, description: analyzerDescription } =
-    mapMediaAnalyzer(analyzerResult, url);
+    await mapMediaAnalyzer(analyzerResult, url);
 
   const shouldFetchMediaSignals = !analyzerResult &&
     !(
@@ -333,15 +333,20 @@ serve(async (req) => {
   const needsDateConfirmation = categoryNeedsDate(finalCategory) && !mainDate;
 
   if (finalCategory === "other" || confidenceValue < 0.5) {
+    const rejectionPayload = {
+      error: "UNSUITABLE_CONTENT",
+      code: finalCategory === "other" ? "CATEGORY_UNMAPPED" : "LOW_CONFIDENCE",
+      message:
+        "We couldn't map this content to a supported activity category yet. Try sharing a place or event link instead.",
+      reason: "Content did not meet activity criteria (category/confidence).",
+    };
     console.log("[fn] rejected: unsuitable content", {
       category: finalCategory,
       confidence: confidenceValue,
+      code: rejectionPayload.code,
     });
     return new Response(
-      JSON.stringify({
-        error: "UNSUITABLE_CONTENT",
-        reason: "Content did not meet activity criteria (category/confidence).",
-      }),
+      JSON.stringify(rejectionPayload),
       {
         status: 400,
         headers: { "Content-Type": "application/json" },

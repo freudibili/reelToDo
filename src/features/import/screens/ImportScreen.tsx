@@ -42,6 +42,7 @@ import ActivityHero from "@common/components/ActivityHero";
 import {
   formatActivityLocation,
   formatDisplayDate,
+  getOfficialDateValue,
 } from "@features/activities/utils/activityDisplay";
 import { categoryNeedsDate } from "@features/activities/utils/activityHelper";
 import { useAppTheme } from "@common/theme/appTheme";
@@ -332,8 +333,9 @@ const ImportScreen = () => {
                 }
                 dateLabel={
                   displayNeedsDate
-                    ? formatDisplayDate(displayActivity.main_date) ??
-                      t("activities:details.dateMissing")
+                    ? formatDisplayDate(
+                        getOfficialDateValue(displayActivity)
+                      ) ?? t("activities:details.dateMissing")
                     : undefined
                 }
                 style={styles.headerBlock}
@@ -347,8 +349,9 @@ const ImportScreen = () => {
                 }
                 dateLabel={
                   displayNeedsDate
-                    ? formatDisplayDate(displayActivity.main_date) ??
-                      t("activities:details.dateMissing")
+                    ? formatDisplayDate(
+                        getOfficialDateValue(displayActivity)
+                      ) ?? t("activities:details.dateMissing")
                     : undefined
                 }
                 imageUrl={displayActivity.image_url}

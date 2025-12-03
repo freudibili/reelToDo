@@ -9,6 +9,45 @@ interface AnalyzeArgs {
   userId: string;
 }
 
+const extractFunctionErrorMessage = (err: any): string | null => {
+  const parseCandidate = (candidate: unknown): string | null => {
+    if (!candidate) return null;
+
+    if (typeof candidate === "object") {
+      const msg =
+        (candidate as any).message ??
+        (candidate as any).reason ??
+        (candidate as any).error;
+      if (typeof msg === "string") return msg;
+      // fall through to stringification below
+    }
+
+    if (typeof candidate === "string") {
+      try {
+        const parsed = JSON.parse(candidate);
+        const parsedMsg =
+          (parsed as any)?.message ??
+          (parsed as any)?.reason ??
+          (parsed as any)?.error;
+        if (typeof parsedMsg === "string") return parsedMsg;
+      } catch {
+        // not JSON
+      }
+      return candidate;
+    }
+
+    return null;
+  };
+
+  const contexts = [err?.context?.body, err?.message, err];
+  for (const candidate of contexts) {
+    const parsed = parseCandidate(candidate);
+    if (parsed) return parsed;
+  }
+
+  return null;
+};
+
 export const importService = {
   analyze: async ({ shared, userId }: AnalyzeArgs): Promise<Activity> => {
     const url = shared?.webUrl;
@@ -29,7 +68,12 @@ export const importService = {
       body: { url, user_id: userId, metadata },
     });
 
-    if (error) throw new Error(error.message);
+    if (error) {
+      const message =
+        extractFunctionErrorMessage(error) ??
+        i18next.t("import:errors.analyze");
+      throw new Error(message);
+    }
     if (!data) throw new Error(i18next.t("import:errors.analyze"));
     return data as Activity;
   },
@@ -81,7 +125,7 @@ export const markActivityDateConfirmed = async (
   const { data, error } = await supabase
     .from("activities")
     .update({
-      main_date: dateIso,
+      dates: [dateIso],
       needs_date_confirmation: false,
     })
     .eq("id", activityId)
@@ -112,8 +156,10 @@ export const updateImportedActivityDetails = async (
   }
 
   if (payload.dateIso) {
-    update.main_date = payload.dateIso;
+    update.dates = [payload.dateIso];
     update.needs_date_confirmation = false;
+  } else if (payload.dateIso === null) {
+    update.dates = [];
   }
 
   const { data, error } = await supabase

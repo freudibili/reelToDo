@@ -15,6 +15,7 @@ import { categoryNeedsDate } from "@features/activities/utils/activityHelper";
 import {
   formatActivityLocation,
   formatDisplayDate,
+  getOfficialDateValue,
 } from "@features/activities/utils/activityDisplay";
 
 import { PlaceDetails } from "../services/locationService";
@@ -45,9 +46,10 @@ const ImportDetailsForm = React.forwardRef<
   const { colors } = useAppTheme();
   const dispatch = useAppDispatch();
   const [dirty, setDirty] = useState(false);
+  const officialDateValue = getOfficialDateValue(activity);
   const [draft, setDraft] = useState<ImportDraftDetails>(() => ({
     location: null,
-    date: activity.main_date ? new Date(activity.main_date) : null,
+    date: officialDateValue ? new Date(officialDateValue) : null,
   }));
   const [suggestingLocation, setSuggestingLocation] = useState(false);
 
@@ -69,7 +71,7 @@ const ImportDetailsForm = React.forwardRef<
   useEffect(() => {
     setDraft({
       location: null,
-      date: activity.main_date ? new Date(activity.main_date) : null,
+      date: officialDateValue ? new Date(officialDateValue) : null,
     });
 
     setDirty(false);
@@ -78,7 +80,7 @@ const ImportDetailsForm = React.forwardRef<
     activity.id,
     activity.location_name,
     activity.address,
-    activity.main_date,
+    officialDateValue,
     onDirtyChange,
   ]);
 
@@ -152,7 +154,7 @@ const ImportDetailsForm = React.forwardRef<
     draft.location?.name ||
     formatActivityLocation(activity) ||
     t("import:details.locationFallback");
-  const heroDate = formatDisplayDate(draft.date ?? activity.main_date);
+  const heroDate = formatDisplayDate(draft.date ?? officialDateValue);
   const locationInfo =
     draft.location?.formattedAddress ??
     formatActivityLocation(activity) ??

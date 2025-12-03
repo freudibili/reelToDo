@@ -1,6 +1,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import i18next from "@common/i18n/i18n";
 import { createCalendarEventForActivity } from "../services/calendarService";
+import { getOfficialDateValue } from "@features/activities/utils/activityDisplay";
 import type { RootState } from "@core/store";
 
 export const createActivityCalendarEvent = createAsyncThunk<
@@ -36,10 +37,11 @@ export const createActivityCalendarEvent = createAsyncThunk<
       );
     }
 
+    const officialDateValue = getOfficialDateValue(activity);
     const plannedAt = activityDate?.start
       ? new Date(activityDate.start).toISOString()
-      : activity.main_date
-        ? new Date(activity.main_date).toISOString()
+      : officialDateValue
+        ? new Date(officialDateValue).toISOString()
         : null;
 
     return { activityId, calendarEventId: eventId, plannedAt };

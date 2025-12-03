@@ -31,18 +31,43 @@ export const formatDisplayDateTime = (
   return date ?? time ?? null;
 };
 
+const getFirstArrayDate = (dates?: string[] | null): string | null => {
+  if (!Array.isArray(dates) || dates.length === 0) return null;
+  return dates[0] ?? null;
+};
+
 export const formatActivityLocation = (
-  activity: Pick<Activity, "location_name" | "city" | "country" | "address">
+  activity: Pick<
+    Activity,
+    "location_name" | "city" | "country" | "address" | "locations"
+  >
 ): string | null => {
-  const main = activity.location_name || activity.address;
-  const region = activity.city || activity.country;
+  const primaryLocation = Array.isArray(activity.locations) &&
+      activity.locations.length > 0
+    ? activity.locations[0]
+    : null;
+  const main =
+    primaryLocation?.name ??
+    primaryLocation?.address ??
+    activity.location_name ??
+    activity.address;
+  const region =
+    primaryLocation?.city ?? activity.city ?? activity.country;
   const label = [main, region].filter(Boolean).join(" • ");
   return label || null;
 };
 
 export const getPrimaryDateValue = (
-  activity: Pick<Activity, "planned_at" | "main_date">
-): string | null => activity.planned_at ?? activity.main_date ?? null;
+  activity: Pick<Activity, "planned_at" | "dates" | "main_date">
+): string | null =>
+  activity.planned_at ??
+  getFirstArrayDate(activity.dates) ??
+  activity.main_date ??
+  null;
+
+export const getOfficialDateValue = (
+  activity: Pick<Activity, "dates" | "main_date">
+): string | null => getFirstArrayDate(activity.dates) ?? activity.main_date ?? null;
 
 export const isSameDateValue = (
   a: string | Date | null | undefined,
