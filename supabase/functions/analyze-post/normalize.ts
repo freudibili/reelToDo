@@ -60,7 +60,9 @@ export const normalizeCategory = (value: string | null): string | null => {
     return "outdoor-viewpoint";
   if (low.includes("beach")) return "outdoor-beach";
   if (low.includes("park")) return "outdoor-park";
-  if (low.includes("nature")) return "outdoor-nature-spot";
+  if (low.includes("nature") || low.includes("outdoor") || low.includes("travel"))
+    return "outdoor-nature-spot";
+  if (low.includes("sunrise")) return "outdoor-nature-spot";
 
   if (low.includes("cafe") || low.includes("coffee")) return "food-cafe";
   if (low.includes("restaurant") || low.includes("food"))
@@ -114,7 +116,11 @@ export const inferCategoryFromContent = (input: {
     return "outdoor-viewpoint";
   if (hay.match(/\b(beach|plage|strand)\b/)) return "outdoor-beach";
   if (hay.match(/\b(park|parc)\b/)) return "outdoor-park";
-  if (hay.match(/\b(nature|forest|forêt|wald)\b/)) return "outdoor-nature-spot";
+  if (
+    hay.match(/\b(nature|forest|forêt|wald)\b/) ||
+    hay.match(/\b(outdoor|travel|sunrise)\b/)
+  )
+    return "outdoor-nature-spot";
 
   if (hay.match(/\b(cafe|coffee|café)\b/)) return "food-cafe";
   if (hay.match(/\b(restaurant|food|lunch|dinner)\b/)) return "food-restaurant";
@@ -149,13 +155,31 @@ export const mergeIfNull = <T extends Record<string, any>>(
 };
 
 export const normalizeActivity = (activity: any) => {
-  const singleDate = activity.date ?? null;
-  const dates =
-    Array.isArray(activity.dates) && activity.dates.length > 0
-      ? activity.dates
-      : singleDate
-        ? [{ start: singleDate, end: null, recurrence_rule: null }]
-        : [];
+  const normalizeDates = (): { start: string; end: string | null; recurrence_rule: any }[] => {
+    const singleDate = activity.date ?? null;
+
+    const fromArray = Array.isArray(activity.dates) ? activity.dates : [];
+    const mappedArray = fromArray
+      .map((d: any) => {
+        if (!d) return null;
+        if (typeof d === "string") return { start: d, end: null, recurrence_rule: null };
+        if (typeof d === "object" && d.start) {
+          return {
+            start: d.start,
+            end: d.end ?? null,
+            recurrence_rule: d.recurrence_rule ?? null,
+          };
+        }
+        return null;
+      })
+      .filter((d): d is { start: string; end: string | null; recurrence_rule: any } => Boolean(d));
+
+    if (mappedArray.length > 0) return mappedArray;
+    if (singleDate) return [{ start: singleDate, end: null, recurrence_rule: null }];
+    return [];
+  };
+
+  const dates = normalizeDates();
   return {
     title: activity.title ?? null,
     category: activity.category ?? null,

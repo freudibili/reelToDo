@@ -12,6 +12,7 @@ export interface SourceMetadata {
   title: string | null;
   description: string | null;
   image: string | null;
+  video: string | null;
   author: string | null;
   publishedAt: string | null;
   source: SourceType;
@@ -34,7 +35,7 @@ export const detectSource = (url: string): SourceType => {
   return "generic";
 };
 
-const fetchWithUA = async (url: string, init: RequestInit = {}) => {
+export const fetchWithUA = async (url: string, init: RequestInit = {}) => {
   const headers = new Headers(init.headers ?? {});
   headers.set(
     "User-Agent",
@@ -103,11 +104,23 @@ const extractMetaFromHtml = (html: string) => {
   const image =
     get(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i) ||
     get(/<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i);
+  const video =
+    get(/<meta[^>]+property=["']og:video["'][^>]+content=["']([^"']+)["']/i) ||
+    get(
+      /<meta[^>]+property=["']og:video:url["'][^>]+content=["']([^"']+)["']/i
+    ) ||
+    get(
+      /<meta[^>]+property=["']og:video:secure_url["'][^>]+content=["']([^"']+)["']/i
+    ) ||
+    get(
+      /<meta[^>]+name=["']twitter:player:stream["'][^>]+content=["']([^"']+)["']/i
+    );
 
   return {
     title: decodeHtml(title),
     description: decodeHtml(description),
     image: decodeHtml(image),
+    video: decodeHtml(video),
   };
 };
 
@@ -116,7 +129,7 @@ const fetchHtmlMeta = async (url: string) => {
     const res = await fetchWithUA(url);
     if (!res.ok) {
       console.log("[source] html fetch failed", url, res.status);
-      return { title: null, description: null, image: null };
+      return { title: null, description: null, image: null, video: null };
     }
     const html = await res.text();
     const extracted = extractMetaFromHtml(html);
@@ -124,7 +137,7 @@ const fetchHtmlMeta = async (url: string) => {
     return extracted;
   } catch (e) {
     console.log("[source] html fetch error", String(e));
-    return { title: null, description: null, image: null };
+    return { title: null, description: null, image: null, video: null };
   }
 };
 
@@ -199,6 +212,7 @@ const fetchYouTubeMetadata = async (
       title: basic.title,
       description: basic.description,
       image: fallbackImage ?? basic.image,
+      video: null,
       author: null,
       publishedAt: null,
     };
@@ -219,6 +233,7 @@ const fetchYouTubeMetadata = async (
         title: basic.title,
         description: basic.description,
         image: basic.image,
+        video: null,
         author: null,
         publishedAt: null,
       };
@@ -232,6 +247,7 @@ const fetchYouTubeMetadata = async (
         title: basic.title,
         description: basic.description,
         image: basic.image,
+        video: null,
         author: null,
         publishedAt: null,
       };
@@ -251,6 +267,7 @@ const fetchYouTubeMetadata = async (
       image: img,
       author: snippet.channelTitle ?? null,
       publishedAt: snippet.publishedAt ?? null,
+      video: null,
     };
   } catch (e) {
     console.log("[youtube] api error", String(e));
@@ -259,6 +276,7 @@ const fetchYouTubeMetadata = async (
       title: basic.title,
       description: basic.description,
       image: fallbackImage ?? basic.image,
+      video: null,
       author: null,
       publishedAt: null,
     };
@@ -284,6 +302,7 @@ const sanitizeMeta = (
     title: isUrlValue(meta.title) ? null : meta.title,
     description: isUrlValue(meta.description) ? null : meta.description,
     image: meta.image,
+    video: meta.video ?? null,
     author: meta.author,
     publishedAt: meta.publishedAt ?? null,
   };
@@ -305,17 +324,25 @@ export const getSourceMetadata = async (
     title: userMeta?.title ?? null,
     description: userMeta?.description ?? null,
     image: userMeta?.thumbnail_url ?? null,
+    video: userMeta?.video_url ?? userMeta?.video ?? null,
     author: userMeta?.author_name ?? null,
   });
   const mergeWithHtml = async (
-    current: { title: string | null; description: string | null; image: string | null; author: string | null }
+    current: {
+      title: string | null;
+      description: string | null;
+      image: string | null;
+      video: string | null;
+      author: string | null;
+    }
   ) => {
-    if (current.title && current.description && current.image) return current;
+    if (current.title && current.description && current.image && current.video) return current;
     const html = await fetchHtmlMeta(targetUrl);
     return {
       title: current.title ?? html.title,
       description: current.description ?? html.description,
       image: current.image ?? html.image,
+      video: current.video ?? html.video,
       author: current.author ?? null,
     };
   };
@@ -327,6 +354,7 @@ export const getSourceMetadata = async (
       title: userMeta?.title ?? yt.title,
       description: userMeta?.description ?? yt.description,
       image: userMeta?.thumbnail_url ?? yt.image,
+      video: userMeta?.video_url ?? userMeta?.video ?? yt.video ?? null,
       author: userMeta?.author_name ?? yt.author,
       publishedAt: yt.publishedAt,
     }) as SourceMetadata;
@@ -344,6 +372,7 @@ export const getSourceMetadata = async (
       title: userFirst.title ?? oembed?.title ?? null,
       description: userFirst.description ?? null,
       image: userFirst.image ?? oembed?.image ?? null,
+      video: userFirst.video ?? null,
       author: userFirst.author ?? oembed?.author ?? null,
     });
     const out: SourceMetadata = { source, ...sanitizeMeta(targetUrl, merged), publishedAt: null };
@@ -356,6 +385,7 @@ export const getSourceMetadata = async (
       title: userFirst.title ?? oembed.title,
       description: userFirst.description ?? null,
       image: userFirst.image ?? oembed.image,
+      video: userFirst.video ?? null,
       author: userFirst.author ?? oembed.author,
     });
     const out: SourceMetadata = { source, ...sanitizeMeta(targetUrl, merged), publishedAt: null };
@@ -369,6 +399,7 @@ export const getSourceMetadata = async (
     title: userFirst.title ?? basic.title,
     description: userFirst.description ?? basic.description,
     image: userFirst.image ?? basic.image,
+    video: userFirst.video ?? basic.video ?? null,
     author: userFirst.author ?? null,
     publishedAt: null,
   }) as SourceMetadata;

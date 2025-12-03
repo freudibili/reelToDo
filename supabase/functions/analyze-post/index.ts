@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { supabase } from "./deps.ts";
 import { getSourceMetadata } from "./source.ts";
 import { analyzeActivity } from "./ai.ts";
+import { buildEnhancedDescription, extractMediaSignals } from "./media.ts";
 import {
   mergeIfNull,
   normalizeActivity,
@@ -11,7 +12,7 @@ import {
   normalizeActivityUrl,
 } from "./normalize.ts";
 import { resolveDatesFromText, categoryNeedsDate } from "./datesResolver.ts";
-
+import { fetchMediaAnalyzer, mapMediaAnalyzer } from "./mediaAnalyzer.ts";
 serve(async (req) => {
   console.log("[fn] --- analyze-post invoked ---");
 
@@ -112,11 +113,66 @@ serve(async (req) => {
   }
 
   console.log("[fn] fetching source meta for", url);
-  const sourceMeta = await getSourceMetadata(url, userMeta);
+  const sourceMetaPromise = getSourceMetadata(url, userMeta);
+  const analyzerPromise = fetchMediaAnalyzer(url);
+
+  const sourceMeta = await sourceMetaPromise;
   console.log("[fn] sourceMeta", sourceMeta);
 
+  const analyzerResult = await analyzerPromise;
+  if (analyzerResult) {
+    console.log(
+      "[fn] mediaanalyzer platform",
+      analyzerResult.platform ?? "unknown"
+    );
+    console.log("[fn] mediaanalyzer activity", {
+      category: analyzerResult.activity?.category ?? null,
+      title: analyzerResult.activity?.title ?? null,
+      locations: analyzerResult.activity?.locations ?? null,
+      dates: analyzerResult.activity?.dates ?? null,
+      confidence: analyzerResult.activity?.confidence ?? null,
+    });
+  } else {
+    console.log("[fn] mediaanalyzer unavailable");
+  }
+  const { activity: analyzerActivity, description: analyzerDescription } =
+    mapMediaAnalyzer(analyzerResult, url);
+
+  const shouldFetchMediaSignals =
+    !analyzerResult &&
+    !(
+      analyzerActivity?.image_url ||
+      analyzerResult?.thumbnailUrl ||
+      sourceMeta.image
+    );
+
+  const mediaSignals = shouldFetchMediaSignals
+    ? await extractMediaSignals(sourceMeta)
+    : { transcript: null, imageSummary: null };
+  console.log("[fn] mediaSignals", mediaSignals);
+
+  const baseDescription =
+    analyzerDescription ??
+    sourceMeta.description ??
+    analyzerResult?.rawDescription ??
+    null;
+
+  const enrichedDescription = buildEnhancedDescription(
+    baseDescription,
+    mediaSignals
+  );
+
   const hasAnySourceMeta = Boolean(
-    sourceMeta.title || sourceMeta.description || sourceMeta.image || sourceMeta.author
+    analyzerActivity?.title ||
+    sourceMeta.title ||
+    enrichedDescription ||
+    analyzerActivity?.image_url ||
+    analyzerResult?.thumbnailUrl ||
+    sourceMeta.image ||
+    sourceMeta.author ||
+    analyzerResult?.rawDescription ||
+    mediaSignals.transcript ||
+    mediaSignals.imageSummary
   );
   if (!hasAnySourceMeta) {
     console.log("[fn] no usable metadata, aborting create");
@@ -133,21 +189,83 @@ serve(async (req) => {
   }
 
   const aiActivity = await analyzeActivity({
-    title: sourceMeta.title ?? null,
-    description: sourceMeta.description ?? null,
-    image: sourceMeta.image ?? null,
-    author: sourceMeta.author ?? null,
-    source_url: url,
+    title:
+      analyzerActivity?.title ??
+      analyzerResult?.rawTitle ??
+      sourceMeta.title ??
+      null,
+    description: enrichedDescription ?? baseDescription,
+    image:
+      analyzerActivity?.image_url ??
+      analyzerResult?.thumbnailUrl ??
+      sourceMeta.image ??
+      null,
+    author:
+      analyzerActivity?.creator ??
+      analyzerResult?.creator ??
+      sourceMeta.author ??
+      null,
+    source_url:
+      analyzerActivity?.source_url ?? analyzerResult?.sourceUrl ?? url,
   });
 
-  console.log("[fn] aiActivity", aiActivity);
-
-  const merged = mergeIfNull(aiActivity, {
-    title: sourceMeta.title ?? null,
-    creator: sourceMeta.author ?? null,
-    source_url: url,
-    image_url: sourceMeta.image ?? null,
+  if (aiActivity) {
+    console.log("[fn] aiActivity", aiActivity);
+  } else {
+    console.log("[fn] aiActivity skipped (mediaanalyzer used)");
+  }
+  console.log("[fn] merge inputs", {
+    analyzerCategory: analyzerActivity?.category ?? null,
+    aiCategory: aiActivity?.category ?? null,
   });
+
+  const emptyActivity = {
+    title: null,
+    category: null,
+    location_name: null,
+    address: null,
+    city: null,
+    country: null,
+    latitude: null,
+    longitude: null,
+    date: null,
+    tags: [],
+    creator: null,
+    image_url: null,
+    confidence: null,
+    source_url: null,
+  };
+
+  const mergedPrimary =
+    analyzerActivity && aiActivity
+      ? mergeIfNull(analyzerActivity, aiActivity) // prefer analyzer output, backfill with AI
+      : (analyzerActivity ?? aiActivity ?? emptyActivity);
+
+  let merged = mergeIfNull(mergedPrimary, {
+    title: sourceMeta.title ?? analyzerResult?.rawTitle ?? null,
+    creator:
+      mergedPrimary.creator ??
+      sourceMeta.author ??
+      analyzerResult?.creator ??
+      null,
+    source_url: mergedPrimary.source_url ?? analyzerResult?.sourceUrl ?? url,
+    image_url:
+      mergedPrimary.image_url ??
+      analyzerResult?.thumbnailUrl ??
+      sourceMeta.image ??
+      null,
+  });
+
+  const preferredTags =
+    (analyzerActivity?.tags ?? []).length > 0
+      ? (analyzerActivity?.tags ?? [])
+      : (aiActivity?.tags ?? []);
+  if (
+    (!Array.isArray(merged.tags) || merged.tags.length === 0) &&
+    preferredTags.length > 0
+  ) {
+    merged = { ...merged, tags: preferredTags };
+  }
 
   const normalized = normalizeActivity(merged);
   console.log("[fn] merged/normalized", normalized);
@@ -170,38 +288,39 @@ serve(async (req) => {
   } = normalized;
 
   let finalCategory = normalizeCategory(category);
-  if (!finalCategory) {
+
+  if (!finalCategory || finalCategory === "other") {
+    const aiCategory = normalizeCategory(aiActivity?.category ?? null);
+    if (aiCategory && aiCategory !== "other") {
+      finalCategory = aiCategory;
+    }
+  }
+
+  if (!finalCategory || finalCategory === "other") {
     const inferred = inferCategoryFromContent({
       title: title ?? sourceMeta.title ?? "",
-      description: sourceMeta.description ?? "",
+      description: baseDescription ?? sourceMeta.description ?? "",
       location_name: location_name ?? "",
       tags,
     });
     if (inferred) finalCategory = inferred;
   }
 
-  console.log("[fn] finalCategory", finalCategory);
-
   if (!finalCategory) {
-    console.log("[fn] unmapped category", category);
-    return new Response(
-      JSON.stringify({
-        error: "UNMAPPED_CATEGORY",
-        reason: "Could not map content to known categories",
-        original_category: category,
-      }),
-      {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+    finalCategory = "other";
   }
 
-  // Fallback date resolution: text parsing + OpenAI web search (only for categories that should have a date)
-  if (categoryNeedsDate(finalCategory) && (!Array.isArray(dates) || dates.length === 0)) {
+  console.log("[fn] finalCategory", finalCategory);
+
+  // Fallback date resolution: text parsing + OpenAI web search (only if missing dates for date-required categories)
+  const needsDateResolution =
+    categoryNeedsDate(finalCategory) &&
+    (!Array.isArray(dates) || dates.length === 0);
+
+  if (needsDateResolution) {
     const textForDates = [
       title ?? sourceMeta.title ?? "",
-      sourceMeta.description ?? "",
+      baseDescription ?? sourceMeta.description ?? "",
       Array.isArray(tags) ? tags.join(" ") : "",
     ]
       .filter(Boolean)
@@ -234,13 +353,36 @@ serve(async (req) => {
   );
   console.log("[fn] finalTitle", finalTitle);
 
-  const confidenceValue = typeof confidence === "number" ? confidence : 0.9;
+  const confidenceValue =
+    typeof confidence === "number" || typeof aiActivity?.confidence === "number"
+      ? Math.max(
+          typeof confidence === "number" ? confidence : 0,
+          typeof aiActivity?.confidence === "number" ? aiActivity.confidence : 0
+        )
+      : 0.9;
 
   const hasLocation = !!location_name || !!city || (!!latitude && !!longitude);
 
   const needsLocationConfirmation = !hasLocation || confidenceValue < 0.7;
 
   const needsDateConfirmation = categoryNeedsDate(finalCategory) && !mainDate;
+
+  if (finalCategory === "other" || confidenceValue < 0.5) {
+    console.log("[fn] rejected: unsuitable content", {
+      category: finalCategory,
+      confidence: confidenceValue,
+    });
+    return new Response(
+      JSON.stringify({
+        error: "UNSUITABLE_CONTENT",
+        reason: "Content did not meet activity criteria (category/confidence).",
+      }),
+      {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  }
 
   // Secondary dedup: same date + city/location + overlapping title
   if (mainDate && (city || location_name)) {
@@ -250,31 +392,37 @@ serve(async (req) => {
     let dupQuery = supabase
       .from("activities")
       .select("*")
-      .eq("main_date", mainDate);
+      .contains("dates", [mainDate]);
 
     if (city) dupQuery = dupQuery.ilike("city", `%${city}%`);
-    if (location_name) dupQuery = dupQuery.ilike("location_name", `%${location_name}%`);
+    if (location_name)
+      dupQuery = dupQuery.ilike("location_name", `%${location_name}%`);
     if (titlePattern) dupQuery = dupQuery.ilike("title", titlePattern);
 
     const { data: similar } = await dupQuery.limit(1).maybeSingle();
 
     if (similar) {
-      console.log("[fn] found potential duplicate by title/city/date", similar.id);
+      console.log(
+        "[fn] found potential duplicate by title/city/date",
+        similar.id
+      );
 
       if (userId) {
         console.log("[fn] upserting user_activities for duplicate activity");
-        const { error: uaError } = await supabase.from("user_activities").upsert(
-          [
+        const { error: uaError } = await supabase
+          .from("user_activities")
+          .upsert(
+            [
+              {
+                user_id: userId,
+                activity_id: similar.id,
+                is_favorite: false,
+              },
+            ],
             {
-              user_id: userId,
-              activity_id: similar.id,
-              is_favorite: false,
-            },
-          ],
-          {
-            onConflict: "user_id,activity_id",
-          }
-        );
+              onConflict: "user_id,activity_id",
+            }
+          );
 
         if (uaError) {
           console.log("[fn] user_activities upsert error", uaError);
@@ -297,7 +445,9 @@ serve(async (req) => {
     country: country ?? null,
     latitude: latitude ?? null,
     longitude: longitude ?? null,
-    main_date: mainDate,
+    dates: Array.isArray(dates)
+      ? dates.map((d: any) => d?.start).filter((d): d is string => Boolean(d))
+      : [],
     tags: Array.isArray(tags) ? tags : [],
     creator: creator ?? sourceMeta.author ?? null,
     source_url: source_url ?? url,
@@ -306,6 +456,11 @@ serve(async (req) => {
     needs_location_confirmation: needsLocationConfirmation,
     needs_date_confirmation: needsDateConfirmation,
     user_id: userId ?? null,
+    analyzer_locations:
+      Array.isArray(analyzerResult?.activity?.locations) &&
+      analyzerResult.activity.locations.length > 0
+        ? analyzerResult.activity.locations
+        : null,
   };
 
   console.log("[fn] insertPayload", insertPayload);
@@ -361,6 +516,39 @@ serve(async (req) => {
 
     if (uaError) {
       console.log("[fn] user_activities upsert error", uaError);
+    }
+  }
+
+  if (activity && analyzerResult) {
+    const metaPayload = {
+      activity_id: activity.id,
+      platform: analyzerResult.platform ?? null,
+      raw_title:
+        analyzerResult.rawTitle ?? analyzerResult.activity?.title ?? null,
+      raw_description: analyzerResult.rawDescription ?? null,
+      thumbnail_url:
+        analyzerResult.activity?.thumbnailUrl ??
+        analyzerResult.thumbnailUrl ??
+        null,
+      key_info: analyzerResult.activity?.key_info ?? null,
+      locations:
+        Array.isArray(analyzerResult.activity?.locations) &&
+        analyzerResult.activity.locations.length > 0
+          ? analyzerResult.activity.locations
+          : null,
+      dates:
+        Array.isArray(analyzerResult.activity?.dates) &&
+        analyzerResult.activity.dates.length > 0
+          ? analyzerResult.activity.dates
+          : null,
+    };
+
+    const { error: metaError } = await supabase
+      .from("activity_analyzer_metadata")
+      .upsert([metaPayload], { onConflict: "activity_id" });
+
+    if (metaError) {
+      console.log("[fn] analyzer metadata upsert error", metaError);
     }
   }
 
