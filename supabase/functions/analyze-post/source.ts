@@ -35,16 +35,28 @@ export const detectSource = (url: string): SourceType => {
   return "generic";
 };
 
-export const fetchWithUA = async (url: string, init: RequestInit = {}) => {
+export const fetchWithUA = async (
+  url: string,
+  init: RequestInit = {},
+  timeoutMs = 10000
+) => {
   const headers = new Headers(init.headers ?? {});
   headers.set(
     "User-Agent",
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.1 Safari/605.1.15"
   );
 
+  const signal =
+    init.signal ||
+    (typeof AbortSignal !== "undefined" &&
+    typeof (AbortSignal as any).timeout === "function"
+      ? (AbortSignal as any).timeout(timeoutMs)
+      : undefined);
+
   const res = await fetch(url, {
     ...init,
     headers,
+    signal,
   });
   return res;
 };

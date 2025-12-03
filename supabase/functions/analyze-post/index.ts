@@ -13,6 +13,7 @@ import {
 } from "./normalize.ts";
 import { resolveDatesFromText, categoryNeedsDate } from "./datesResolver.ts";
 import { fetchMediaAnalyzer, mapMediaAnalyzer } from "./mediaAnalyzer.ts";
+import { shouldInvokeAI } from "./aiGate.ts";
 serve(async (req) => {
   console.log("[fn] --- analyze-post invoked ---");
 
@@ -188,31 +189,35 @@ serve(async (req) => {
     );
   }
 
-  const aiActivity = await analyzeActivity({
-    title:
-      analyzerActivity?.title ??
-      analyzerResult?.rawTitle ??
-      sourceMeta.title ??
-      null,
-    description: enrichedDescription ?? baseDescription,
-    image:
-      analyzerActivity?.image_url ??
-      analyzerResult?.thumbnailUrl ??
-      sourceMeta.image ??
-      null,
-    author:
-      analyzerActivity?.creator ??
-      analyzerResult?.creator ??
-      sourceMeta.author ??
-      null,
-    source_url:
-      analyzerActivity?.source_url ?? analyzerResult?.sourceUrl ?? url,
-  });
+  const shouldRunAI = shouldInvokeAI(analyzerActivity);
+
+  const aiActivity = shouldRunAI
+    ? await analyzeActivity({
+        title:
+          analyzerActivity?.title ??
+          analyzerResult?.rawTitle ??
+          sourceMeta.title ??
+          null,
+        description: enrichedDescription ?? baseDescription,
+        image:
+          analyzerActivity?.image_url ??
+          analyzerResult?.thumbnailUrl ??
+          sourceMeta.image ??
+          null,
+        author:
+          analyzerActivity?.creator ??
+          analyzerResult?.creator ??
+          sourceMeta.author ??
+          null,
+        source_url:
+          analyzerActivity?.source_url ?? analyzerResult?.sourceUrl ?? url,
+      })
+    : null;
 
   if (aiActivity) {
     console.log("[fn] aiActivity", aiActivity);
   } else {
-    console.log("[fn] aiActivity skipped (mediaanalyzer used)");
+    console.log("[fn] aiActivity skipped (analyzer confident)");
   }
   console.log("[fn] merge inputs", {
     analyzerCategory: analyzerActivity?.category ?? null,

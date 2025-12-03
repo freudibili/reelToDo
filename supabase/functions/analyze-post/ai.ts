@@ -255,21 +255,36 @@ Respond strictly in JSON format only.
 
   const geocodeContext = [parsed.city, parsed.country].filter(Boolean).join(" ");
 
-  const resolvedLocation = (await geocodePlace(
-    parsed.location_name ?? parsed.address ?? meta.title ?? "",
-    geocodeContext || null,
-    {
-      cityHint: parsed.city ?? null,
-      countryHint: parsed.country ?? null,
-    }
-  )) ?? {
-    location_name: parsed.location_name ?? null,
-    address: parsed.address ?? null,
-    city: parsed.city ?? null,
-    country: null,
-    latitude: parsed.latitude ?? null,
-    longitude: parsed.longitude ?? null,
-  };
+  const hasSufficientLocation =
+    (parsed.latitude !== null && parsed.longitude !== null) ||
+    (parsed.address && parsed.city) ||
+    parsed.address;
+
+  const resolvedLocation =
+    !hasSufficientLocation && (parsed.location_name || parsed.address || meta.title)
+      ? (await geocodePlace(
+          parsed.location_name ?? parsed.address ?? meta.title ?? "",
+          geocodeContext || null,
+          {
+            cityHint: parsed.city ?? null,
+            countryHint: parsed.country ?? null,
+          }
+        )) ?? {
+          location_name: parsed.location_name ?? null,
+          address: parsed.address ?? null,
+          city: parsed.city ?? null,
+          country: null,
+          latitude: parsed.latitude ?? null,
+          longitude: parsed.longitude ?? null,
+        }
+      : {
+          location_name: parsed.location_name ?? null,
+          address: parsed.address ?? null,
+          city: parsed.city ?? null,
+          country: null,
+          latitude: parsed.latitude ?? null,
+          longitude: parsed.longitude ?? null,
+        };
 
   return {
     title: cleanTitle(parsed.title ?? meta.title ?? null),

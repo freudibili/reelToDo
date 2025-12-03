@@ -172,7 +172,11 @@ export const normalizeActivity = (activity: any) => {
         }
         return null;
       })
-      .filter((d): d is { start: string; end: string | null; recurrence_rule: any } => Boolean(d));
+      .filter(
+        (
+          d: { start: string; end: string | null; recurrence_rule: any } | null
+        ): d is { start: string; end: string | null; recurrence_rule: any } => Boolean(d)
+      );
 
     if (mappedArray.length > 0) return mappedArray;
     if (singleDate) return [{ start: singleDate, end: null, recurrence_rule: null }];

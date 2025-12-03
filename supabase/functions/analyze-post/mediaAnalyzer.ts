@@ -41,6 +41,7 @@ export type MediaAnalyzerResponse = {
   rawTitle?: string | null;
   rawDescription?: string | null;
   creator?: string | null;
+  thumbnailUrl?: string | null;
   activity?: MediaAnalyzerActivity | null;
 };
 
@@ -135,6 +136,11 @@ export const fetchMediaAnalyzer = async (
         ...(mediaAnalyzerApiToken ? { "x-api-key": mediaAnalyzerApiToken } : {}),
       },
       body: JSON.stringify({ url }),
+      signal:
+        typeof AbortSignal !== "undefined" &&
+        typeof (AbortSignal as any).timeout === "function"
+          ? (AbortSignal as any).timeout(8000)
+          : undefined,
     });
 
     if (!res.ok) {
