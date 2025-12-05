@@ -324,8 +324,8 @@ const ActivityDetailsSheet: React.FC<Props> = ({
                   mode="contained-tonal"
                   icon="pencil"
                   onPress={openPicker}
-                  containerColor={colors.accent}
-                  iconColor={colors.accentText}
+                  containerColor={colors.primary}
+                  iconColor={colors.surface}
                   size={22}
                   style={styles.iconButton}
                 />
@@ -333,8 +333,8 @@ const ActivityDetailsSheet: React.FC<Props> = ({
                   mode="contained-tonal"
                   icon="trash-can-outline"
                   onPress={() => onChangePlannedDate(activity, null)}
-                  containerColor={colors.accent}
-                  iconColor={colors.favorite}
+                  containerColor={colors.primary}
+                  iconColor={colors.surface}
                   size={22}
                   style={styles.iconButton}
                 />

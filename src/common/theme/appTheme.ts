@@ -1,9 +1,5 @@
 import React from "react";
-import {
-  MD3DarkTheme,
-  MD3LightTheme,
-  type MD3Theme,
-} from "react-native-paper";
+import { MD3DarkTheme, MD3LightTheme, type MD3Theme } from "react-native-paper";
 import type { StatusBarStyle } from "react-native";
 
 export type AppThemeMode = "light" | "dark";
@@ -25,6 +21,12 @@ export type AppTheme = {
     accentText: string;
     primary: string;
     primaryStrong: string;
+    primarySurface: string;
+    primaryBorder: string;
+    primaryText: string;
+    secondary: string;
+    secondarySurface: string;
+    secondaryBorder: string;
     favorite: string;
     favoriteContrast: string;
     text: string;
@@ -40,57 +42,99 @@ export type AppTheme = {
 };
 
 const lightPalette: AppTheme["colors"] = {
-  background: "#f8fafc",
-  surface: "#ffffff",
-  card: "#f1f5f9",
-  mutedSurface: "#eef2ff",
-  border: "#e2e8f0",
-  accent: "#0f172a",
-  accentStrong: "#f97316",
-  accentSurface: "#fff7ed",
-  accentBorder: "#fed7aa",
-  accentText: "#7c2d12",
-  primary: "#0f172a",
-  primaryStrong: "#2563eb",
-  favorite: "#d64545",
-  favoriteContrast: "#ffffff",
-  text: "#0f172a",
-  mutedText: "#475569",
-  secondaryText: "#94a3b8",
-  overlay: "rgba(15,23,42,0.06)",
-  danger: "#b91c1c",
-  plannedDate: "#0ea5e9",
-  plannedDateBackground: "#e0f2fe",
-  officialDate: "#ea580c",
-  officialDateBackground: "#ffedd5",
+  // Base surfaces
+  background: "#F5F7FB",
+  surface: "#FFFFFF",
+  card: "#EDF1F8",
+  mutedSurface: "#E4E8F2",
+  border: "#D2D8E5",
+
+  // Accent (kept in sync with primary for now)
+  accent: "#4B6CB7",
+  accentStrong: "#3F5BA1",
+  accentSurface: "#E8EDFF",
+  accentBorder: "#C7D2F5",
+  accentText: "#111827",
+
+  // Primary brand (soft indigo)
+  primary: "#4B6CB7",
+  primaryStrong: "#3F5BA1",
+  primarySurface: "#E8EDFF",
+  primaryBorder: "#C7D2F5",
+  primaryText: "#111827",
+
+  // Secondary (muted teal)
+  secondary: "#4CA5B8",
+  secondarySurface: "#E3F3F6",
+  secondaryBorder: "#BEDFE6",
+
+  // Specials
+  favorite: "#D55A5A", // softer than pure red
+  favoriteContrast: "#FFFFFF",
+
+  // Text
+  text: "#111827",
+  mutedText: "#4B5563",
+  secondaryText: "#9CA3AF",
+
+  // Other
+  overlay: "rgba(15,23,42,0.04)",
+  danger: "#E26A6A",
+
+  // Dates (very light backgrounds, low intensity)
+  plannedDate: "#4B6CB7",
+  plannedDateBackground: "#E8EDFF",
+  officialDate: "#4CA5B8",
+  officialDateBackground: "#E3F3F6",
 };
 
+// 🌚 DARK – desaturated, less contrasty, no neon
 const darkPalette: AppTheme["colors"] = {
-  background: "#0b1220",
-  surface: "#0f172a",
-  card: "#111827",
-  mutedSurface: "#0d1629",
-  border: "#1f2937",
-  accent: "#c084fc",
-  accentStrong: "#fb923c",
-  accentSurface: "rgba(249,115,22,0.22)",
-  accentBorder: "rgba(251,146,60,0.65)",
-  accentText: "#fff1dc",
-  primary: "#7dd3fc",
-  primaryStrong: "#38bdf8",
-  favorite: "#f97070",
-  favoriteContrast: "#0b1220",
-  text: "#e5e7eb",
-  mutedText: "#cbd5e1",
-  secondaryText: "#94a3b8",
-  overlay: "rgba(255,255,255,0.08)",
-  danger: "#f87171",
-  plannedDate: "#67e8f9",
-  plannedDateBackground: "#082f3f",
-  officialDate: "#fb923c",
-  officialDateBackground: "#402312",
-};
+  // Base surfaces
+  background: "#050814",
+  surface: "#090F1E",
+  card: "#0D1424",
+  mutedSurface: "#11182A",
+  border: "#222B3F",
 
+  // Accent (same family as primary)
+  accent: "#9BB4F3",
+  accentStrong: "#7F99E0",
+  accentSurface: "rgba(155,180,243,0.18)",
+  accentBorder: "rgba(155,180,243,0.45)",
+  accentText: "#E9EDFF",
+
+  // Primary brand (soft, dusty blue)
+  primary: "#9BB4F3",
+  primaryStrong: "#7F99E0",
+  primarySurface: "rgba(155,180,243,0.18)",
+  primaryBorder: "rgba(155,180,243,0.45)",
+  primaryText: "#E9EDFF",
+
+  // Secondary (muted aqua)
+  secondary: "#7BC7D4",
+  secondarySurface: "rgba(123,199,212,0.18)",
+  secondaryBorder: "rgba(123,199,212,0.45)",
+
+  // Specials
+  favorite: "#F4A6A6", // soft coral
+  favoriteContrast: "#050814",
+
+  // Text
+  text: "#E5E7EB",
+  mutedText: "#CBD5E1",
+  secondaryText: "#9CA3AF",
+
+  // Other
+  overlay: "rgba(255,255,255,0.06)", // very subtle
+  danger: "#F28B82",
+
+  // Dates
+  plannedDate: "#9BB4F3",
+  plannedDateBackground: "#111B36",
+  officialDate: "#7BC7D4",
+  officialDateBackground: "#0E1F25",
+};
 const buildPaperTheme = (mode: AppThemeMode): MD3Theme => {
   const base = mode === "dark" ? MD3DarkTheme : MD3LightTheme;
   const palette = mode === "dark" ? darkPalette : lightPalette;
@@ -99,8 +143,8 @@ const buildPaperTheme = (mode: AppThemeMode): MD3Theme => {
     ...base,
     colors: {
       ...base.colors,
-      primary: "#2563eb",
-      secondary: "#22d3ee",
+      primary: palette.primary,
+      secondary: palette.secondary,
       background: palette.background,
       surface: palette.surface,
     },
