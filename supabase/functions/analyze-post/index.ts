@@ -1,18 +1,14 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { supabase } from "./deps.ts";
 import { getSourceMetadata } from "./source.ts";
-import { buildEnhancedDescription, extractMediaSignals } from "./media.ts";
 import {
+  categoriesRequiringDate,
   generateTitle,
-  inferCategoryFromContent,
   mergeIfNull,
   normalizeActivity,
   normalizeActivityUrl,
-  normalizeCategory,
 } from "./normalize.ts";
-import { categoryNeedsDate, resolveDatesFromText } from "./datesResolver.ts";
 import { fetchMediaAnalyzer, mapMediaAnalyzer } from "./mediaAnalyzer.ts";
-import { classifyCategory } from "./aiCategory.ts";
 serve(async (req) => {
   console.log("[fn] --- analyze-post invoked ---");
 
@@ -121,16 +117,19 @@ serve(async (req) => {
 
   const analyzerResult = await analyzerPromise;
   if (analyzerResult) {
+    const analyzerContent = analyzerResult.activity ??
+      (analyzerResult as any)?.content ??
+      null;
     console.log(
       "[fn] mediaanalyzer platform",
       analyzerResult.platform ?? "unknown",
     );
     console.log("[fn] mediaanalyzer activity", {
-      category: analyzerResult.activity?.category ?? null,
-      title: analyzerResult.activity?.title ?? null,
-      locations: analyzerResult.activity?.locations ?? null,
-      dates: analyzerResult.activity?.dates ?? null,
-      confidence: analyzerResult.activity?.confidence ?? null,
+      category: analyzerContent?.category ?? null,
+      title: analyzerContent?.title ?? null,
+      locations: analyzerContent?.locations ?? null,
+      dates: analyzerContent?.dates ?? null,
+      confidence: analyzerContent?.confidence ?? null,
     });
   } else {
     console.log("[fn] mediaanalyzer unavailable");
@@ -138,39 +137,20 @@ serve(async (req) => {
   const { activity: analyzerActivity, description: analyzerDescription } =
     await mapMediaAnalyzer(analyzerResult, url);
 
-  const shouldFetchMediaSignals = !analyzerResult &&
-    !(
-      analyzerActivity?.image_url ||
-      analyzerResult?.thumbnailUrl ||
-      sourceMeta.image
-    );
-
-  const mediaSignals = shouldFetchMediaSignals
-    ? await extractMediaSignals(sourceMeta)
-    : { transcript: null, imageSummary: null };
-  console.log("[fn] mediaSignals", mediaSignals);
-
   const baseDescription = analyzerDescription ??
     sourceMeta.description ??
     analyzerResult?.rawDescription ??
     null;
 
-  const enrichedDescription = buildEnhancedDescription(
-    baseDescription,
-    mediaSignals,
-  );
-
   const hasAnySourceMeta = Boolean(
     analyzerActivity?.title ||
       sourceMeta.title ||
-      enrichedDescription ||
+      baseDescription ||
       analyzerActivity?.image_url ||
       analyzerResult?.thumbnailUrl ||
       sourceMeta.image ||
       sourceMeta.author ||
-      analyzerResult?.rawDescription ||
-      mediaSignals.transcript ||
-      mediaSignals.imageSummary,
+      analyzerResult?.rawDescription,
   );
   if (!hasAnySourceMeta) {
     console.log("[fn] no usable metadata, aborting create");
@@ -188,7 +168,6 @@ serve(async (req) => {
 
   console.log("[fn] merge inputs", {
     analyzerCategory: analyzerActivity?.category ?? null,
-    aiCategory: null,
   });
 
   const emptyActivity = {
@@ -253,65 +232,9 @@ serve(async (req) => {
     source_url,
   } = normalized;
 
-  let finalCategory = normalizeCategory(category);
-
-  if (!finalCategory || finalCategory === "other") {
-    const aiCategory = await classifyCategory({
-      title: title ?? sourceMeta.title ?? "",
-      description: baseDescription ?? sourceMeta.description ?? "",
-      tags,
-      location_name: location_name ?? "",
-    });
-    if (aiCategory && aiCategory !== "other") {
-      finalCategory = aiCategory;
-    }
-  }
-
-  if (!finalCategory || finalCategory === "other") {
-    const inferred = inferCategoryFromContent({
-      title: title ?? sourceMeta.title ?? "",
-      description: baseDescription ?? sourceMeta.description ?? "",
-      location_name: location_name ?? "",
-      tags,
-    });
-    if (inferred) finalCategory = inferred;
-  }
-
-  if (!finalCategory) {
-    finalCategory = "other";
-  }
+  const finalCategory = category ?? "other";
 
   console.log("[fn] finalCategory", finalCategory);
-
-  // Fallback date resolution: text parsing + OpenAI web search (only if missing dates for date-required categories)
-  const needsDateResolution = categoryNeedsDate(finalCategory) &&
-    (!Array.isArray(dates) || dates.length === 0);
-
-  if (needsDateResolution) {
-    const textForDates = [
-      title ?? sourceMeta.title ?? "",
-      baseDescription ?? sourceMeta.description ?? "",
-      Array.isArray(tags) ? tags.join(" ") : "",
-    ]
-      .filter(Boolean)
-      .join(" ");
-
-    const r = await resolveDatesFromText({
-      text: textForDates,
-      localeHint: "de",
-      venue: location_name ?? null,
-      city: city ?? null,
-      artists: [creator].filter((x): x is string => Boolean(x)),
-    });
-
-    if (r && Array.isArray(r.dates) && r.dates.length > 0) {
-      dates = r.dates.map((d: string) => ({
-        start: d,
-        end: null,
-        recurrence_rule: null,
-      }));
-    }
-  }
 
   const mainDate = Array.isArray(dates) && dates.length > 0
     ? (dates[0].start ?? null)
@@ -330,7 +253,8 @@ serve(async (req) => {
 
   const needsLocationConfirmation = !hasLocation || confidenceValue < 0.7;
 
-  const needsDateConfirmation = categoryNeedsDate(finalCategory) && !mainDate;
+  const needsDateConfirmation = categoriesRequiringDate.has(finalCategory) &&
+    !mainDate;
 
   if (finalCategory === "other" || confidenceValue < 0.5) {
     const rejectionPayload = {
@@ -414,14 +338,6 @@ serve(async (req) => {
         analyzerResult.activity.locations.length > 0
     ? analyzerResult.activity.locations
     : null;
-
-  const analyzerDates =
-    Array.isArray(analyzerActivity?.dates) && analyzerActivity.dates.length > 0
-      ? analyzerActivity.dates
-      : Array.isArray(analyzerResult?.activity?.dates) &&
-          analyzerResult.activity.dates.length > 0
-      ? analyzerResult.activity.dates
-      : null;
 
   const insertPayload = {
     title: finalTitle,

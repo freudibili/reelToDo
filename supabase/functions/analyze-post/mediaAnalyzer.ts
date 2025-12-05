@@ -1,11 +1,11 @@
 import { mediaAnalyzerApiToken, mediaAnalyzerUrl } from "./deps.ts";
 import { normalizeActivityUrl } from "./normalize.ts";
-import { geocodePlace } from "./googlePlaces.ts";
 
 type MediaAnalyzerLocation = {
   name?: string | null;
   address?: string | null;
   city?: string | null;
+  country?: string | null;
   latitude?: number | null;
   longitude?: number | null;
 };
@@ -23,6 +23,7 @@ type MediaAnalyzerActivity = {
   location_name?: string | null;
   address?: string | null;
   city?: string | null;
+  country?: string | null;
   latitude?: number | null;
   longitude?: number | null;
   dates?: string[]; // upstream now returns an array of dates
@@ -34,6 +35,7 @@ type MediaAnalyzerActivity = {
   key_info?: MediaAnalyzerKeyInfo;
   thumbnailBase64?: string | null;
   thumbnailUrl?: string | null;
+  general_category?: string | null;
 };
 
 export type MediaAnalyzerResponse = {
@@ -44,6 +46,7 @@ export type MediaAnalyzerResponse = {
   creator?: string | null;
   thumbnailUrl?: string | null;
   activity?: MediaAnalyzerActivity | null;
+  content?: MediaAnalyzerActivity | null;
 };
 
 export type AnalyzerMappedActivity = {
@@ -71,14 +74,6 @@ const cleanString = (value: unknown): string | null => {
   return trimmed.length > 0 ? trimmed : null;
 };
 
-const cleanCategory = (value: unknown): string | null => {
-  const v = cleanString(value);
-  if (!v) return null;
-  const low = v.toLowerCase();
-  if (["unknown", "uncategorized", "other"].includes(low)) return null;
-  return v;
-};
-
 const cleanNumber = (value: unknown): number | null => {
   if (typeof value === "number" && Number.isFinite(value)) return value;
   return null;
@@ -93,76 +88,6 @@ const safeTags = (value: unknown): string[] => {
   return value
     .map((v) => (typeof v === "string" ? v.trim() : String(v ?? "")))
     .filter((v) => v.length > 0);
-};
-
-const normalizeHintValue = (value?: string | null) =>
-  (value ?? "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-
-const buildHintContext = (...values: (string | null | undefined)[]) =>
-  values
-    .filter(Boolean)
-    .map((value) => normalizeHintValue(value))
-    .filter(Boolean)
-    .join(" ");
-
-const COUNTRY_HINTS: Array<{ label: string; tokens: string[] }> = [
-  { label: "Germany", tokens: ["germany", "deutschland"] },
-  { label: "Austria", tokens: ["austria", "österreich"] },
-  { label: "Switzerland", tokens: ["switzerland", "schweiz"] },
-  { label: "France", tokens: ["france", "frankreich"] },
-  { label: "Italy", tokens: ["italy", "italia"] },
-  { label: "Spain", tokens: ["spain", "españa"] },
-  { label: "Netherlands", tokens: ["netherlands", "niederlande"] },
-  { label: "United Kingdom", tokens: ["united kingdom", "uk", "england"] },
-  { label: "United States", tokens: ["united states", "usa", "america"] },
-];
-
-const REGION_HINTS: Array<{ label: string; tokens: string[] }> = [
-  {
-    label: "Baden-Württemberg",
-    tokens: [
-      "baden-württemberg",
-      "baden württemberg",
-      "badenwürttemberg",
-      "baden wurttemberg",
-      "baden",
-    ],
-  },
-  {
-    label: "Schwäbische Alb",
-    tokens: [
-      "schwäbische alb",
-      "schwabische alb",
-      "alb",
-      "schwäbische",
-    ],
-  },
-  {
-    label: "Bavaria",
-    tokens: ["bavaria", "bayern", "oberbayern", "niederbayern", "franken"],
-  },
-  { label: "North Rhine-Westphalia", tokens: ["nordrhein-westfalen", "nrw"] },
-  { label: "Saxony", tokens: ["saxony", "sachsen"] },
-  { label: "Tyrol", tokens: ["tyrol", "tirol"] },
-  { label: "Catalonia", tokens: ["catalonia", "catalunya"] },
-  { label: "Andalusia", tokens: ["andalusia", "andalusien"] },
-];
-
-const findHint = (
-  text: string,
-  hints: Array<{ label: string; tokens: string[] }>,
-): string | null => {
-  if (!text) return null;
-  const normalized = text;
-  for (const hint of hints) {
-    for (const token of hint.tokens) {
-      if (!token) continue;
-      if (normalized.includes(token.toLowerCase())) {
-        return hint.label;
-      }
-    }
-  }
-  return null;
 };
 
 const pickBestLocation = (
@@ -191,12 +116,14 @@ const cleanLocation = (loc: MediaAnalyzerLocation | null | undefined) => {
     name: cleanString(loc.name ?? null),
     address: cleanString(loc.address ?? null),
     city: cleanString(loc.city ?? null),
+    country: cleanString(loc.country ?? null),
     latitude: cleanNumber(loc.latitude ?? null),
     longitude: cleanNumber(loc.longitude ?? null),
   };
   const hasAny = cleaned.name ||
     cleaned.address ||
     cleaned.city ||
+    cleaned.country ||
     cleaned.latitude !== null ||
     cleaned.longitude !== null;
   return hasAny ? cleaned : null;
@@ -256,7 +183,7 @@ export const fetchMediaAnalyzer = async (
     }
 
     const json = (await res.json()) as MediaAnalyzerResponse;
-    const activity = json.activity ?? null;
+    const activity = json.activity ?? json.content ?? null;
     console.log("[mediaanalyzer] raw response", {
       platform: json.platform ?? null,
       rawTitle: json.rawTitle ?? null,
@@ -288,14 +215,16 @@ export const mapMediaAnalyzer = async (
   payload: MediaAnalyzerResponse | null,
   url: string,
 ): Promise<{ activity: AnalyzerMappedActivity | null; description: string | null }> => {
-  if (!payload?.activity) {
+  const activity = payload?.activity ?? payload?.content ?? null;
+
+  if (!activity) {
     const descOnly = cleanString(payload?.rawDescription ?? null);
     return { activity: null, description: descOnly };
   }
 
-  const loc = pickBestLocation(payload.activity.locations);
-  const sanitizedLocations = sanitizeLocations(payload.activity.locations);
-  const otherLocations = (payload.activity.locations ?? []).filter((l) =>
+  const loc = pickBestLocation(activity.locations);
+  const sanitizedLocations = sanitizeLocations(activity.locations);
+  const otherLocations = (activity.locations ?? []).filter((l) =>
     l !== loc
   );
   const otherLocationsSummary = otherLocations.length > 0
@@ -312,107 +241,58 @@ export const mapMediaAnalyzer = async (
     : null;
   const descriptionParts = [
     cleanString(payload.rawDescription ?? null),
-    formatKeyInfo(payload.activity.key_info),
+    formatKeyInfo(activity.key_info),
     otherLocationsSummary,
   ].filter(Boolean);
 
   const normalizedSource = normalizeActivityUrl(
-    payload.activity.source_url ?? payload.sourceUrl ?? url,
+    activity.source_url ?? payload?.sourceUrl ?? url,
   );
 
   const mapped: AnalyzerMappedActivity = {
-    title: cleanString(payload.activity.title) ??
+    title: cleanString(activity.title) ??
       cleanString(payload.rawTitle ?? null) ??
       null,
-    category: cleanCategory(payload.activity.category ?? null),
-    location_name: cleanString(payload.activity.location_name ?? null) ??
+    category: cleanString(activity.general_category ?? activity.category ?? null),
+    location_name: cleanString(activity.location_name ?? null) ??
       cleanString(loc?.name ?? null),
-    address: cleanString(payload.activity.address ?? null) ??
+    address: cleanString(activity.address ?? null) ??
       cleanString(loc?.address ?? null) ??
       cleanString(loc?.name ?? null),
-    city: cleanString(payload.activity.city ?? null) ??
+    city: cleanString(activity.city ?? null) ??
       cleanString(loc?.city ?? null),
-    country: null,
-    latitude: cleanNumber(payload.activity.latitude ?? null) ??
+    country: cleanString(activity.country ?? null) ??
+      cleanString(loc?.country ?? null),
+    latitude: cleanNumber(activity.latitude ?? null) ??
       cleanNumber(loc?.latitude ?? null),
-    longitude: cleanNumber(payload.activity.longitude ?? null) ??
+    longitude: cleanNumber(activity.longitude ?? null) ??
       cleanNumber(loc?.longitude ?? null),
     date:
-      Array.isArray(payload.activity.dates) && payload.activity.dates.length > 0
-        ? cleanString(payload.activity.dates[0])
+      Array.isArray(activity.dates) && activity.dates.length > 0
+        ? cleanString(activity.dates[0])
         : null,
-    dates: Array.isArray(payload.activity.dates)
-      ? payload.activity.dates
+    dates: Array.isArray(activity.dates)
+      ? activity.dates
         .map((d) => cleanString(d))
         .filter((d): d is string => Boolean(d))
       : undefined,
     locations: sanitizedLocations,
-    tags: safeTags(payload.activity.tags ?? []),
-    creator: cleanString(payload.activity.creator ?? null) ??
+    tags: safeTags(activity.tags ?? []),
+    creator: cleanString(activity.creator ?? null) ??
       cleanString(payload.creator ?? null),
     source_url: normalizedSource,
-    image_url: cleanString(payload.activity.thumbnailUrl ?? null) ??
+    image_url: cleanString(activity.thumbnailUrl ?? null) ??
       cleanString(payload.thumbnailUrl ?? null) ??
-      (isDataUrl(payload.activity.thumbnailBase64 ?? null)
+      (isDataUrl(activity.thumbnailBase64 ?? null)
         ? null
-        : cleanString(payload.activity.thumbnailBase64 ?? null)),
-    confidence: typeof payload.activity.confidence === "number"
-      ? payload.activity.confidence
+        : cleanString(activity.thumbnailBase64 ?? null)),
+    confidence: typeof activity.confidence === "number"
+      ? activity.confidence
       : null,
   };
 
-  const tagsHint = (payload.activity.tags ?? []).join(" ");
-  const descriptionHint = payload.rawDescription
-    ? payload.rawDescription.slice(0, 200)
-    : null;
-  const contextHintParts = [
-    payload.activity.city,
-    payload.activity.address,
-    payload.activity.location_name,
-    tagsHint,
-    descriptionHint,
-    normalizedSource,
-  ];
-  const contextHint = contextHintParts.filter(Boolean).join(" ");
-  const blankHintText = buildHintContext(
-    payload.activity.city,
-    payload.activity.address,
-    payload.activity.location_name,
-    tagsHint,
-    payload.rawDescription,
-    normalizedSource,
-  );
-  const cityHint = cleanString(loc?.city ?? payload.activity.city ?? null);
-  const regionHint = findHint(blankHintText, REGION_HINTS);
-  const countryHint = findHint(blankHintText, COUNTRY_HINTS);
-  const geocodeTarget =
-    cleanString(mapped.location_name ?? payload.activity.location_name ?? null) ??
-    cleanString(loc?.name ?? null);
-  let enrichedActivity = { ...mapped };
-
-  if (!enrichedActivity.address && geocodeTarget) {
-    const geocoded = await geocodePlace(geocodeTarget, contextHint, {
-      cityHint,
-      regionHint,
-      countryHint,
-    });
-    if (geocoded) {
-      enrichedActivity = {
-        ...enrichedActivity,
-        address: enrichedActivity.address ?? geocoded.address ?? null,
-        location_name: enrichedActivity.location_name ??
-          geocoded.location_name ??
-          null,
-        city: enrichedActivity.city ?? geocoded.city ?? null,
-        country: enrichedActivity.country ?? geocoded.country ?? null,
-        latitude: enrichedActivity.latitude ?? geocoded.latitude ?? null,
-        longitude: enrichedActivity.longitude ?? geocoded.longitude ?? null,
-      };
-    }
-  }
-
   return {
-    activity: enrichedActivity,
+    activity: mapped,
     description: descriptionParts.length > 0
       ? descriptionParts.join("\n\n")
       : null,

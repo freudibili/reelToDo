@@ -1,202 +1,3 @@
-export type AllowedCategory =
-  | "outdoor-hike"
-  | "outdoor-nature-spot"
-  | "outdoor-beach"
-  | "outdoor-park"
-  | "outdoor-viewpoint"
-  | "food-cafe"
-  | "food-restaurant"
-  | "food-bar"
-  | "food-street-food"
-  | "event-market"
-  | "event-festival"
-  | "event-concert"
-  | "event-exhibition"
-  | "culture-museum"
-  | "culture-monument"
-  | "culture-architecture"
-  | "workshop-cooking"
-  | "workshop-art"
-  | "workshop-wellness"
-  | "nightlife-club"
-  | "nightlife-bar"
-  | "shopping-local"
-  | "shopping-vintage"
-  | "other";
-
-export const ALLOWED_CATEGORIES: AllowedCategory[] = [
-  "outdoor-hike",
-  "outdoor-nature-spot",
-  "outdoor-beach",
-  "outdoor-park",
-  "outdoor-viewpoint",
-  "food-cafe",
-  "food-restaurant",
-  "food-bar",
-  "food-street-food",
-  "event-market",
-  "event-festival",
-  "event-concert",
-  "event-exhibition",
-  "culture-museum",
-  "culture-monument",
-  "culture-architecture",
-  "workshop-cooking",
-  "workshop-art",
-  "workshop-wellness",
-  "nightlife-club",
-  "nightlife-bar",
-  "shopping-local",
-  "shopping-vintage",
-  "other",
-];
-
-export const normalizeCategory = (value: string | null): string | null => {
-  if (!value) return null;
-  const low = value.toLowerCase();
-
-  if (low.includes("hike") || low.includes("trail") || low.includes("walk")) {
-    return "outdoor-hike";
-  }
-  if (
-    low.includes("view") || low.includes("viewpoint") ||
-    low.includes("panorama")
-  ) {
-    return "outdoor-viewpoint";
-  }
-  if (low.includes("beach")) return "outdoor-beach";
-  if (low.includes("park")) return "outdoor-park";
-  if (
-    low.includes("nature") ||
-    low.includes("outdoor") ||
-    low.includes("travel") ||
-    low.includes("sunrise")
-  ) {
-    return "outdoor-nature-spot";
-  }
-
-  if (low.includes("cafe") || low.includes("coffee")) return "food-cafe";
-  if (
-    low.includes("restaurant") || low.includes("food") ||
-    low.includes("lunch") || low.includes("dinner")
-  ) {
-    return "food-restaurant";
-  }
-  if (low.includes("bar") || low.includes("cocktail")) return "food-bar";
-  if (low.includes("street food") || low.includes("food truck")) {
-    return "food-street-food";
-  }
-
-  if (low.includes("market")) return "event-market";
-  if (low.includes("festival") || low.includes("fest")) return "event-festival";
-  if (low.includes("concert") || low.includes("live music")) {
-    return "event-concert";
-  }
-  if (low.includes("exhibition") || low.includes("expo")) {
-    return "event-exhibition";
-  }
-
-  if (low.includes("museum")) return "culture-museum";
-  if (low.includes("monument") || low.includes("castle")) {
-    return "culture-monument";
-  }
-  if (low.includes("architecture") || low.includes("landmark")) {
-    return "culture-architecture";
-  }
-
-  if (low.includes("workshop") && low.includes("cook")) {
-    return "workshop-cooking";
-  }
-  if (low.includes("workshop") && low.includes("art")) return "workshop-art";
-  if (
-    low.includes("workshop") &&
-    (low.includes("wellness") || low.includes("yoga") || low.includes("spa") ||
-      low.includes("retreat"))
-  ) {
-    return "workshop-wellness";
-  }
-
-  if (low.includes("club")) return "nightlife-club";
-  if (
-    low.includes("nightlife") || low.includes("night bar") ||
-    low.includes("late bar")
-  ) {
-    return "nightlife-bar";
-  }
-
-  if (low.includes("vintage")) return "shopping-vintage";
-  if (low.includes("shop") || low.includes("local")) return "shopping-local";
-
-  return "other";
-};
-
-export const inferCategoryFromContent = (input: {
-  title?: string | null;
-  description?: string | null;
-  tags?: string[] | null;
-  location_name?: string | null;
-}): string | null => {
-  const hay = [
-    input.title ?? "",
-    input.description ?? "",
-    ...(input.tags ?? []),
-    input.location_name ?? "",
-  ]
-    .join(" ")
-    .toLowerCase();
-
-  if (hay.match(/\b(hike|trail|randonn[eé]e|wanderung)\b/)) {
-    return "outdoor-hike";
-  }
-  if (hay.match(/\b(view|viewpoint|panorama|belvedere)\b/)) {
-    return "outdoor-viewpoint";
-  }
-  if (hay.match(/\b(beach|plage|strand)\b/)) return "outdoor-beach";
-  if (hay.match(/\b(park|parc)\b/)) return "outdoor-park";
-  if (
-    hay.match(/\b(nature|forest|forêt|wald)\b/) ||
-    hay.match(/\b(outdoor|travel|sunrise)\b/)
-  ) {
-    return "outdoor-nature-spot";
-  }
-
-  if (hay.match(/\b(cafe|coffee|café)\b/)) return "food-cafe";
-  if (hay.match(/\b(restaurant|food|lunch|dinner)\b/)) return "food-restaurant";
-  if (hay.match(/\b(bar|cocktail)\b/)) return "food-bar";
-  if (hay.match(/\b(street food|food truck)\b/)) return "food-street-food";
-
-  if (hay.match(/\b(market|march[eé]|markt)\b/)) return "event-market";
-  if (hay.match(/\b(festival|fest)\b/)) return "event-festival";
-  if (hay.match(/\b(concert|live music)\b/)) return "event-concert";
-  if (hay.match(/\b(exhibition|expo)\b/)) return "event-exhibition";
-
-  if (hay.match(/\b(museum|mus[eé]e)\b/)) return "culture-museum";
-  if (hay.match(/\b(monument|castle|château|burg)\b/)) {
-    return "culture-monument";
-  }
-  if (hay.match(/\b(architecture|landmark)\b/)) return "culture-architecture";
-
-  if (
-    hay.match(/\b(workshop|cours|ateliers)\b/) &&
-    hay.match(/\b(cook|cuisine|kitchen)\b/)
-  ) {
-    return "workshop-cooking";
-  }
-  if (
-    hay.match(/\b(workshop|cours|ateliers)\b/) && hay.match(/\b(art|atelier)\b/)
-  ) {
-    return "workshop-art";
-  }
-  if (
-    hay.match(/\b(workshop|cours|ateliers)\b/) &&
-    hay.match(/\b(wellness|yoga|spa|retreat)\b/)
-  ) {
-    return "workshop-wellness";
-  }
-
-  return null;
-};
-
 export const mergeIfNull = <T extends Record<string, any>>(
   primary: T,
   secondary: Partial<T>,
@@ -252,7 +53,9 @@ export const normalizeActivity = (activity: any) => {
   const dates = normalizeDates();
   return {
     title: activity.title ?? null,
-    category: activity.category ?? null,
+    category: typeof activity.category === "string"
+      ? activity.category
+      : null,
     location_name: activity.location_name ?? null,
     address: activity.address ?? null,
     city: activity.city ?? null,
@@ -273,73 +76,21 @@ export const normalizeActivity = (activity: any) => {
 };
 
 export const generateTitle = (
-  category: string,
+  category: string | null,
   baseName: string,
   city: string | null,
 ): string => {
   const cleanBase = baseName.replace(/^#/, "").trim();
   const suffix = city ? ` (${city})` : "";
-
-  switch (category) {
-    case "outdoor-hike":
-      return `Hike: ${cleanBase}${suffix}`;
-    case "outdoor-nature-spot":
-      return `Nature spot: ${cleanBase}${suffix}`;
-    case "outdoor-beach":
-      return `Beach: ${cleanBase}${suffix}`;
-    case "outdoor-park":
-      return `Park: ${cleanBase}${suffix}`;
-    case "outdoor-viewpoint":
-      return `Viewpoint: ${cleanBase}${suffix}`;
-    case "food-cafe":
-      return `Café: ${cleanBase}${suffix}`;
-    case "food-restaurant":
-      return `Restaurant: ${cleanBase}${suffix}`;
-    case "food-bar":
-      return `Bar: ${cleanBase}${suffix}`;
-    case "food-street-food":
-      return `Street food: ${cleanBase}${suffix}`;
-    case "event-market":
-      return `Market: ${cleanBase}${suffix}`;
-    case "event-festival":
-      return `Festival: ${cleanBase}${suffix}`;
-    case "event-concert":
-      return `Concert: ${cleanBase}${suffix}`;
-    case "event-exhibition":
-      return `Exhibition: ${cleanBase}${suffix}`;
-    case "culture-museum":
-      return `Museum: ${cleanBase}${suffix}`;
-    case "culture-monument":
-      return `Monument: ${cleanBase}${suffix}`;
-    case "culture-architecture":
-      return `Place: ${cleanBase}${suffix}`;
-    case "workshop-cooking":
-      return `Cooking workshop: ${cleanBase}${suffix}`;
-    case "workshop-art":
-      return `Art workshop: ${cleanBase}${suffix}`;
-    case "workshop-wellness":
-      return `Wellness: ${cleanBase}${suffix}`;
-    case "nightlife-club":
-      return `Night out: ${cleanBase}${suffix}`;
-    case "nightlife-bar":
-      return `Night bar: ${cleanBase}${suffix}`;
-    case "shopping-local":
-      return `Shop: ${cleanBase}${suffix}`;
-    case "shopping-vintage":
-      return `Vintage shop: ${cleanBase}${suffix}`;
-    default:
-      return `${cleanBase}${suffix}`;
-  }
+  const prefix = category && category !== "other"
+    ? `${category.replace(/[_-]/g, " ")}: `
+    : "";
+  return `${prefix}${cleanBase}${suffix}`;
 };
 
-export const categoriesRequiringDate = new Set([
-  "event-market",
-  "event-festival",
-  "event-concert",
-  "event-exhibition",
-  "workshop-cooking",
-  "workshop-art",
-  "workshop-wellness",
+export const categoriesRequiringDate = new Set<string>([
+  "events_entertainment",
+  "workshops_learning",
 ]);
 
 export const normalizeActivityUrl = (input: string): string => {
