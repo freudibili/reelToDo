@@ -22,6 +22,7 @@ interface AppScreenProps {
   backgroundColor?: string;
   withBottomInset?: boolean;
   loading?: boolean;
+  loadingContent?: React.ReactNode;
   scrollable?: boolean;
   footer?: React.ReactNode;
   headerTitle?: string;
@@ -39,6 +40,7 @@ const AppScreen: React.FC<AppScreenProps> = ({
   backgroundColor,
   withBottomInset = true,
   loading = false,
+  loadingContent,
   scrollable = false,
   footer,
   headerTitle,
@@ -176,7 +178,9 @@ const AppScreen: React.FC<AppScreenProps> = ({
               },
             ]}
           >
-            <ActivityIndicator size="large" color={colors.primary} />
+            {loadingContent ?? (
+              <ActivityIndicator size="large" color={colors.primary} />
+            )}
           </View>
         )}
       </View>

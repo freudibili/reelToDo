@@ -3,6 +3,9 @@
     "title": "Import activity",
     "subtitle": "Share a Reel, TikTok or Short to ReelToDo, we analyze it for you."
   },
+  "loader": {
+    "message": "Analyzing your link and collecting the details..."
+  },
   "linkInput": {
     "label": "Link",
     "placeholder": "Paste link here",

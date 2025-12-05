@@ -33,6 +33,7 @@ import ImportResultCard from "../components/ImportResultCard";
 import type { ImportDetailsFormHandle } from "../components/ImportDetailsForm";
 import ImportFooter from "../components/ImportFooter";
 import ImportErrorState from "../components/ImportErrorState";
+import ImportLoader from "../components/ImportLoader";
 import type { Activity } from "@features/activities/utils/types";
 import { UpdateActivityPayload } from "../utils/types";
 import { useTranslation } from "react-i18next";
@@ -272,6 +273,7 @@ const ImportScreen = () => {
   return (
     <Screen
       loading={screenLoading}
+      loadingContent={<ImportLoader message={t("import:loader.message")} />}
       scrollable
       onBackPress={
         alreadyHadActivity || !fromActivities
