@@ -1,21 +1,52 @@
 import * as Location from "expo-location";
 import type { Region } from "react-native-maps";
 
-export const requestUserRegion = async (): Promise<Region | null> => {
+const geocodeToRegion = async (
+  fallbackAddress?: string | null
+): Promise<Region | null> => {
+  const trimmed = fallbackAddress?.trim();
+  if (!trimmed) return null;
+
   try {
-    const { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== "granted") return null;
-    const loc = await Location.getCurrentPositionAsync({
-      accuracy: Location.Accuracy.Balanced,
-    });
+    const results = await Location.geocodeAsync(trimmed);
+    const first = results.find(
+      (result) =>
+        typeof result.latitude === "number" &&
+        typeof result.longitude === "number"
+    );
+
+    if (!first) return null;
+
     return {
-      latitude: loc.coords.latitude,
-      longitude: loc.coords.longitude,
+      latitude: first.latitude,
+      longitude: first.longitude,
       latitudeDelta: 0.1,
       longitudeDelta: 0.1,
     };
   } catch {
-    // If the emulator/device cannot provide a location, fall back to null
     return null;
   }
+};
+
+export const requestUserRegion = async (
+  fallbackAddress?: string | null
+): Promise<Region | null> => {
+  try {
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    if (status === "granted") {
+      const loc = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
+      return {
+        latitude: loc.coords.latitude,
+        longitude: loc.coords.longitude,
+        latitudeDelta: 0.1,
+        longitudeDelta: 0.1,
+      };
+    }
+  } catch {
+    // Ignore and try fallback geocoding instead
+  }
+
+  return geocodeToRegion(fallbackAddress);
 };

@@ -16,6 +16,7 @@ import {
 import type { Region } from "react-native-maps";
 import { useAppSelector, useAppDispatch } from "@core/store/hook";
 import { activitiesSelectors } from "@features/activities/store/activitiesSelectors";
+import { selectAuthUser } from "@features/auth/store/authSelectors";
 import ActivitiesMap, {
   ActivitiesMapHandle,
 } from "@features/activities/components/Map/ActivityMap";
@@ -42,12 +43,15 @@ import {
 } from "@features/activities/services/linksService";
 import { useAppTheme } from "@common/theme/appTheme";
 import { formatCategoryName } from "@features/activities/utils/categorySummary";
+import { settingsSelectors } from "@features/settings/store/settingsSelectors";
 
 const MapScreen = () => {
   const dispatch = useAppDispatch();
   const { confirm } = useConfirmDialog();
   const { t } = useTranslation();
   const { colors, mode: themeMode } = useAppTheme();
+  const profile = useAppSelector(settingsSelectors.profile);
+  const user = useAppSelector(selectAuthUser);
   const loading = useAppSelector(activitiesSelectors.loading);
   const initialized = useAppSelector(activitiesSelectors.initialized);
   const activities = useAppSelector(activitiesSelectors.items);
@@ -63,6 +67,14 @@ const MapScreen = () => {
   const selected = useAppSelector((state) =>
     selectedSelector ? selectedSelector(state) : null
   );
+  const fallbackAddress = useMemo(() => {
+    const profileAddress = profile.address?.trim();
+    const metadataAddress = (
+      user?.user_metadata as { address?: string } | undefined
+    )?.address?.trim();
+
+    return profileAddress || metadataAddress || null;
+  }, [profile.address, user?.user_metadata]);
   const [sheetMode, setSheetMode] = useState<"list" | "details">("list");
   const [sheetIndex, setSheetIndex] = useState(-1);
   const sheetRef = useRef(null);
@@ -70,7 +82,7 @@ const MapScreen = () => {
 
   useEffect(() => {
     const requestLocation = async () => {
-      const region = await requestUserRegion();
+      const region = await requestUserRegion(fallbackAddress);
       if (!region) {
         Alert.alert(
           t("activities:map.permissionDeniedTitle"),
@@ -82,7 +94,7 @@ const MapScreen = () => {
     };
 
     requestLocation().catch(() => {});
-  }, [t]);
+  }, [fallbackAddress, t]);
 
   const initialRegion = useMemo<Region>(() => {
     if (userRegion) return userRegion;
