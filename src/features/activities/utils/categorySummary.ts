@@ -15,9 +15,6 @@ const MIN_CLUSTER = 2;
 const RECENT_CATEGORY_ID = "recent";
 const FAVORITES_CATEGORY_ID = "favorites";
 
-const getFavoriteScore = (activity: Activity) =>
-  activity.is_favorite ? 1 : 0;
-
 const parseDate = (value: string | null | undefined) => {
   if (!value) return 0;
   const ts = new Date(value).getTime();
@@ -28,31 +25,6 @@ const sortByFreshness = (a: Activity, b: Activity) =>
   parseDate(b.created_at) - parseDate(a.created_at);
 
 const sortByNewest = (list: Activity[]) => [...list].sort(sortByFreshness);
-
-const selectHeroActivity = (activities: Activity[]) => {
-  if (activities.length === 0) return null;
-
-  const withDistance = activities
-    .filter((a) => typeof a.distance === "number")
-    .sort((a, b) => {
-      const distA = a.distance ?? Number.POSITIVE_INFINITY;
-      const distB = b.distance ?? Number.POSITIVE_INFINITY;
-      if (distA !== distB) return distA - distB;
-      const favDiff = getFavoriteScore(b) - getFavoriteScore(a);
-      if (favDiff !== 0) return favDiff;
-      return sortByFreshness(a, b);
-    });
-
-  if (withDistance[0]) return withDistance[0];
-
-  const byPopularity = [...activities].sort((a, b) => {
-    const favDiff = getFavoriteScore(b) - getFavoriteScore(a);
-    if (favDiff !== 0) return favDiff;
-    return sortByFreshness(a, b);
-  });
-
-  return byPopularity[0] ?? null;
-};
 
 const hasCluster = (activities: Activity[]) => {
   const withCoords = activities.filter(
@@ -173,7 +145,9 @@ export const buildCategoryCards = (
     })
     .sort((a, b) => a.name.localeCompare(b.name));
 
-  const recentCard = includeRecent ? buildRecentCard(activities, recentLimit) : null;
+  const recentCard = includeRecent
+    ? buildRecentCard(activities, recentLimit)
+    : null;
   const favoritesCard = includeFavorites
     ? buildFavoritesCard(favoriteActivities)
     : null;

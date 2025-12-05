@@ -19,10 +19,12 @@ export type AppTheme = {
     mutedSurface: string;
     border: string;
     accent: string;
+    accentStrong: string;
     accentSurface: string;
     accentBorder: string;
     accentText: string;
     primary: string;
+    primaryStrong: string;
     text: string;
     mutedText: string;
     secondaryText: string;
@@ -37,11 +39,13 @@ const lightPalette: AppTheme["colors"] = {
   card: "#f1f5f9",
   mutedSurface: "#eef2ff",
   border: "#e2e8f0",
-  accent: "#075985",
-  accentSurface: "#e0f2fe",
-  accentBorder: "#bae6fd",
-  accentText: "#075985",
+  accent: "#0f172a",
+  accentStrong: "#f97316",
+  accentSurface: "#fff7ed",
+  accentBorder: "#fed7aa",
+  accentText: "#7c2d12",
   primary: "#0f172a",
+  primaryStrong: "#2563eb",
   text: "#0f172a",
   mutedText: "#475569",
   secondaryText: "#94a3b8",
@@ -55,11 +59,13 @@ const darkPalette: AppTheme["colors"] = {
   card: "#111827",
   mutedSurface: "#0d1629",
   border: "#1f2937",
-  accent: "#075985",
-  accentSurface: "rgba(14,165,233,0.22)",
-  accentBorder: "rgba(125,211,252,0.65)",
-  accentText: "#e0f2fe",
+  accent: "#c084fc",
+  accentStrong: "#fb923c",
+  accentSurface: "rgba(249,115,22,0.22)",
+  accentBorder: "rgba(251,146,60,0.65)",
+  accentText: "#fff1dc",
   primary: "#7dd3fc",
+  primaryStrong: "#38bdf8",
   text: "#e5e7eb",
   mutedText: "#cbd5e1",
   secondaryText: "#94a3b8",

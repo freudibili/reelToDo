@@ -72,6 +72,8 @@ const ActivityDetailsSheet: React.FC<Props> = ({
     value: baseDate,
     onChange: (date) => onChangePlannedDate(activity, date),
     cardColor: colors.card,
+    themeMode: mode,
+    textColor: colors.text,
   });
 
   const officialDateLabel = formatDisplayDate(officialDateValue);

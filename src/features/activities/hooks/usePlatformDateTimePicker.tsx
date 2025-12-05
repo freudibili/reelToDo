@@ -10,19 +10,25 @@ import DateTimePicker, {
   DateTimePickerAndroid,
   type DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
+import type { AppThemeMode } from "@common/theme/appTheme";
 
 type UsePlatformDateTimePickerProps = {
   value: Date;
   onChange: (date: Date) => void;
   cardColor: string;
+  themeMode: AppThemeMode;
+  textColor?: string;
 };
 
 export const usePlatformDateTimePicker = ({
   value,
   onChange,
   cardColor,
+  themeMode,
+  textColor,
 }: UsePlatformDateTimePickerProps) => {
   const [visible, setVisible] = useState(false);
+  const themeVariant = themeMode === "dark" ? "dark" : "light";
 
   const handleIosChange = (
     event: DateTimePickerEvent,
@@ -58,6 +64,7 @@ export const usePlatformDateTimePicker = ({
       value: mergedDate,
       mode: "time",
       is24Hour: true,
+      themeVariant,
       onChange: handleAndroidTimeChange(mergedDate),
     });
   };
@@ -67,6 +74,7 @@ export const usePlatformDateTimePicker = ({
       DateTimePickerAndroid.open({
         value,
         mode: "date",
+        themeVariant,
         onChange: handleAndroidDateChange,
       });
       return;
@@ -90,6 +98,8 @@ export const usePlatformDateTimePicker = ({
             value={value}
             mode="datetime"
             display="spinner"
+            themeVariant={themeVariant}
+            textColor={textColor}
             onChange={handleIosChange}
           />
         </View>

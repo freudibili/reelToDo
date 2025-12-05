@@ -28,6 +28,7 @@ const DateSection: React.FC<DateSectionProps> = ({
   const [editing, setEditing] = useState(false);
   const lastEditRequestRef = useRef(editRequest);
   const { colors, mode } = useAppTheme();
+  const themeVariant = mode === "dark" ? "dark" : "light";
 
   const displayLabel = () => {
     if (!date) return t("import:dateSection.select");
@@ -132,6 +133,8 @@ const DateSection: React.FC<DateSectionProps> = ({
             <DateTimePicker
               value={date || new Date()}
               mode="date"
+              themeVariant={themeVariant}
+              textColor={colors.text}
               onChange={handleDateChange}
             />
           )}

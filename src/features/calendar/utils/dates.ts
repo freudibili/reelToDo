@@ -15,4 +15,6 @@ export interface CalendarDay {
   key: string;
   date: Date;
   hasActivity: boolean;
+  hasPlanned: boolean;
+  hasOfficial: boolean;
 }

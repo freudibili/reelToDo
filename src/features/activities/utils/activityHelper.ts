@@ -1,13 +1,9 @@
 import { ActivityCategory } from "./types";
 
 export const categoriesRequiringDate: Set<ActivityCategory> = new Set([
-  "event-market",
-  "event-festival",
-  "event-concert",
-  "event-exhibition",
-  "workshop-cooking",
-  "workshop-art",
-  "workshop-wellness",
+  "events_entertainment",
+  "nightlife_social",
+  "shopping_markets",
 ]);
 
 export const categoryNeedsDate = (cat?: string | null): boolean =>

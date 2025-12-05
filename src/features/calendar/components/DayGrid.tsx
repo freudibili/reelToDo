@@ -25,6 +25,9 @@ const DayGrid: React.FC<Props> = ({
       {days.map((item) => {
         const isToday = item.key === todayKey;
         const isSelected = item.key === selectedDate;
+        const plannedDotColor = colors.primaryStrong;
+        const officialDotColor = colors.accentStrong;
+        const dotBorder = isSelected ? colors.surface : colors.border;
         return (
           <Pressable
             key={item.key}
@@ -70,9 +73,19 @@ const DayGrid: React.FC<Props> = ({
               <View
                 style={[
                   styles.dayDot,
-                  { backgroundColor: colors.border },
-                  (item.hasActivity || isSelected) && {
-                    backgroundColor: colors.primary,
+                  { backgroundColor: colors.border, borderColor: dotBorder },
+                  item.hasPlanned && {
+                    backgroundColor: plannedDotColor,
+                  },
+                ]}
+              />
+              <View
+                style={[
+                  styles.dayDot,
+                  styles.secondaryDot,
+                  { backgroundColor: colors.border, borderColor: dotBorder },
+                  item.hasOfficial && {
+                    backgroundColor: officialDotColor,
                   },
                 ]}
               />
@@ -116,11 +129,18 @@ const styles = StyleSheet.create({
   dayDotRow: {
     marginTop: 4,
     height: 8,
+    flexDirection: "row",
     justifyContent: "center",
+    alignItems: "center",
+    gap: 5,
   },
   dayDot: {
     width: 6,
     height: 6,
     borderRadius: 999,
+    borderWidth: 1,
+  },
+  secondaryDot: {
+    marginTop: 0,
   },
 });

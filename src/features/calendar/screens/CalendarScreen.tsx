@@ -31,45 +31,13 @@ import {
 import type { Activity } from "@features/activities/utils/types";
 import {
   formatDisplayDate,
-  getPrimaryDateValue,
-  parseDateValue,
 } from "@features/activities/utils/activityDisplay";
 import { useConfirmDialog } from "@common/hooks/useConfirmDialog";
 import MonthNavigator from "../components/MonthNavigator";
 import DayGrid from "../components/DayGrid";
 import DayActivitiesList from "../components/DayActivitiesList";
-
-type DayGroup = {
-  key: string;
-  date: Date;
-  activities: Activity[];
-};
-
-const buildDayGroups = (activities: Activity[]): DayGroup[] => {
-  const groups: Record<string, DayGroup> = {};
-  activities.forEach((activity) => {
-    const parsed = parseDateValue(getPrimaryDateValue(activity));
-    if (!parsed) return;
-    const key = toDayKey(parsed);
-    if (!groups[key]) {
-      groups[key] = { key, date: parsed, activities: [] };
-    }
-    groups[key].activities.push(activity);
-  });
-
-  return Object.values(groups)
-    .map((group) => ({
-      ...group,
-      activities: group.activities.sort((a, b) => {
-        const aDate =
-          parseDateValue(getPrimaryDateValue(a))?.getTime() ?? 0;
-        const bDate =
-          parseDateValue(getPrimaryDateValue(b))?.getTime() ?? 0;
-        return aDate - bDate;
-      }),
-    }))
-    .sort((a, b) => a.date.getTime() - b.date.getTime());
-};
+import type { DayGroup } from "../types";
+import { buildDayGroups, buildMonthDays } from "../utils/calendarData";
 
 const CalendarScreen = () => {
   const dispatch = useAppDispatch();
@@ -114,7 +82,7 @@ const CalendarScreen = () => {
   const todayKey = useMemo(() => toDayKey(new Date()), []);
   const selectedDateObj = useMemo(() => new Date(selectedDate), [selectedDate]);
   const selectedGroup = dayGroups.find((g) => g.key === selectedDate) ?? null;
-  const selectedActivities = selectedGroup?.activities ?? [];
+  const selectedEntries = selectedGroup?.entries ?? [];
   const isSelectedToday = selectedDate === todayKey;
 
   const monthLabel = useMemo(
@@ -126,19 +94,10 @@ const CalendarScreen = () => {
     [locale, visibleMonthDate]
   );
 
-  const monthDays = useMemo(() => {
-    const days: { key: string; date: Date; hasActivity: boolean }[] = [];
-    const activityKeys = new Set(dayGroups.map((g) => g.key));
-    const month = visibleMonthDate.getMonth();
-    const year = visibleMonthDate.getFullYear();
-    const totalDays = new Date(year, month + 1, 0).getDate();
-    for (let i = 1; i <= totalDays; i += 1) {
-      const date = new Date(year, month, i);
-      const key = toDayKey(date);
-      days.push({ key, date, hasActivity: activityKeys.has(key) });
-    }
-    return days;
-  }, [dayGroups, visibleMonthDate]);
+  const monthDays = useMemo(
+    () => buildMonthDays(visibleMonthDate, dayGroups),
+    [dayGroups, visibleMonthDate]
+  );
 
   const handleSelect = useCallback((activity: Activity) => {
     setSelected(activity);
@@ -249,7 +208,7 @@ const CalendarScreen = () => {
         dateLabel={formatDayHeader(selectedDateObj)}
         subtitle={formatDisplayDate(selectedDateObj)}
         isToday={isSelectedToday}
-        activities={selectedActivities}
+        entries={selectedEntries}
         favoriteIds={favoriteIds}
         emptyLabel={t("activities:calendar.noActivitiesForDay")}
         todayLabel={t("activities:calendar.today")}

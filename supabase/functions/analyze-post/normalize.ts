@@ -90,7 +90,8 @@ export const generateTitle = (
 
 export const categoriesRequiringDate = new Set<string>([
   "events_entertainment",
-  "workshops_learning",
+  "nightlife_social",
+  "shopping_markets",
 ]);
 
 export const normalizeActivityUrl = (input: string): string => {

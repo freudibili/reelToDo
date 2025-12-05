@@ -6,19 +6,19 @@ import {
   formatActivityLocation,
   formatDisplayDateTime,
   getOfficialDateValue,
-  getPrimaryDateValue,
   formatDisplayTime,
   hasTimeComponent,
   isSameDateValue,
 } from "@features/activities/utils/activityDisplay";
 import { useTranslation } from "react-i18next";
 import { useAppTheme } from "@common/theme/appTheme";
+import type { CalendarActivityEntry } from "../types";
 
 interface Props {
   dateLabel: string;
   subtitle: string | null;
   isToday: boolean;
-  activities: Activity[];
+  entries: CalendarActivityEntry[];
   favoriteIds: string[];
   emptyLabel: string;
   onSelectActivity: (activity: Activity) => void;
@@ -29,7 +29,7 @@ const DayActivitiesList: React.FC<Props> = ({
   dateLabel,
   subtitle,
   isToday,
-  activities,
+  entries,
   favoriteIds,
   emptyLabel,
   onSelectActivity,
@@ -69,38 +69,49 @@ const DayActivitiesList: React.FC<Props> = ({
               </Text>
             </View>
           ) : null}
-          <View
-            style={[
-              styles.countPill,
-              { backgroundColor: colors.overlay, borderColor: colors.border },
-            ]}
-          >
-            <Text style={[styles.countText, { color: colors.text }]}>
-              {activities.length}
-            </Text>
+            <View
+              style={[
+                styles.countPill,
+                { backgroundColor: colors.overlay, borderColor: colors.border },
+              ]}
+            >
+              <Text style={[styles.countText, { color: colors.text }]}>
+                {entries.length}
+              </Text>
+            </View>
           </View>
         </View>
-      </View>
 
-      {activities.length === 0 ? (
+      {entries.length === 0 ? (
         <Text style={[styles.emptySubtitle, { color: colors.secondaryText }]}>
           {emptyLabel}
         </Text>
       ) : (
-        activities.map((activity, idx) => {
-          const primaryDate = getPrimaryDateValue(activity);
+        entries.map((entry, idx) => {
+          const { activity, dateValue, source } = entry;
           const timeLabel =
-            formatDisplayTime(primaryDate) ??
-            t("activities:calendar.allDay");
+            formatDisplayTime(dateValue) ?? t("activities:calendar.allDay");
           const locationLabel = formatActivityLocation(activity);
-          const showTime = hasTimeComponent(primaryDate);
-          const isPlanned = Boolean(activity.planned_at);
+          const showTime = hasTimeComponent(dateValue);
+          const isPlanned = source === "planned";
           const officialDateValue = getOfficialDateValue(activity);
+          const plannedValue = activity.planned_at ?? null;
           const officialLabel =
             isPlanned &&
             officialDateValue &&
-            !isSameDateValue(officialDateValue, primaryDate)
+            !isSameDateValue(officialDateValue, dateValue)
               ? formatDisplayDateTime(officialDateValue)
+              : null;
+          const plannedLabel =
+            !isPlanned &&
+            plannedValue &&
+            !isSameDateValue(plannedValue, dateValue)
+              ? t("activities:planned.timeLabel", {
+                  value:
+                    formatDisplayDateTime(plannedValue) ??
+                    formatDisplayTime(plannedValue) ??
+                    t("activities:calendar.allDay"),
+                })
               : null;
           const iconName = isPlanned
             ? "calendar-check"
@@ -108,7 +119,10 @@ const DayActivitiesList: React.FC<Props> = ({
               ? "clock-outline"
               : "calendar-blank";
           const isFavorite = favoriteIds.includes(activity.id);
-          const isLast = idx === activities.length - 1;
+          const isLast = idx === entries.length - 1;
+          const timelineColor = isPlanned ? colors.primaryStrong : colors.accentStrong;
+          const cardBorderColor = isPlanned ? colors.border : colors.accentBorder;
+          const shadowColor = isPlanned ? colors.primary : colors.accent;
 
           const title = activity.title || t("activities:card.untitled");
 
@@ -121,30 +135,37 @@ const DayActivitiesList: React.FC<Props> = ({
               <View style={styles.timelineColumn}>
                 <View
                   style={[
-                    styles.timelineDot,
-                    { backgroundColor: colors.border, borderColor: colors.surface },
-                    isFavorite && {
-                      backgroundColor: colors.primary,
-                      borderColor: colors.primary,
-                    },
+                  styles.timelineDot,
+                  {
+                    backgroundColor: timelineColor,
+                    borderColor: isPlanned ? colors.surface : colors.accentBorder,
+                  },
+                  isFavorite && {
+                    backgroundColor: colors.primary,
+                    borderColor: colors.primary,
+                  },
+                ]}
+              />
+              {!isLast ? (
+                <View
+                  style={[
+                    styles.timelineLine,
+                    { backgroundColor: timelineColor },
                   ]}
                 />
-                {!isLast ? (
-                  <View
-                    style={[
-                      styles.timelineLine,
-                      { backgroundColor: colors.border },
-                    ]}
-                  />
-                ) : null}
-              </View>
+              ) : null}
+            </View>
 
-              <View
-                style={[
-                  styles.cardBody,
-                  { backgroundColor: colors.surface, borderColor: colors.border, shadowColor: colors.primary },
-                ]}
-              >
+            <View
+              style={[
+                styles.cardBody,
+                {
+                  backgroundColor: colors.surface,
+                  borderColor: cardBorderColor,
+                  shadowColor,
+                },
+              ]}
+            >
                 <View style={styles.rowHeader}>
                   <Text
                     style={[styles.activityTitle, { color: colors.text }]}
@@ -166,14 +187,17 @@ const DayActivitiesList: React.FC<Props> = ({
                   <Icon
                     source={iconName}
                     size={14}
-                    color={colors.primary}
+                    color={timelineColor}
                   />
                   <Text style={[styles.metaText, { color: colors.secondaryText }]}>
                     {isPlanned
                       ? t("activities:planned.timeLabel", {
                           value: timeLabel,
                         })
-                      : timeLabel}
+                      : t("activities:planned.officialLabel", {
+                          value:
+                            formatDisplayDateTime(dateValue) ?? timeLabel,
+                        })}
                   </Text>
                 </View>
                 {officialLabel ? (
@@ -181,6 +205,11 @@ const DayActivitiesList: React.FC<Props> = ({
                     {t("activities:planned.officialLabel", {
                       value: officialLabel,
                     })}
+                  </Text>
+                ) : null}
+                {plannedLabel ? (
+                  <Text style={[styles.metaTextMuted, { color: colors.mutedText }]}>
+                    {plannedLabel}
                   </Text>
                 ) : null}
                 {locationLabel ? (
