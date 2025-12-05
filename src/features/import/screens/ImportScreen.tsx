@@ -274,11 +274,9 @@ const ImportScreen = () => {
       loading={screenLoading}
       scrollable
       onBackPress={
-        alreadyHadActivity
+        alreadyHadActivity || !fromActivities
           ? handleGoHome
-          : fromActivities
-            ? handleBackPress
-            : undefined
+          : handleBackPress
       }
       footer={
         activity && !alreadyHadActivity ? (
@@ -310,9 +308,7 @@ const ImportScreen = () => {
             placeholder={t("import:linkInput.placeholder")}
             analyzingLabel={t("import:linkInput.analyzing")}
             analyzeLabel={t("import:linkInput.analyze")}
-            helperText={t("import:linkInput.helper", {
-              defaultValue: "Paste a full http(s) link to start.",
-            })}
+            helperText={t("import:linkInput.helper")}
           />
         ) : null}
 
@@ -378,7 +374,7 @@ const ImportScreen = () => {
                     },
                   ]}
                 >
-                  {t("import:errorState.homeCta", "Back to home")}
+                  {t("import:errorState.homeCta")}
                 </Text>
               </Pressable>
             </View>

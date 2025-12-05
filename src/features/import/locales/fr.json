@@ -7,7 +7,8 @@
     "label": "Lien",
     "placeholder": "Colle le lien ici",
     "analyze": "Analyser",
-    "analyzing": "Analyse en cours..."
+    "analyzing": "Analyse en cours...",
+    "helper": "Colle un lien http(s) complet pour commencer."
   },
   "confirm": {
     "saveTitle": "Enregistrer l'activité ?",
@@ -18,7 +19,8 @@
   "details": {
     "locationFallback": "Lieu à confirmer",
     "saveChanges": "Enregistrer les modifications",
-    "cancel": "Annuler"
+    "cancel": "Annuler",
+    "infoLabel": "Infos"
   },
   "result": {
     "title": "Analyse terminée",

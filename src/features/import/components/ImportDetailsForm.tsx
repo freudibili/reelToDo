@@ -182,7 +182,7 @@ const ImportDetailsForm = React.forwardRef<
 
       <View style={styles.sectionHeader}>
         <Text style={[styles.sectionHeaderText, { color: colors.text }]}>
-          Info
+          {t("import:details.infoLabel")}
         </Text>
         <View
           style={[styles.sectionUnderline, { backgroundColor: colors.primary }]}
