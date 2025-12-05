@@ -9,6 +9,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { Icon } from "react-native-paper";
 import { formatCategoryName } from "@features/activities/utils/categorySummary";
+import { useAppTheme } from "@common/theme/appTheme";
 
 interface ActivityHeroProps {
   title: string;
@@ -32,6 +33,7 @@ const ActivityHero: React.FC<ActivityHeroProps> = ({
   showOverlayContent = true,
 }) => {
   const { t } = useTranslation();
+  const { colors } = useAppTheme();
   const fallbackTitle = t("labels.activity");
   const displayTitle = title || fallbackTitle;
   const displayCategory = category ? formatCategoryName(category) : fallbackTitle;
@@ -74,7 +76,7 @@ const ActivityHero: React.FC<ActivityHeroProps> = ({
               <Icon
                 source={isFavorite ? "heart" : "heart-outline"}
                 size={18}
-                color={isFavorite ? "#d64545" : "#fff"}
+                color={isFavorite ? colors.favorite : colors.background}
               />
             </Pressable>
           ) : null}
@@ -88,7 +90,7 @@ const ActivityHero: React.FC<ActivityHeroProps> = ({
               <Icon
                 source={isFavorite ? "heart" : "heart-outline"}
                 size={18}
-                color="#d64545"
+                color={colors.favorite}
               />
             </Pressable>
           ) : null}

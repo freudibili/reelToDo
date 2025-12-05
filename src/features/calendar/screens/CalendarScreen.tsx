@@ -29,9 +29,7 @@ import {
   openActivitySource,
 } from "@features/activities/services/linksService";
 import type { Activity } from "@features/activities/utils/types";
-import {
-  formatDisplayDate,
-} from "@features/activities/utils/activityDisplay";
+import { formatDisplayDate } from "@features/activities/utils/activityDisplay";
 import { useConfirmDialog } from "@common/hooks/useConfirmDialog";
 import MonthNavigator from "../components/MonthNavigator";
 import DayGrid from "../components/DayGrid";
@@ -222,7 +220,7 @@ const CalendarScreen = () => {
           onClose={handleClose}
           scrollable
         >
-      <ActivityDetailsSheet
+          <ActivityDetailsSheet
             activity={effectiveSelected}
             isFavorite={
               effectiveSelected

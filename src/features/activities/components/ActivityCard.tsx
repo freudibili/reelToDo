@@ -8,6 +8,7 @@ import {
 } from "../utils/activityDisplay";
 import type { Activity } from "../utils/types";
 import { useTranslation } from "react-i18next";
+import { useAppTheme } from "@common/theme/appTheme";
 
 interface Props {
   activity: Activity;
@@ -23,6 +24,7 @@ const ActivityCard: React.FC<Props> = ({
   onToggleFavorite,
 }) => {
   const { t } = useTranslation();
+  const { colors } = useAppTheme();
   const locationLabel = formatActivityLocation(activity);
   const primaryDate = getPrimaryDateValue(activity);
   const dateLabel = formatDisplayDate(primaryDate);
@@ -49,7 +51,7 @@ const ActivityCard: React.FC<Props> = ({
             <Icon
               source={isFavorite ? "heart" : "heart-outline"}
               size={18}
-              color={isFavorite ? "#ef4444" : "#fff"}
+              color={isFavorite ? colors.favorite : colors.background}
             />
           </Pressable>
         ) : null}

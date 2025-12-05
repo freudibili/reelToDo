@@ -2,17 +2,10 @@ import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Icon } from "react-native-paper";
 import type { Activity } from "@features/activities/utils/types";
-import {
-  formatActivityLocation,
-  formatDisplayDateTime,
-  getOfficialDateValue,
-  formatDisplayTime,
-  hasTimeComponent,
-  isSameDateValue,
-} from "@features/activities/utils/activityDisplay";
 import { useTranslation } from "react-i18next";
 import { useAppTheme } from "@common/theme/appTheme";
 import type { CalendarActivityEntry } from "../types";
+import { buildDayActivityViews } from "../utils/dayActivityView";
 
 interface Props {
   dateLabel: string;
@@ -37,6 +30,7 @@ const DayActivitiesList: React.FC<Props> = ({
 }) => {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
+  const rows = buildDayActivityViews(entries, favoriteIds, t, colors);
 
   return (
     <View
@@ -59,160 +53,113 @@ const DayActivitiesList: React.FC<Props> = ({
         <View style={styles.dayRight}>
           {isToday ? (
             <View
-              style={[
-                styles.todayBadge,
-                { backgroundColor: colors.primary },
-              ]}
+              style={[styles.todayBadge, { backgroundColor: colors.primary }]}
             >
-              <Text style={[styles.todayBadgeText, { color: "#fff" }]}>
+              <Text
+                style={[styles.todayBadgeText, { color: colors.background }]}
+              >
                 {todayLabel}
               </Text>
             </View>
           ) : null}
-            <View
-              style={[
-                styles.countPill,
-                { backgroundColor: colors.overlay, borderColor: colors.border },
-              ]}
-            >
-              <Text style={[styles.countText, { color: colors.text }]}>
-                {entries.length}
-              </Text>
-            </View>
+          <View
+            style={[
+              styles.countPill,
+              { backgroundColor: colors.overlay, borderColor: colors.border },
+            ]}
+          >
+            <Text style={[styles.countText, { color: colors.text }]}>
+              {rows.length}
+            </Text>
           </View>
         </View>
+      </View>
 
-      {entries.length === 0 ? (
+      {rows.length === 0 ? (
         <Text style={[styles.emptySubtitle, { color: colors.secondaryText }]}>
           {emptyLabel}
         </Text>
       ) : (
-        entries.map((entry, idx) => {
-          const { activity, dateValue, source } = entry;
-          const timeLabel =
-            formatDisplayTime(dateValue) ?? t("activities:calendar.allDay");
-          const locationLabel = formatActivityLocation(activity);
-          const showTime = hasTimeComponent(dateValue);
-          const isPlanned = source === "planned";
-          const officialDateValue = getOfficialDateValue(activity);
-          const plannedValue = activity.planned_at ?? null;
-          const officialLabel =
-            isPlanned &&
-            officialDateValue &&
-            !isSameDateValue(officialDateValue, dateValue)
-              ? formatDisplayDateTime(officialDateValue)
-              : null;
-          const plannedLabel =
-            !isPlanned &&
-            plannedValue &&
-            !isSameDateValue(plannedValue, dateValue)
-              ? t("activities:planned.timeLabel", {
-                  value:
-                    formatDisplayDateTime(plannedValue) ??
-                    formatDisplayTime(plannedValue) ??
-                    t("activities:calendar.allDay"),
-                })
-              : null;
-          const iconName = isPlanned
-            ? "calendar-check"
-            : showTime
-              ? "clock-outline"
-              : "calendar-blank";
-          const isFavorite = favoriteIds.includes(activity.id);
-          const isLast = idx === entries.length - 1;
-          const timelineColor = isPlanned ? colors.primaryStrong : colors.accentStrong;
-          const cardBorderColor = isPlanned ? colors.border : colors.accentBorder;
-          const shadowColor = isPlanned ? colors.primary : colors.accent;
-
-          const title = activity.title || t("activities:card.untitled");
-
+        rows.map((row, idx) => {
+          const isLast = idx === rows.length - 1;
           return (
             <Pressable
-              key={activity.id}
+              key={row.id}
               style={styles.activityRow}
-              onPress={() => onSelectActivity(activity)}
+              onPress={() => onSelectActivity(row.activity)}
             >
               <View style={styles.timelineColumn}>
                 <View
                   style={[
-                  styles.timelineDot,
-                  {
-                    backgroundColor: timelineColor,
-                    borderColor: isPlanned ? colors.surface : colors.accentBorder,
-                  },
-                  isFavorite && {
-                    backgroundColor: colors.primary,
-                    borderColor: colors.primary,
-                  },
-                ]}
-              />
-              {!isLast ? (
-                <View
-                  style={[
-                    styles.timelineLine,
-                    { backgroundColor: timelineColor },
+                    styles.timelineDot,
+                    {
+                      backgroundColor: row.timelineColor,
+                      borderColor: row.timelineBorderColor,
+                    },
                   ]}
                 />
-              ) : null}
-            </View>
+                {!isLast ? (
+                  <View
+                    style={[
+                      styles.timelineLine,
+                      { backgroundColor: row.timelineColor },
+                    ]}
+                  />
+                ) : null}
+              </View>
 
-            <View
-              style={[
-                styles.cardBody,
-                {
-                  backgroundColor: colors.surface,
-                  borderColor: cardBorderColor,
-                  shadowColor,
-                },
-              ]}
-            >
+              <View
+                style={[
+                  styles.cardBody,
+                  {
+                    backgroundColor: colors.surface,
+                    borderColor: row.cardBorderColor,
+                    shadowColor: row.shadowColor,
+                  },
+                ]}
+              >
                 <View style={styles.rowHeader}>
                   <Text
                     style={[styles.activityTitle, { color: colors.text }]}
                     numberOfLines={2}
                     ellipsizeMode="tail"
                   >
-                    {title}
+                    {row.title}
                   </Text>
-                  {isFavorite ? (
-                    <Icon
-                      source="heart"
-                      size={14}
-                      color="#d64545"
-                    />
+                  {row.isFavorite ? (
+                    <Icon source="heart" size={14} color={colors.favorite} />
                   ) : null}
                 </View>
 
                 <View style={styles.metaRow}>
                   <Icon
-                    source={iconName}
+                    source={row.iconName}
                     size={14}
-                    color={timelineColor}
+                    color={row.timelineColor}
                   />
-                  <Text style={[styles.metaText, { color: colors.secondaryText }]}>
-                    {isPlanned
-                      ? t("activities:planned.timeLabel", {
-                          value: timeLabel,
-                        })
-                      : t("activities:planned.officialLabel", {
-                          value:
-                            formatDisplayDateTime(dateValue) ?? timeLabel,
-                        })}
+                  <Text
+                    style={[styles.metaText, { color: colors.secondaryText }]}
+                  >
+                    {row.mainLabel}
                   </Text>
                 </View>
-                {officialLabel ? (
-                  <Text style={[styles.metaTextMuted, { color: colors.mutedText }]}>
+                {row.officialLabel ? (
+                  <Text
+                    style={[styles.metaTextMuted, { color: colors.mutedText }]}
+                  >
                     {t("activities:planned.officialLabel", {
-                      value: officialLabel,
+                      value: row.officialLabel,
                     })}
                   </Text>
                 ) : null}
-                {plannedLabel ? (
-                  <Text style={[styles.metaTextMuted, { color: colors.mutedText }]}>
-                    {plannedLabel}
+                {row.plannedLabel ? (
+                  <Text
+                    style={[styles.metaTextMuted, { color: colors.mutedText }]}
+                  >
+                    {row.plannedLabel}
                   </Text>
                 ) : null}
-                {locationLabel ? (
+                {row.locationLabel ? (
                   <View style={styles.metaRow}>
                     <Icon
                       source="map-marker-outline"
@@ -224,7 +171,7 @@ const DayActivitiesList: React.FC<Props> = ({
                       numberOfLines={1}
                       ellipsizeMode="tail"
                     >
-                      {locationLabel}
+                      {row.locationLabel}
                     </Text>
                   </View>
                 ) : null}
@@ -328,9 +275,6 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     fontWeight: "700",
-  },
-  favoriteTag: {
-    fontSize: 16,
   },
   metaRow: {
     flexDirection: "row",

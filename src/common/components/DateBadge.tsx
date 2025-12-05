@@ -8,9 +8,21 @@ type Props = {
   label?: string | null;
   style?: ViewStyle;
   tone?: "default" | "muted";
+  icon?: string;
+  iconColor?: string;
+  iconBackgroundColor?: string;
+  labelWeight?: "bold" | "normal";
 };
 
-const DateBadge: React.FC<Props> = ({ label, style, tone = "default" }) => {
+const DateBadge: React.FC<Props> = ({
+  label,
+  style,
+  tone = "default",
+  icon = "calendar-heart",
+  iconColor,
+  iconBackgroundColor,
+  labelWeight = "bold",
+}) => {
   const { colors, mode } = useAppTheme();
 
   if (!label) return null;
@@ -24,10 +36,24 @@ const DateBadge: React.FC<Props> = ({ label, style, tone = "default" }) => {
 
   return (
     <View style={[styles.container, style]}>
-      <View style={[styles.iconWrapper, { backgroundColor: colors.accentSurface }]}>
-        <Icon source="calendar-heart" size={16} color={colors.accent} />
+      <View
+        style={[
+          styles.iconWrapper,
+          { backgroundColor: iconBackgroundColor ?? colors.accentSurface },
+        ]}
+      >
+        <Icon source={icon} size={16} color={iconColor ?? colors.accent} />
       </View>
-      <Text style={[styles.label, { color: textColor }]} numberOfLines={1}>
+      <Text
+        style={[
+          styles.label,
+          {
+            color: textColor,
+            fontWeight: labelWeight === "bold" ? "700" : "500",
+          },
+        ]}
+        numberOfLines={1}
+      >
         {label}
       </Text>
     </View>
@@ -52,6 +78,5 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    fontWeight: "700",
   },
 });

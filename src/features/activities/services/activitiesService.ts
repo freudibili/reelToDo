@@ -194,6 +194,36 @@ export const ActivitiesService = {
       .eq("id", activityId);
   },
 
+  async submitDateSuggestion(params: {
+    activityId: string;
+    userId: string | null;
+    suggestedDate: Date;
+    note?: string | null;
+  }) {
+    const { activityId, userId, suggestedDate, note } = params;
+    const payload = {
+      activity_id: activityId,
+      user_id: userId,
+      suggested_date: suggestedDate.toISOString(),
+      note: note ?? null,
+      status: "pending",
+      source: "app",
+    };
+
+    const { error } = await supabase
+      .from("date_suggestions")
+      .insert(payload);
+
+    if (error) throw error;
+
+    await supabase
+      .from("activities")
+      .update({
+        needs_date_confirmation: true,
+      })
+      .eq("id", activityId);
+  },
+
   async fetchActivityById(activityId: string): Promise<Activity | null> {
     const { data, error } = await supabase
       .from("activities")

@@ -167,6 +167,7 @@ const ImportDetailsForm = React.forwardRef<
         title={activity.title ?? t("common:labels.activity")}
         category={activity.category}
         location={heroLocation}
+        officialDateLabel={heroDate}
         dateLabel={heroDate}
         style={styles.headerBlock}
       />

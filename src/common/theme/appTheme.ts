@@ -25,11 +25,17 @@ export type AppTheme = {
     accentText: string;
     primary: string;
     primaryStrong: string;
+    favorite: string;
+    favoriteContrast: string;
     text: string;
     mutedText: string;
     secondaryText: string;
     overlay: string;
     danger: string;
+    plannedDate: string;
+    plannedDateBackground: string;
+    officialDate: string;
+    officialDateBackground: string;
   };
 };
 
@@ -46,11 +52,17 @@ const lightPalette: AppTheme["colors"] = {
   accentText: "#7c2d12",
   primary: "#0f172a",
   primaryStrong: "#2563eb",
+  favorite: "#d64545",
+  favoriteContrast: "#ffffff",
   text: "#0f172a",
   mutedText: "#475569",
   secondaryText: "#94a3b8",
   overlay: "rgba(15,23,42,0.06)",
   danger: "#b91c1c",
+  plannedDate: "#0ea5e9",
+  plannedDateBackground: "#e0f2fe",
+  officialDate: "#ea580c",
+  officialDateBackground: "#ffedd5",
 };
 
 const darkPalette: AppTheme["colors"] = {
@@ -66,11 +78,17 @@ const darkPalette: AppTheme["colors"] = {
   accentText: "#fff1dc",
   primary: "#7dd3fc",
   primaryStrong: "#38bdf8",
+  favorite: "#f97070",
+  favoriteContrast: "#0b1220",
   text: "#e5e7eb",
   mutedText: "#cbd5e1",
   secondaryText: "#94a3b8",
   overlay: "rgba(255,255,255,0.08)",
   danger: "#f87171",
+  plannedDate: "#67e8f9",
+  plannedDateBackground: "#082f3f",
+  officialDate: "#fb923c",
+  officialDateBackground: "#402312",
 };
 
 const buildPaperTheme = (mode: AppThemeMode): MD3Theme => {

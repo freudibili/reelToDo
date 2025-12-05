@@ -2,6 +2,7 @@ import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { CalendarDay } from "../utils/dates";
 import { useAppTheme } from "@common/theme/appTheme";
+import { getDateVisuals } from "@features/activities/utils/dateVisuals";
 
 interface Props {
   days: CalendarDay[];
@@ -25,8 +26,10 @@ const DayGrid: React.FC<Props> = ({
       {days.map((item) => {
         const isToday = item.key === todayKey;
         const isSelected = item.key === selectedDate;
-        const plannedDotColor = colors.primaryStrong;
-        const officialDotColor = colors.accentStrong;
+        const plannedVisuals = getDateVisuals(colors, "planned");
+        const officialVisuals = getDateVisuals(colors, "official");
+        const plannedDotColor = plannedVisuals.color;
+        const officialDotColor = officialVisuals.color;
         const dotBorder = isSelected ? colors.surface : colors.border;
         return (
           <Pressable
@@ -53,7 +56,7 @@ const DayGrid: React.FC<Props> = ({
               style={[
                 styles.dayNumber,
                 { color: colors.text },
-                isSelected && { color: "#fff" },
+                isSelected && { color: colors.background },
                 isToday && { color: colors.primary, fontWeight: "800" },
               ]}
             >
@@ -63,7 +66,7 @@ const DayGrid: React.FC<Props> = ({
               style={[
                 styles.dayChipText,
                 { color: colors.secondaryText },
-                isSelected && { color: "#fff", fontWeight: "800" },
+                isSelected && { color: colors.background, fontWeight: "800" },
                 isToday && { color: colors.primary, fontWeight: "800" },
               ]}
             >
