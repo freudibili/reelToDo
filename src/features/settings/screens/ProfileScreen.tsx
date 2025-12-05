@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { View, StyleSheet, Text } from "react-native";
+import { View, StyleSheet, Text, Pressable } from "react-native";
 import { useRouter } from "expo-router";
-import { Button } from "react-native-paper";
 import { useTranslation } from "react-i18next";
 import AppScreen, { ScreenHeader } from "@common/components/AppScreen";
 import { useAppDispatch, useAppSelector } from "@core/store/hook";
@@ -15,7 +14,7 @@ const ProfileScreen = () => {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const { t } = useTranslation();
-  const { colors } = useAppTheme();
+  const { colors, mode } = useAppTheme();
 
   const profile = useAppSelector(settingsSelectors.profile);
   const loading = useAppSelector(settingsSelectors.loading);
@@ -44,7 +43,7 @@ const ProfileScreen = () => {
   };
 
   return (
-    <AppScreen scrollable loading={loading}>
+    <AppScreen scrollable loading={loading} backgroundColor={colors.background}>
       <ScreenHeader
         title={t("settings:profile.title")}
         subtitle={t("settings:profile.subtitle")}
@@ -86,15 +85,32 @@ const ProfileScreen = () => {
           />
         </View>
 
-        <Button
-          mode="contained"
+        <Pressable
           onPress={handleSave}
-          style={styles.button}
-          contentStyle={styles.buttonContent}
           disabled={loading}
+          style={[
+            styles.button,
+            {
+              backgroundColor: loading ? colors.overlay : colors.primary,
+              borderColor: loading ? colors.border : colors.primary,
+            },
+          ]}
         >
-          {t("common:buttons.saveChanges")}
-        </Button>
+          <Text
+            style={[
+              styles.buttonText,
+              {
+                color: loading
+                  ? colors.secondaryText
+                  : mode === "dark"
+                    ? colors.background
+                    : colors.surface,
+              },
+            ]}
+          >
+            {t("common:buttons.saveChanges")}
+          </Text>
+        </Pressable>
       </View>
     </AppScreen>
   );
@@ -118,10 +134,15 @@ const styles = StyleSheet.create({
   },
   button: {
     marginTop: 6,
-    borderRadius: 10,
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
   },
-  buttonContent: {
-    paddingVertical: 6,
+  buttonText: {
+    fontSize: 15,
+    fontWeight: "700",
   },
 });
 

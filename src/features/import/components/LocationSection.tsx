@@ -14,7 +14,7 @@ interface LocationSectionProps {
   onChange: (place: PlaceDetails) => void;
   editRequest?: number;
   mode?: "edit" | "suggest";
-  onSuggest?: (place: PlaceDetails) => Promise<void> | void;
+  onSuggest?: (payload: { place: PlaceDetails; note: string | null }) => Promise<void> | void;
   submitting?: boolean;
   activityTitle?: string;
 }
@@ -40,11 +40,14 @@ const LocationSection: React.FC<LocationSectionProps> = ({
   const isSuggestMode = sectionMode === "suggest";
   const needsConfirmation = !confirmed || !hasAddress;
 
-  const handleSelectPlace = async (place: PlaceDetails) => {
+  const handleSelectPlace = async (payload: {
+    place: PlaceDetails;
+    note: string | null;
+  }) => {
     if (isSuggestMode) {
       if (onSuggest) {
         try {
-          await onSuggest(place);
+          await onSuggest(payload);
           setModalVisible(false);
         } catch {
           // Keep modal open so the user can try again.
@@ -53,7 +56,7 @@ const LocationSection: React.FC<LocationSectionProps> = ({
       return;
     }
 
-    onChange(place);
+    onChange(payload.place);
     setModalVisible(false);
   };
 
@@ -105,7 +108,7 @@ const LocationSection: React.FC<LocationSectionProps> = ({
 
       <LocationChangeModal
         visible={modalVisible}
-        initialValue={address || locationName}
+        initialValue={isSuggestMode ? undefined : address || locationName}
         onSelectPlace={handleSelectPlace}
         onClose={() => setModalVisible(false)}
         submitting={submitting}

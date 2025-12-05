@@ -60,18 +60,17 @@ const LocationAutocompleteInput: React.FC<LocationAutocompleteInputProps> = ({
     hasInteracted;
 
   useEffect(() => {
-    if (value !== undefined && value !== inputValue) {
+    if (value !== undefined) {
       setInputValue(value);
       setHasConfirmedSelection(false);
+      return;
     }
-  }, [inputValue, value]);
 
-  useEffect(() => {
-    if (value === undefined && initialValue !== inputValue) {
-      setInputValue(initialValue ?? "");
+    if (initialValue !== undefined) {
+      setInputValue(initialValue);
       setHasConfirmedSelection(false);
     }
-  }, [initialValue, inputValue, value]);
+  }, [initialValue, value]);
 
   const fetchSuggestions = useCallback(
     async (search: string) => {

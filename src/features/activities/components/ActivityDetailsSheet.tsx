@@ -156,15 +156,15 @@ const ActivityDetailsSheet: React.FC<Props> = ({
   }, []);
 
   const handleSubmitLocation = useCallback(
-    async (place: PlaceDetails) => {
+    async (payload: { place: PlaceDetails; note: string | null }) => {
       if (!activity) return;
       setLocationSubmitting(true);
       try {
         await ActivitiesService.submitLocationSuggestion({
           activityId: activity.id,
           userId,
-          place,
-          note: null,
+          place: payload.place,
+          note: payload.note,
         });
         dispatch(
           activityPatched({
@@ -349,7 +349,7 @@ const ActivityDetailsSheet: React.FC<Props> = ({
         onClose={handleCloseLocationModal}
         onSelectPlace={handleSubmitLocation}
         submitting={locationSubmitting}
-        initialValue={activity.address ?? activity.location_name ?? undefined}
+        initialValue={undefined}
         title={t("activities:report.title")}
         subtitle={t("activities:report.subtitle", {
           title: activity.title ?? t("common:labels.activity"),
@@ -363,6 +363,10 @@ const ActivityDetailsSheet: React.FC<Props> = ({
         initialValue={
           officialDateValue ? new Date(officialDateValue) : undefined
         }
+        title={t("activities:details.suggestDateTitle")}
+        subtitle={t("activities:details.suggestDateSubtitleForActivity", {
+          title: activity.title ?? t("common:labels.activity"),
+        })}
       />
     </>
   );

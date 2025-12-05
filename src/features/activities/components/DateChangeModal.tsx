@@ -11,6 +11,8 @@ type Props = {
   initialValue?: Date | null;
   submitting?: boolean;
   onSubmit: (payload: { date: Date; note: string | null }) => void;
+  title?: string;
+  subtitle?: string;
   onClose: () => void;
 };
 
@@ -19,6 +21,8 @@ const DateChangeModal: React.FC<Props> = ({
   initialValue,
   submitting = false,
   onSubmit,
+  title,
+  subtitle,
   onClose,
 }) => {
   const { t } = useTranslation();
@@ -27,10 +31,18 @@ const DateChangeModal: React.FC<Props> = ({
   const [selectedDate, setSelectedDate] = useState<Date>(
     initialValue ?? new Date()
   );
+  const [hasInteracted, setHasInteracted] = useState(false);
+
+  const isSameMoment = (a: Date, b: Date) => a.getTime() === b.getTime();
+  const hasChangedFromInitial =
+    initialValue && selectedDate
+      ? !isSameMoment(selectedDate, initialValue)
+      : hasInteracted;
 
   useEffect(() => {
     if (initialValue) {
       setSelectedDate(initialValue);
+      setHasInteracted(false);
     }
   }, [initialValue]);
 
@@ -38,12 +50,18 @@ const DateChangeModal: React.FC<Props> = ({
     if (!visible) {
       setNote("");
       setSelectedDate(initialValue ?? new Date());
+      setHasInteracted(false);
     }
   }, [initialValue, visible]);
 
+  const handleSelectDate = (date: Date) => {
+    setSelectedDate(date);
+    setHasInteracted(true);
+  };
+
   const { openPicker, pickerModal } = usePlatformDateTimePicker({
     value: selectedDate,
-    onChange: setSelectedDate,
+    onChange: handleSelectDate,
     cardColor: colors.card,
     themeMode: mode,
     textColor: colors.text,
@@ -61,14 +79,18 @@ const DateChangeModal: React.FC<Props> = ({
     });
   };
 
-  const isDisabled = submitting || !selectedDate;
+  const isDisabled = submitting || !selectedDate || !hasChangedFromInitial;
+  const resolvedTitle = title ?? t("activities:details.suggestDateTitle");
+  const resolvedSubtitle =
+    subtitle ??
+    t("activities:details.suggestDateSubtitle");
 
   return (
     <AppModal
       visible={visible}
       onClose={onClose}
-      title={t("activities:details.suggestDateTitle")}
-      subtitle={t("activities:details.suggestDateSubtitle")}
+      title={resolvedTitle}
+      subtitle={resolvedSubtitle}
     >
       <View style={styles.content}>
         <Text style={[styles.label, { color: colors.text }]}>

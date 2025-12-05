@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { StyleSheet, Text, View, Pressable } from "react-native";
+import { StyleSheet, Text, View, Pressable, TextInput } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useAppTheme } from "@common/theme/appTheme";
 import LocationAutocompleteInput from "@features/import/components/LocationAutocompleteInput";
@@ -12,7 +12,7 @@ interface LocationChangeModalProps {
   title?: string;
   subtitle?: string;
   submitting?: boolean;
-  onSelectPlace: (place: PlaceDetails) => void;
+  onSelectPlace: (payload: { place: PlaceDetails; note: string | null }) => void;
   onClose: () => void;
 }
 
@@ -28,12 +28,14 @@ const LocationChangeModal: React.FC<LocationChangeModalProps> = ({
   const { t } = useTranslation();
   const { colors } = useAppTheme();
   const [selectedPlace, setSelectedPlace] = useState<PlaceDetails | null>(null);
+  const [note, setNote] = useState("");
   const isConfirmDisabled = !selectedPlace || submitting;
   const isCancelDisabled = submitting;
 
   useEffect(() => {
     if (!visible) {
       setSelectedPlace(null);
+      setNote("");
     }
   }, [visible]);
 
@@ -55,6 +57,28 @@ const LocationChangeModal: React.FC<LocationChangeModalProps> = ({
           }}
           placeholder={t("common:locationPicker.placeholder")}
         />
+
+        <View style={styles.noteGroup}>
+          <Text style={[styles.label, { color: colors.text }]}>
+            {t("activities:report.noteLabel")}
+          </Text>
+          <TextInput
+            style={[
+              styles.noteInput,
+              {
+                backgroundColor: colors.surface,
+                color: colors.text,
+                borderColor: colors.border,
+              },
+            ]}
+            placeholder={t("activities:report.notePlaceholder")}
+            placeholderTextColor={colors.secondaryText}
+            value={note}
+            onChangeText={setNote}
+            multiline
+            numberOfLines={3}
+          />
+        </View>
 
         <View style={styles.actions}>
           <Pressable
@@ -93,7 +117,11 @@ const LocationChangeModal: React.FC<LocationChangeModalProps> = ({
             disabled={isConfirmDisabled}
             onPress={() => {
               if (selectedPlace) {
-                onSelectPlace(selectedPlace);
+                const trimmedNote = note.trim();
+                onSelectPlace({
+                  place: selectedPlace,
+                  note: trimmedNote ? trimmedNote : null,
+                });
               }
             }}
           >
@@ -126,6 +154,20 @@ const styles = StyleSheet.create({
   actions: {
     flexDirection: "row",
     gap: 10,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  noteGroup: {
+    gap: 6,
+  },
+  noteInput: {
+    borderRadius: 12,
+    borderWidth: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    textAlignVertical: "top",
   },
   button: {
     flex: 1,

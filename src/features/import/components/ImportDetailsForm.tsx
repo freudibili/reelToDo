@@ -93,14 +93,14 @@ const ImportDetailsForm = React.forwardRef<
   }, [draft, onSave]);
 
   const handleSuggestLocation = useCallback(
-    async (place: PlaceDetails) => {
+    async (payload: { place: PlaceDetails; note: string | null }) => {
       setSuggestingLocation(true);
       try {
         await ActivitiesService.submitLocationSuggestion({
           activityId: activity.id,
           userId: userId ?? null,
-          place,
-          note: null,
+          place: payload.place,
+          note: payload.note,
         });
         dispatch(
           activityPatched({
