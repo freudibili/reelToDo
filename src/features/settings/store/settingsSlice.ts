@@ -112,10 +112,28 @@ const settingsSlice = createSlice({
       if (!action.payload) return;
       const metadata = action.payload.user_metadata as {
         full_name?: string;
+        first_name?: string;
+        last_name?: string;
         address?: string;
       };
-      state.profile.fullName =
-        state.profile.fullName || metadata?.full_name || action.payload.email;
+      const derivedFromFullName = (() => {
+        const full = metadata?.full_name?.trim();
+        if (!full) return { first: "", last: "" };
+        const parts = full.split(/\s+/);
+        if (parts.length === 1) {
+          return { first: parts[0], last: "" };
+        }
+        return { first: parts[0], last: parts.slice(1).join(" ") };
+      })();
+
+      state.profile.firstName =
+        state.profile.firstName ||
+        metadata?.first_name ||
+        derivedFromFullName.first;
+      state.profile.lastName =
+        state.profile.lastName ||
+        metadata?.last_name ||
+        derivedFromFullName.last;
       state.profile.email = state.profile.email || action.payload.email || "";
       state.profile.address = state.profile.address || metadata?.address || "";
     },

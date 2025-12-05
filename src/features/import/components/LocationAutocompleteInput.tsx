@@ -1,5 +1,14 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { View, TextInput, Pressable, Text, StyleSheet, ScrollView } from "react-native";
+import {
+  View,
+  TextInput,
+  Pressable,
+  Text,
+  StyleSheet,
+  ScrollView,
+  type StyleProp,
+  type ViewStyle,
+} from "react-native";
 import {
   fetchPlaceSuggestions,
   fetchPlaceDetails,
@@ -11,8 +20,11 @@ import { useAppTheme } from "@common/theme/appTheme";
 
 interface LocationAutocompleteInputProps {
   initialValue?: string;
+  value?: string;
   onSelectPlace: (place: PlaceDetails) => void;
   placeholder?: string;
+  onChangeText?: (text: string) => void;
+  style?: StyleProp<ViewStyle>;
 }
 
 const debounce = <T extends (...args: any[]) => void>(fn: T, delay: number) => {
@@ -25,25 +37,41 @@ const debounce = <T extends (...args: any[]) => void>(fn: T, delay: number) => {
 
 const LocationAutocompleteInput: React.FC<LocationAutocompleteInputProps> = ({
   initialValue,
+  value,
   onSelectPlace,
   placeholder,
+  onChangeText,
+  style,
 }) => {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
-  const [value, setValue] = useState(initialValue ?? "");
+  const [inputValue, setInputValue] = useState(initialValue ?? "");
   const [suggestions, setSuggestions] = useState<GooglePrediction[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasConfirmedSelection, setHasConfirmedSelection] = useState(false);
+  const [hasInteracted, setHasInteracted] = useState(false);
   const resolvedPlaceholder =
     placeholder ?? t("import:autocomplete.placeholder");
 
   const shouldShowSuggestions =
-    suggestions.length > 0 && value.length > 0 && !hasConfirmedSelection;
+    suggestions.length > 0 &&
+    inputValue.length > 0 &&
+    !hasConfirmedSelection &&
+    hasInteracted;
 
   useEffect(() => {
-    setValue(initialValue ?? "");
-    setHasConfirmedSelection(false);
-  }, [initialValue]);
+    if (value !== undefined && value !== inputValue) {
+      setInputValue(value);
+      setHasConfirmedSelection(false);
+    }
+  }, [inputValue, value]);
+
+  useEffect(() => {
+    if (value === undefined && initialValue !== inputValue) {
+      setInputValue(initialValue ?? "");
+      setHasConfirmedSelection(false);
+    }
+  }, [initialValue, inputValue, value]);
 
   const fetchSuggestions = useCallback(
     async (search: string) => {
@@ -76,8 +104,20 @@ const LocationAutocompleteInput: React.FC<LocationAutocompleteInputProps> = ({
       return;
     }
 
-    debouncedFetchSuggestions(value);
-  }, [debouncedFetchSuggestions, hasConfirmedSelection, value]);
+    if (!hasInteracted) {
+      setSuggestions([]);
+      return;
+    }
+
+    debouncedFetchSuggestions(inputValue);
+  }, [debouncedFetchSuggestions, hasConfirmedSelection, hasInteracted, inputValue]);
+
+  const handleChangeText = (text: string) => {
+    setInputValue(text);
+    setHasConfirmedSelection(false);
+    setHasInteracted(true);
+    onChangeText?.(text);
+  };
 
   const handleSelect = async (prediction: GooglePrediction) => {
     try {
@@ -89,22 +129,21 @@ const LocationAutocompleteInput: React.FC<LocationAutocompleteInputProps> = ({
         return;
       }
 
-      setValue(place.formattedAddress);
+      setInputValue(place.formattedAddress);
       setHasConfirmedSelection(true);
+      setHasInteracted(false);
       onSelectPlace(place);
+      onChangeText?.(place.formattedAddress);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, style]}>
       <TextInput
-        value={value}
-        onChangeText={(text) => {
-          setValue(text);
-          setHasConfirmedSelection(false);
-        }}
+        value={inputValue}
+        onChangeText={handleChangeText}
         placeholder={resolvedPlaceholder}
         placeholderTextColor={colors.secondaryText}
         style={[
@@ -118,7 +157,7 @@ const LocationAutocompleteInput: React.FC<LocationAutocompleteInputProps> = ({
         autoCorrect={false}
       />
 
-      {loading && value.length > 0 && (
+      {loading && inputValue.length > 0 && (
         <Text style={[styles.helperText, { color: colors.secondaryText }]}>
           {t("import:autocomplete.searching")}
         </Text>
@@ -157,9 +196,10 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderRadius: 10,
-    padding: 10,
-    fontSize: 14,
+    borderRadius: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    fontSize: 15,
   },
   helperText: {
     marginTop: 4,
@@ -168,7 +208,7 @@ const styles = StyleSheet.create({
   },
   suggestionsContainer: {
     marginTop: 4,
-    borderRadius: 10,
+    borderRadius: 14,
     maxHeight: 180,
     overflow: "hidden",
   },

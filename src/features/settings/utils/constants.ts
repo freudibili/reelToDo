@@ -6,7 +6,8 @@ import type {
 } from "./types";
 
 export const defaultProfile: ProfileSettings = {
-  fullName: "",
+  firstName: "",
+  lastName: "",
   email: "",
   address: "",
 };

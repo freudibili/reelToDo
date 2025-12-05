@@ -1,3 +1,4 @@
+import { supabase } from "@config/supabase";
 import {
   defaultSettingsState,
   distanceOptions,
@@ -11,74 +12,91 @@ import type {
   SettingsStateData,
 } from "../utils/types";
 
-let cachedSettingsByUser: Record<string, SettingsStateData> = {};
-
-const simulateLatency = async <T>(payload: T) =>
-  new Promise<T>((resolve) => setTimeout(() => resolve(payload), 150));
-
-const cloneSettings = (settings: SettingsStateData): SettingsStateData => ({
-  profile: { ...settings.profile },
-  notifications: { ...settings.notifications },
-  preferences: { ...settings.preferences },
+const mapProfile = (
+  profile: Pick<
+    ProfileSettings,
+    "firstName" | "lastName" | "email" | "address"
+  >
+): ProfileSettings => ({
+  firstName: profile.firstName ?? "",
+  lastName: profile.lastName ?? "",
+  email: profile.email ?? "",
+  address: profile.address ?? "",
 });
-
-const ensureUserSettings = (
-  userId: string,
-  email?: string
-): SettingsStateData => {
-  const existing = cachedSettingsByUser[userId];
-  if (existing) {
-    if (!existing.profile.email && email) {
-      existing.profile.email = email;
-    }
-    return existing;
-  }
-
-  const seeded: SettingsStateData = {
-    profile: {
-      ...defaultSettingsState.profile,
-      email: email ?? "",
-    },
-    notifications: {
-      ...defaultSettingsState.notifications,
-    },
-    preferences: {
-      ...defaultSettingsState.preferences,
-    },
-  };
-
-  cachedSettingsByUser[userId] = seeded;
-  return seeded;
-};
 
 export const settingsService = {
   async fetch(userId: string, email?: string): Promise<SettingsStateData> {
-    const settings = ensureUserSettings(userId, email);
-    const seededProfile: ProfileSettings = {
-      ...settings.profile,
-      email: settings.profile.email || email || `${userId}@example.com`,
-    };
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("email, first_name, last_name, address")
+      .eq("user_id", userId)
+      .maybeSingle();
 
-    cachedSettingsByUser[userId] = {
-      ...settings,
-      profile: seededProfile,
-    };
+    if (error) throw error;
 
-    return simulateLatency(cloneSettings(cachedSettingsByUser[userId]));
+    let profile: ProfileSettings = mapProfile({
+      firstName: data?.first_name ?? "",
+      lastName: data?.last_name ?? "",
+      email: data?.email || email || "",
+      address: data?.address ?? "",
+    });
+
+    if (!data) {
+      const { data: inserted, error: insertError } = await supabase
+        .from("profiles")
+        .upsert(
+          {
+            user_id: userId,
+            email: email ?? "",
+          },
+          { onConflict: "user_id" }
+        )
+        .select("email, first_name, last_name, address")
+        .single();
+
+      if (insertError) throw insertError;
+      profile = mapProfile({
+        firstName: inserted.first_name ?? "",
+        lastName: inserted.last_name ?? "",
+        email: inserted.email || email || "",
+        address: inserted.address ?? "",
+      });
+    }
+
+    return {
+      profile,
+      notifications: { ...defaultSettingsState.notifications },
+      preferences: { ...defaultSettingsState.preferences },
+    };
   },
 
   async updateProfile(
     userId: string,
     profile: ProfileSettings
   ): Promise<ProfileSettings> {
-    cachedSettingsByUser[userId] = {
-      ...ensureUserSettings(userId, profile.email),
-      profile: {
-        ...profile,
-      },
-    };
+    const { data, error } = await supabase
+      .from("profiles")
+      .upsert(
+        {
+          user_id: userId,
+          email: profile.email,
+          first_name: profile.firstName || null,
+          last_name: profile.lastName || null,
+          address: profile.address || null,
+        },
+        { onConflict: "user_id" }
+      )
+      .select("email, first_name, last_name, address")
+      .single();
 
-    return simulateLatency({ ...cachedSettingsByUser[userId].profile });
+    if (error) throw error;
+
+    return mapProfile({
+      firstName: data.first_name ?? "",
+      lastName: data.last_name ?? "",
+      email: data.email ?? profile.email,
+      address: data.address ?? "",
+    });
   },
 
   async updateNotifications(
@@ -119,11 +137,7 @@ export const settingsService = {
     return languageOptions.find((option) => option.value === value);
   },
 
-  resetCache(userId?: string) {
-    if (userId) {
-      delete cachedSettingsByUser[userId];
-      return;
-    }
-    cachedSettingsByUser = {};
+  resetCache() {
+    // No local cache to clear now that data is fetched from Supabase.
   },
 };

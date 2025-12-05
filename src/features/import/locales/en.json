@@ -57,6 +57,7 @@
   },
   "errors": {
     "analyze": "Unable to analyze link",
+    "unsupportedCategory": "This link doesn’t match any categories we support yet. Try another place or event link.",
     "location": "Failed to confirm location",
     "date": "Failed to confirm date",
     "saveDetails": "Unable to save activity details"

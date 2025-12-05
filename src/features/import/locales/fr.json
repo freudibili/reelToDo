@@ -57,6 +57,7 @@
   },
   "errors": {
     "analyze": "Impossible d'analyser le lien",
+    "unsupportedCategory": "Ce lien ne correspond à aucune catégorie que nous gérons pour l'instant. Essaie un autre lieu ou événement.",
     "location": "Échec de la confirmation du lieu",
     "date": "Échec de la confirmation de la date",
     "saveDetails": "Impossible d'enregistrer les détails de l'activité"

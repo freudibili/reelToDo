@@ -34,14 +34,23 @@ const SettingsScreen = () => {
     }
   }, [dispatch, initialized, user]);
 
-  const displayName = useMemo(
-    () =>
-      profile.fullName ||
-      (user?.user_metadata as { full_name?: string })?.full_name ||
-      user?.email ||
-      t("settings:placeholders.guest"),
-    [profile.fullName, t, user?.email, user?.user_metadata]
-  );
+  const displayName = useMemo(() => {
+    const metadata = user?.user_metadata as {
+      first_name?: string;
+      last_name?: string;
+      full_name?: string;
+    };
+    const derivedProfileName = [profile.firstName, profile.lastName]
+      .filter(Boolean)
+      .join(" ");
+    if (derivedProfileName) return derivedProfileName;
+    const metadataName = [metadata?.first_name, metadata?.last_name]
+      .filter(Boolean)
+      .join(" ");
+    if (metadataName) return metadataName;
+    if (metadata?.full_name) return metadata.full_name;
+    return user?.email || t("settings:placeholders.guest");
+  }, [profile.firstName, profile.lastName, t, user?.email, user?.user_metadata]);
 
   const address = useMemo(
     () =>

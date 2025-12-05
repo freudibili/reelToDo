@@ -1,5 +1,6 @@
 export interface ProfileSettings {
-  fullName: string;
+  firstName: string;
+  lastName: string;
   email: string;
   address: string;
 }

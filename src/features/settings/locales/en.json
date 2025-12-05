@@ -29,7 +29,8 @@
   "profile": {
     "title": "Profile",
     "subtitle": "Keep your details up to date.",
-    "fullName": "Full name",
+    "firstName": "First name",
+    "lastName": "Last name",
     "email": "Email",
     "address": "Address",
     "helper": "We use this info to personalize your experiences and support."

@@ -9,43 +9,41 @@ interface AnalyzeArgs {
   userId: string;
 }
 
-const extractFunctionErrorMessage = (err: any): string | null => {
-  const parseCandidate = (candidate: unknown): string | null => {
-    if (!candidate) return null;
+const extractFunctionError = (
+  err: any
+): { message: string | null; code: string | null } => {
+  let message: string | null = null;
+  let code: string | null = null;
+
+  const parseCandidate = (candidate: unknown) => {
+    if (!candidate) return;
 
     if (typeof candidate === "object") {
-      const msg =
-        (candidate as any).message ??
-        (candidate as any).reason ??
-        (candidate as any).error;
-      if (typeof msg === "string") return msg;
-      // fall through to stringification below
+      const obj = candidate as any;
+      if (!message) {
+        const msg = obj.message ?? obj.reason ?? obj.error;
+        if (typeof msg === "string") message = msg;
+      }
+      if (!code && typeof obj.code === "string") {
+        code = obj.code;
+      }
+      return;
     }
 
     if (typeof candidate === "string") {
       try {
         const parsed = JSON.parse(candidate);
-        const parsedMsg =
-          (parsed as any)?.message ??
-          (parsed as any)?.reason ??
-          (parsed as any)?.error;
-        if (typeof parsedMsg === "string") return parsedMsg;
+        parseCandidate(parsed);
       } catch {
-        // not JSON
+        if (!message) message = candidate;
       }
-      return candidate;
     }
-
-    return null;
   };
 
   const contexts = [err?.context?.body, err?.message, err];
-  for (const candidate of contexts) {
-    const parsed = parseCandidate(candidate);
-    if (parsed) return parsed;
-  }
+  contexts.forEach(parseCandidate);
 
-  return null;
+  return { message, code };
 };
 
 export const importService = {
@@ -69,9 +67,15 @@ export const importService = {
     });
 
     if (error) {
-      const message =
-        extractFunctionErrorMessage(error) ??
-        i18next.t("import:errors.analyze");
+      const { message: extractedMessage, code } = extractFunctionError(error);
+      const normalizedCode = code?.toUpperCase() ?? "";
+      const isUnsupportedCategory =
+        normalizedCode === "CATEGORY_UNSUPPORTED" ||
+        normalizedCode === "UNSUPPORTED_CATEGORY";
+
+      const message = isUnsupportedCategory
+        ? i18next.t("import:errors.unsupportedCategory")
+        : extractedMessage ?? i18next.t("import:errors.analyze");
       throw new Error(message);
     }
     if (!data) throw new Error(i18next.t("import:errors.analyze"));

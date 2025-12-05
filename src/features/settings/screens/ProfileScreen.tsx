@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, Text } from "react-native";
 import { useRouter } from "expo-router";
-import { TextInput, Button, HelperText } from "react-native-paper";
+import { Button } from "react-native-paper";
 import { useTranslation } from "react-i18next";
 import AppScreen, { ScreenHeader } from "@common/components/AppScreen";
 import { useAppDispatch, useAppSelector } from "@core/store/hook";
 import { settingsSelectors } from "../store/settingsSelectors";
-import { saveProfile } from "../store/settingsSlice";
 import { useAppTheme } from "@common/theme/appTheme";
+import { saveProfile } from "../store/settingsSlice";
+import ProfileTextField from "../components/ProfileTextField";
+import LocationAutocompleteInput from "@features/import/components/LocationAutocompleteInput";
 
 const ProfileScreen = () => {
   const dispatch = useAppDispatch();
@@ -18,18 +20,21 @@ const ProfileScreen = () => {
   const profile = useAppSelector(settingsSelectors.profile);
   const loading = useAppSelector(settingsSelectors.loading);
 
-  const [fullName, setFullName] = useState(profile.fullName);
+  const [firstName, setFirstName] = useState(profile.firstName);
+  const [lastName, setLastName] = useState(profile.lastName);
   const [address, setAddress] = useState(profile.address);
 
   useEffect(() => {
-    setFullName(profile.fullName);
+    setFirstName(profile.firstName);
+    setLastName(profile.lastName);
     setAddress(profile.address);
-  }, [profile.fullName, profile.address]);
+  }, [profile.firstName, profile.lastName, profile.address]);
 
   const handleSave = () => {
     void dispatch(
       saveProfile({
-        fullName: fullName.trim() || profile.fullName,
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
         email: profile.email,
         address: address.trim(),
       })
@@ -47,38 +52,46 @@ const ProfileScreen = () => {
       />
 
       <View style={styles.form}>
-        <TextInput
-          label={t("settings:profile.fullName")}
-          value={fullName}
-          onChangeText={setFullName}
-          mode="outlined"
-          style={[styles.input, { backgroundColor: colors.surface }]}
+        <ProfileTextField
+          label={t("settings:profile.firstName")}
+          value={firstName}
+          onChangeText={setFirstName}
           autoCapitalize="words"
         />
-        <TextInput
+        <ProfileTextField
+          label={t("settings:profile.lastName")}
+          value={lastName}
+          onChangeText={setLastName}
+          autoCapitalize="words"
+        />
+        <ProfileTextField
           label={t("settings:profile.email")}
           value={profile.email}
-          mode="outlined"
-          disabled
-          style={[styles.input, { backgroundColor: colors.surface }]}
+          editable={false}
+          autoCapitalize="none"
         />
-        <TextInput
-          label={t("settings:profile.address")}
-          value={address}
-          onChangeText={setAddress}
-          mode="outlined"
-          style={[styles.input, { backgroundColor: colors.surface }]}
-          autoCapitalize="words"
-        />
-        <HelperText type="info" visible>
-          {t("settings:profile.helper")}
-        </HelperText>
+        <View style={styles.fieldGroup}>
+          <Text style={[styles.label, { color: colors.text }]}>
+            {t("settings:profile.address")}
+          </Text>
+          <LocationAutocompleteInput
+            initialValue={profile.address}
+            value={address}
+            onChangeText={setAddress}
+            onSelectPlace={(place) =>
+              setAddress(place.formattedAddress ?? place.name ?? "")
+            }
+            placeholder={t("settings:profile.address")}
+            style={styles.autocompleteWrapper}
+          />
+        </View>
 
         <Button
           mode="contained"
           onPress={handleSave}
           style={styles.button}
           contentStyle={styles.buttonContent}
+          disabled={loading}
         >
           {t("common:buttons.saveChanges")}
         </Button>
@@ -89,13 +102,22 @@ const ProfileScreen = () => {
 
 const styles = StyleSheet.create({
   form: {
-    gap: 12,
-    marginTop: 6,
+    gap: 14,
+    marginTop: 8,
   },
-  input: {
+  fieldGroup: {
+    gap: 6,
+    zIndex: 5,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  autocompleteWrapper: {
+    zIndex: 5,
   },
   button: {
-    marginTop: 4,
+    marginTop: 6,
     borderRadius: 10,
   },
   buttonContent: {
