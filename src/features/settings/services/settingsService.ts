@@ -11,71 +11,100 @@ import type {
   SettingsStateData,
 } from "../utils/types";
 
-let cachedSettings: SettingsStateData | null = null;
+let cachedSettingsByUser: Record<string, SettingsStateData> = {};
 
 const simulateLatency = async <T>(payload: T) =>
   new Promise<T>((resolve) => setTimeout(() => resolve(payload), 150));
 
+const cloneSettings = (settings: SettingsStateData): SettingsStateData => ({
+  profile: { ...settings.profile },
+  notifications: { ...settings.notifications },
+  preferences: { ...settings.preferences },
+});
+
+const ensureUserSettings = (
+  userId: string,
+  email?: string
+): SettingsStateData => {
+  const existing = cachedSettingsByUser[userId];
+  if (existing) {
+    if (!existing.profile.email && email) {
+      existing.profile.email = email;
+    }
+    return existing;
+  }
+
+  const seeded: SettingsStateData = {
+    profile: {
+      ...defaultSettingsState.profile,
+      email: email ?? "",
+    },
+    notifications: {
+      ...defaultSettingsState.notifications,
+    },
+    preferences: {
+      ...defaultSettingsState.preferences,
+    },
+  };
+
+  cachedSettingsByUser[userId] = seeded;
+  return seeded;
+};
+
 export const settingsService = {
   async fetch(userId: string, email?: string): Promise<SettingsStateData> {
-    if (!cachedSettings) {
-      cachedSettings = {
-        ...defaultSettingsState,
-        profile: {
-          ...defaultSettingsState.profile,
-          email: email ?? "",
-        },
-        preferences: {
-          ...defaultSettingsState.preferences,
-        },
-      };
-    }
-
+    const settings = ensureUserSettings(userId, email);
     const seededProfile: ProfileSettings = {
-      ...cachedSettings.profile,
-      email: cachedSettings.profile.email || email || `${userId}@example.com`,
+      ...settings.profile,
+      email: settings.profile.email || email || `${userId}@example.com`,
     };
 
-    cachedSettings = {
-      ...cachedSettings,
+    cachedSettingsByUser[userId] = {
+      ...settings,
       profile: seededProfile,
     };
 
-    return simulateLatency(cachedSettings);
+    return simulateLatency(cloneSettings(cachedSettingsByUser[userId]));
   },
 
-  async updateProfile(profile: ProfileSettings): Promise<ProfileSettings> {
-    cachedSettings = {
-      ...(cachedSettings ?? defaultSettingsState),
+  async updateProfile(
+    userId: string,
+    profile: ProfileSettings
+  ): Promise<ProfileSettings> {
+    cachedSettingsByUser[userId] = {
+      ...ensureUserSettings(userId, profile.email),
       profile: {
         ...profile,
       },
     };
-    return simulateLatency(cachedSettings.profile);
+
+    return simulateLatency({ ...cachedSettingsByUser[userId].profile });
   },
 
   async updateNotifications(
+    userId: string,
     preferences: NotificationSettings
   ): Promise<NotificationSettings> {
-    cachedSettings = {
-      ...(cachedSettings ?? defaultSettingsState),
+    cachedSettingsByUser[userId] = {
+      ...ensureUserSettings(userId),
       notifications: {
         ...preferences,
       },
     };
-    return simulateLatency(cachedSettings.notifications);
+    return simulateLatency({ ...cachedSettingsByUser[userId].notifications });
   },
 
   async updatePreferences(
+    userId: string,
     preferences: PreferenceSettings
   ): Promise<PreferenceSettings> {
-    cachedSettings = {
-      ...(cachedSettings ?? defaultSettingsState),
+    cachedSettingsByUser[userId] = {
+      ...ensureUserSettings(userId),
       preferences: {
         ...preferences,
       },
     };
-    return simulateLatency(cachedSettings.preferences);
+    return simulateLatency({ ...cachedSettingsByUser[userId].preferences });
   },
 
   getDistanceLabel(value: PreferenceSettings["distanceUnit"]) {
@@ -88,5 +117,13 @@ export const settingsService = {
 
   getLanguageLabel(value: PreferenceSettings["language"]) {
     return languageOptions.find((option) => option.value === value);
+  },
+
+  resetCache(userId?: string) {
+    if (userId) {
+      delete cachedSettingsByUser[userId];
+      return;
+    }
+    cachedSettingsByUser = {};
   },
 };

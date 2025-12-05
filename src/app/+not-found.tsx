@@ -10,20 +10,12 @@ const NotFoundScreen = () => {
   const pathname = usePathname();
   const { colors } = useAppTheme();
   const hasRedirectedRef = useRef(false);
-  const { hasShareIntent, shareIntent, resetShareIntent } = useShareIntent();
+  const { isReady, hasShareIntent } = useShareIntent();
 
   useEffect(() => {
     if (hasRedirectedRef.current) return;
-    if (hasShareIntent && shareIntent) {
-      hasRedirectedRef.current = true;
-      const encoded = encodeURIComponent(JSON.stringify(shareIntent));
-      router.replace({ pathname: "/import", params: { shared: encoded } });
-      resetShareIntent();
-    }
-  }, [hasShareIntent, shareIntent, resetShareIntent]);
-
-  useEffect(() => {
-    if (hasRedirectedRef.current) return;
+    if (!isReady) return;
+    if (hasShareIntent) return;
     const normalized = pathname?.startsWith("/")
       ? pathname.slice(1)
       : pathname ?? "";
@@ -32,7 +24,7 @@ const NotFoundScreen = () => {
       hasRedirectedRef.current = true;
       router.replace({ pathname: "/import", params: { from: "share" } });
     }
-  }, [pathname]);
+  }, [hasShareIntent, isReady, pathname]);
 
   return (
     <Screen>

@@ -1,5 +1,7 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import type { User } from "@supabase/supabase-js";
+import type { RootState } from "@core/store";
+import { signOut, setSession } from "@features/auth/store/authSlice";
 import { settingsService } from "../services/settingsService";
 import {
   defaultNotifications,
@@ -17,63 +19,90 @@ type SettingsState = SettingsStateData & {
   loading: boolean;
   error: string | null;
   initialized: boolean;
+  userId: string | null;
 };
 
-const initialState: SettingsState = {
-  profile: defaultProfile,
-  notifications: defaultNotifications,
-  preferences: defaultPreferences,
+const createInitialState = (): SettingsState => ({
+  profile: { ...defaultProfile },
+  notifications: { ...defaultNotifications },
+  preferences: { ...defaultPreferences },
   loading: false,
   error: null,
   initialized: false,
-};
+  userId: null,
+});
 
-export const loadSettings = createAsyncThunk(
-  "settings/loadSettings",
-  async (
-    payload: { userId: string; email?: string },
-    { rejectWithValue }
-  ) => {
-    try {
-      return await settingsService.fetch(payload.userId, payload.email);
-    } catch {
-      return rejectWithValue("settings:errors.load");
-    }
-  }
-);
+const initialState: SettingsState = createInitialState();
 
-export const saveProfile = createAsyncThunk(
-  "settings/saveProfile",
-  async (payload: ProfileSettings, { rejectWithValue }) => {
-    try {
-      return await settingsService.updateProfile(payload);
-    } catch {
-      return rejectWithValue("settings:errors.profile");
-    }
-  }
-);
+const staleSettingsRequest = "settings:stale";
 
-export const saveNotifications = createAsyncThunk(
-  "settings/saveNotifications",
-  async (payload: NotificationSettings, { rejectWithValue }) => {
-    try {
-      return await settingsService.updateNotifications(payload);
-    } catch {
-      return rejectWithValue("settings:errors.notifications");
+export const loadSettings = createAsyncThunk<
+  SettingsStateData,
+  { userId: string; email?: string },
+  { state: RootState; rejectValue: string }
+>("settings/loadSettings", async (payload, { getState, rejectWithValue }) => {
+  try {
+    const result = await settingsService.fetch(payload.userId, payload.email);
+    const currentUserId = (getState() as RootState).auth.user?.id;
+    if (currentUserId !== payload.userId) {
+      return rejectWithValue(staleSettingsRequest);
     }
+    return result;
+  } catch {
+    return rejectWithValue("settings:errors.load");
   }
-);
+});
 
-export const savePreferences = createAsyncThunk(
-  "settings/savePreferences",
-  async (payload: PreferenceSettings, { rejectWithValue }) => {
-    try {
-      return await settingsService.updatePreferences(payload);
-    } catch {
-      return rejectWithValue("settings:errors.preferences");
-    }
+export const saveProfile = createAsyncThunk<
+  ProfileSettings,
+  ProfileSettings,
+  { state: RootState; rejectValue: string }
+>("settings/saveProfile", async (payload, { getState, rejectWithValue }) => {
+  const userId = (getState() as RootState).auth.user?.id;
+  if (!userId) {
+    return rejectWithValue("settings:errors.profile");
   }
-);
+
+  try {
+    return await settingsService.updateProfile(userId, payload);
+  } catch {
+    return rejectWithValue("settings:errors.profile");
+  }
+});
+
+export const saveNotifications = createAsyncThunk<
+  NotificationSettings,
+  NotificationSettings,
+  { state: RootState; rejectValue: string }
+>("settings/saveNotifications", async (payload, { getState, rejectWithValue }) => {
+  const userId = (getState() as RootState).auth.user?.id;
+  if (!userId) {
+    return rejectWithValue("settings:errors.notifications");
+  }
+
+  try {
+    return await settingsService.updateNotifications(userId, payload);
+  } catch {
+    return rejectWithValue("settings:errors.notifications");
+  }
+});
+
+export const savePreferences = createAsyncThunk<
+  PreferenceSettings,
+  PreferenceSettings,
+  { state: RootState; rejectValue: string }
+>("settings/savePreferences", async (payload, { getState, rejectWithValue }) => {
+  const userId = (getState() as RootState).auth.user?.id;
+  if (!userId) {
+    return rejectWithValue("settings:errors.preferences");
+  }
+
+  try {
+    return await settingsService.updatePreferences(userId, payload);
+  } catch {
+    return rejectWithValue("settings:errors.preferences");
+  }
+});
 
 const settingsSlice = createSlice({
   name: "settings",
@@ -112,9 +141,13 @@ const settingsSlice = createSlice({
         state.profile = action.payload.profile;
         state.notifications = action.payload.notifications;
         state.preferences = action.payload.preferences;
+        state.userId = action.meta.arg.userId;
       })
       .addCase(loadSettings.rejected, (state, action) => {
         state.loading = false;
+        if (action.payload === staleSettingsRequest) {
+          return;
+        }
         state.error = (action.payload as string) ?? "settings:errors.load";
       })
       .addCase(saveProfile.pending, (state) => {
@@ -154,6 +187,13 @@ const settingsSlice = createSlice({
         state.loading = false;
         state.error =
           (action.payload as string) ?? "settings:errors.preferences";
+      })
+      .addCase(signOut.fulfilled, () => createInitialState())
+      .addCase(setSession, (state, action) => {
+        const nextUserId = action.payload.user?.id ?? null;
+        if (nextUserId !== state.userId) {
+          return createInitialState();
+        }
       });
   },
 });
