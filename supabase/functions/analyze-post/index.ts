@@ -9,6 +9,7 @@ import {
   normalizeActivityUrl,
 } from "./normalize.ts";
 import { fetchMediaAnalyzer, mapMediaAnalyzer } from "./mediaAnalyzer.ts";
+import { allowedCategories } from "./categories.ts";
 serve(async (req) => {
   console.log("[fn] --- analyze-post invoked ---");
 
@@ -232,9 +233,29 @@ serve(async (req) => {
     source_url,
   } = normalized;
 
-  const finalCategory = category ?? "other";
+  const finalCategory = category && allowedCategories.has(category)
+    ? category
+    : null;
 
   console.log("[fn] finalCategory", finalCategory);
+
+  if (!finalCategory) {
+    const rejectionPayload = {
+      error: "UNSUPPORTED_CATEGORY",
+      code: "CATEGORY_UNSUPPORTED",
+      message:
+        "We couldn't map this content to a supported activity category yet. Try sharing a place or event link instead.",
+      reason: "Content category not in allowed list.",
+    };
+    console.log("[fn] rejected: unsupported category", {
+      category,
+      normalizedCategory: category,
+    });
+    return new Response(JSON.stringify(rejectionPayload), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
 
   const mainDate = Array.isArray(dates) && dates.length > 0
     ? (dates[0].start ?? null)
@@ -256,10 +277,10 @@ serve(async (req) => {
   const needsDateConfirmation = categoriesRequiringDate.has(finalCategory) &&
     !mainDate;
 
-  if (finalCategory === "other" || confidenceValue < 0.5) {
+  if (confidenceValue < 0.5) {
     const rejectionPayload = {
       error: "UNSUITABLE_CONTENT",
-      code: finalCategory === "other" ? "CATEGORY_UNMAPPED" : "LOW_CONFIDENCE",
+      code: "LOW_CONFIDENCE",
       message:
         "We couldn't map this content to a supported activity category yet. Try sharing a place or event link instead.",
       reason: "Content did not meet activity criteria (category/confidence).",
