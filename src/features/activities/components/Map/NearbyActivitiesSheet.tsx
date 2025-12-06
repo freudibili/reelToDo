@@ -24,8 +24,6 @@ const NearbyActivitiesSheet: React.FC<Props> = ({
   const { t } = useTranslation();
   const { colors } = useAppTheme();
 
-  // Use user location when available, otherwise fall back to first activity
-  // coordinates so distances still show in emulators without GPS.
   const origin: LatLng | null = useMemo(() => {
     if (userRegion) {
       return {
@@ -36,7 +34,10 @@ const NearbyActivitiesSheet: React.FC<Props> = ({
     const firstWithCoords = activities.find(
       (a) => typeof a.latitude === "number" && typeof a.longitude === "number"
     );
-    if (firstWithCoords?.latitude != null && firstWithCoords.longitude != null) {
+    if (
+      firstWithCoords?.latitude != null &&
+      firstWithCoords.longitude != null
+    ) {
       return {
         latitude: firstWithCoords.latitude,
         longitude: firstWithCoords.longitude,

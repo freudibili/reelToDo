@@ -7,7 +7,6 @@ import {
   Text,
   View,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import { Icon } from "react-native-paper";
 import { useAppTheme } from "@common/theme/appTheme";
 import type { CategoryCardItem } from "../utils/categorySummary";
@@ -51,8 +50,8 @@ const CategoryCard: React.FC<Props> = ({
   const displayName = formatCategoryName(name);
   const countLabel =
     activityCount > 99 ? "99+" : activityCount > 9 ? `+${activityCount}` : `${activityCount}`;
-  const countBackground =
-    mode === "dark" ? "rgba(15,23,42,0.78)" : "rgba(15,23,42,0.16)";
+  const countBackground = "rgba(255,255,255,0.85)";
+  const countIconColor = "#0f172a";
   const placeholderBackground =
     (colors as any).surfaceVariant ?? colors.card ?? "#1f2937";
 
@@ -62,19 +61,18 @@ const CategoryCard: React.FC<Props> = ({
         onPress={handlePress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
-        style={[
-          styles.card,
-          {
-            backgroundColor: colors.card,
-            borderColor: colors.border,
-          },
-        ]}
+        style={styles.card}
       >
-        <View style={styles.media}>
+        <View
+          style={[
+            styles.media,
+            { backgroundColor: placeholderBackground },
+          ]}
+        >
           {heroImageUrl ? (
             <Image
               source={{ uri: heroImageUrl }}
-              style={StyleSheet.absoluteFillObject}
+              style={[StyleSheet.absoluteFillObject, styles.image]}
               resizeMode="cover"
             />
           ) : (
@@ -88,15 +86,13 @@ const CategoryCard: React.FC<Props> = ({
             </View>
           )}
 
-          <LinearGradient
-            colors={["rgba(0,0,0,0.05)", "rgba(0,0,0,0.65)"]}
-            locations={[0.6, 1]}
-            style={styles.gradient}
-          />
-
           {activityCount > 0 ? (
             <View style={[styles.countBadge, { backgroundColor: countBackground }]}>
-              <Text style={styles.countText}>{countLabel} spots</Text>
+              <View style={styles.countRow}>
+                <Text style={[styles.countText, { color: countIconColor }]}>
+                  {countLabel} spots
+                </Text>
+              </View>
             </View>
           ) : null}
 
@@ -105,12 +101,11 @@ const CategoryCard: React.FC<Props> = ({
               <Icon source="map-marker-multiple" size={18} color={colors.primary} />
             </View>
           ) : null}
-
-          <View style={styles.titleRow}>
-            <Text style={styles.title} numberOfLines={1}>
-              {displayName}
-            </Text>
-          </View>
+        </View>
+        <View style={styles.content}>
+          <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>
+            {displayName}
+          </Text>
         </View>
       </Pressable>
     </Animated.View>
@@ -124,44 +119,29 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: 14,
     overflow: "hidden",
-    borderWidth: 1,
-    shadowColor: "#0f172a",
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 3,
   },
   media: {
     width: "100%",
     aspectRatio: 1,
     position: "relative",
-    backgroundColor: "#111",
+    borderRadius: 14,
+    overflow: "hidden",
   },
+  image: { borderRadius: 14 },
   placeholder: {
     ...StyleSheet.absoluteFillObject,
     justifyContent: "center",
     alignItems: "center",
   },
-  gradient: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: "30%",
-  },
-  titleRow: {
-    position: "absolute",
-    left: 12,
-    right: 12,
-    bottom: 12,
+  content: {
+    paddingHorizontal: 6,
+    paddingVertical: 8,
+    gap: 6,
   },
   title: {
-    color: "#fff",
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "700",
-    textShadowColor: "rgba(0,0,0,0.6)",
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
+    lineHeight: 19,
   },
   countBadge: {
     position: "absolute",
@@ -172,9 +152,12 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   countText: {
-    color: "#fff",
     fontWeight: "700",
     fontSize: 12,
+  },
+  countRow: {
+    flexDirection: "row",
+    alignItems: "center",
   },
   clusterBadge: {
     position: "absolute",

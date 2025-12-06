@@ -118,7 +118,7 @@ const darkPalette: AppTheme["colors"] = {
 
   // Specials
   favorite: "#F4A6A6", // soft coral
-  favoriteContrast: "#050814",
+  favoriteContrast: "#FFFFFF",
 
   // Text
   text: "#E5E7EB",

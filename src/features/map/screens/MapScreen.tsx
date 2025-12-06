@@ -79,6 +79,10 @@ const MapScreen = () => {
   const [sheetIndex, setSheetIndex] = useState(-1);
   const sheetRef = useRef(null);
   const mapRef = useRef<ActivitiesMapHandle | null>(null);
+  const snapPoints = useMemo(
+    () => (sheetMode === "list" ? ["25%", "60%"] : ["25%", "60%", "90%"]),
+    [sheetMode]
+  );
 
   useEffect(() => {
     const requestLocation = async () => {
@@ -335,6 +339,7 @@ const MapScreen = () => {
         index={sheetIndex}
         onClose={handleCloseSheet}
         scrollable={sheetMode === "details"}
+        snapPoints={snapPoints}
       >
         {sheetMode === "list" ? (
           <NearbyActivitiesSheet

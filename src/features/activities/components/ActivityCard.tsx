@@ -9,6 +9,7 @@ import {
 import type { Activity } from "../utils/types";
 import { useTranslation } from "react-i18next";
 import { useAppTheme } from "@common/theme/appTheme";
+import FavoriteHeart from "./FavoriteHeart";
 
 interface Props {
   activity: Activity;
@@ -31,8 +32,16 @@ const ActivityCard: React.FC<Props> = ({
   const isPlanned = Boolean(activity.planned_at);
 
   return (
-    <Pressable style={styles.card} onPress={() => onPress(activity)}>
-      <View style={styles.imageWrapper}>
+    <Pressable
+      style={styles.card}
+      onPress={() => onPress(activity)}
+    >
+      <View
+        style={[
+          styles.imageWrapper,
+          { backgroundColor: colors.mutedSurface },
+        ]}
+      >
         {activity.image_url ? (
           <Image
             source={{ uri: activity.image_url }}
@@ -40,7 +49,12 @@ const ActivityCard: React.FC<Props> = ({
             resizeMode="cover"
           />
         ) : (
-          <View style={styles.imagePlaceholder} />
+          <View
+            style={[
+              styles.imagePlaceholder,
+              { backgroundColor: colors.overlay },
+            ]}
+          />
         )}
         {onToggleFavorite ? (
           <Pressable
@@ -48,44 +62,51 @@ const ActivityCard: React.FC<Props> = ({
             onPress={() => onToggleFavorite(activity)}
             style={styles.favoriteBtn}
           >
-            <Icon
-              source={isFavorite ? "heart" : "heart-outline"}
-              size={18}
-              color={isFavorite ? colors.favorite : colors.background}
+            <FavoriteHeart
+              selected={isFavorite}
+              size={20}
             />
           </Pressable>
         ) : null}
-        <View style={styles.titleOverlay}>
-          <Text style={styles.title} numberOfLines={2} ellipsizeMode="tail">
-            {activity.title ?? t("activities:card.untitled")}
-          </Text>
-          {locationLabel ? (
-            <View style={styles.metaRow}>
-              <Icon source="map-marker" size={14} color="#d1d5db" />
-              <Text style={styles.metaText} numberOfLines={1} ellipsizeMode="tail">
-                {locationLabel}
-              </Text>
-            </View>
-          ) : null}
-          {dateLabel ? (
-            <View style={styles.metaRow}>
-              <Icon
-                source={isPlanned ? "calendar-check" : "calendar"}
-                size={14}
-                color="#d1d5db"
-              />
-              <Text
-                style={styles.metaText}
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                {isPlanned
-                  ? t("activities:planned.timeLabel", { value: dateLabel })
-                  : dateLabel}
-              </Text>
-            </View>
-          ) : null}
-        </View>
+      </View>
+      <View style={styles.content}>
+        <Text
+          style={[styles.title, { color: colors.text }]}
+          numberOfLines={2}
+          ellipsizeMode="tail"
+        >
+          {activity.title ?? t("activities:card.untitled")}
+        </Text>
+        {locationLabel ? (
+          <View style={styles.metaRow}>
+            <Icon source="map-marker" size={14} color={colors.secondaryText} />
+            <Text
+              style={[styles.metaText, { color: colors.secondaryText }]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {locationLabel}
+            </Text>
+          </View>
+        ) : null}
+        {dateLabel ? (
+          <View style={styles.metaRow}>
+            <Icon
+              source={isPlanned ? "calendar-check" : "calendar"}
+              size={14}
+              color={colors.secondaryText}
+            />
+            <Text
+              style={[styles.metaText, { color: colors.secondaryText }]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {isPlanned
+                ? t("activities:planned.timeLabel", { value: dateLabel })
+                : dateLabel}
+            </Text>
+          </View>
+        ) : null}
       </View>
     </Pressable>
   );
@@ -94,32 +115,25 @@ const ActivityCard: React.FC<Props> = ({
 const styles = StyleSheet.create({
   card: {
     borderRadius: 12,
-    overflow: "hidden",
-    backgroundColor: "#0f0f0f",
   },
   imageWrapper: {
     width: "100%",
     height: 150,
-    backgroundColor: "#111",
+    borderRadius: 12,
+    overflow: "hidden",
     position: "relative",
   },
   image: { width: "100%", height: "100%" },
-  imagePlaceholder: { width: "100%", height: "100%", backgroundColor: "#333" },
-  titleOverlay: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    backgroundColor: "rgba(0,0,0,0.38)",
+  imagePlaceholder: { width: "100%", height: "100%" },
+  content: {
+    paddingHorizontal: 6,
+    paddingVertical: 8,
     gap: 6,
   },
   title: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "700",
-    color: "#fff",
-    lineHeight: 20,
+    lineHeight: 19,
   },
   metaRow: {
     flexDirection: "row",
@@ -127,18 +141,13 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   metaText: {
-    color: "#e5e7eb",
-    fontSize: 13,
+    fontSize: 12,
     flexShrink: 1,
   },
   favoriteBtn: {
     position: "absolute",
-    top: 10,
-    right: 10,
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: "rgba(0,0,0,0.45)",
+    top: 12,
+    right: 12,
     justifyContent: "center",
     alignItems: "center",
     zIndex: 2,
