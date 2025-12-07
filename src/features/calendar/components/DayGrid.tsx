@@ -1,5 +1,13 @@
-import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import type { FC } from "react";
+import {
+  Dimensions,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CalendarDay } from "../utils/dates";
 import { useAppTheme } from "@common/theme/appTheme";
 import { getDateVisuals } from "@features/activities/utils/dateVisuals";
@@ -12,7 +20,10 @@ interface Props {
   onSelectDay: (dayKey: string) => void;
 }
 
-const DayGrid: React.FC<Props> = ({
+// With flexBasis/maxWidth: "18%" ~ 5 columns per row
+const COLUMNS = 5;
+
+const DayGrid: FC<Props> = ({
   days,
   selectedDate,
   todayKey,
@@ -20,94 +31,131 @@ const DayGrid: React.FC<Props> = ({
   onSelectDay,
 }) => {
   const { colors } = useAppTheme();
+  const insets = useSafeAreaInsets();
+  const screenHeight = Dimensions.get("window").height;
+
+  // Safe area height = screen - top/bottom insets
+  const safeAreaHeight = screenHeight - (insets.top + insets.bottom);
+  const maxGridHeight = safeAreaHeight * 0.75;
+
+  // compute once, not inside map
+  const plannedVisuals = getDateVisuals(colors, "planned");
+  const officialVisuals = getDateVisuals(colors, "official");
+  const plannedDotColor = plannedVisuals.color;
+  const officialDotColor = officialVisuals.color;
+
+  // --- spacer logic to keep last row left-aligned with space-between ---
+  const remainder = days.length % COLUMNS;
+  const spacerCount = remainder === 0 ? 0 : COLUMNS - remainder;
+  const daysWithSpacers: (CalendarDay | null)[] = [
+    ...days,
+    ...Array(spacerCount).fill(null),
+  ];
+  // ---------------------------------------------------------------------
 
   return (
-    <View style={styles.daysGrid}>
-      {days.map((item) => {
-        const isToday = item.key === todayKey;
-        const isSelected = item.key === selectedDate;
-        const plannedVisuals = getDateVisuals(colors, "planned");
-        const officialVisuals = getDateVisuals(colors, "official");
-        const plannedDotColor = plannedVisuals.color;
-        const officialDotColor = officialVisuals.color;
-        const dotBorder = isSelected ? colors.surface : colors.border;
-        return (
-          <Pressable
-            key={item.key}
-            style={[
-              styles.dayChip,
-              {
-                backgroundColor: colors.surface,
-                borderColor: colors.border,
-              },
-              isSelected && {
-                borderColor: colors.primary,
-                backgroundColor: colors.primary,
-              },
-              isToday && {
-                borderColor: colors.primary,
-                backgroundColor: colors.overlay,
-              },
-            ]}
-            onPress={() => onSelectDay(item.key)}
-            hitSlop={6}
-          >
-            <Text
-              style={[
-                styles.dayNumber,
-                { color: colors.text },
-                isSelected && { color: colors.background },
-                isToday && { color: colors.primary, fontWeight: "800" },
-              ]}
-            >
-              {item.date.getDate()}
-            </Text>
-            <Text
-              style={[
-                styles.dayChipText,
-                { color: colors.secondaryText },
-                isSelected && { color: colors.background, fontWeight: "800" },
-                isToday && { color: colors.primary, fontWeight: "800" },
-              ]}
-            >
-              {item.date.toLocaleDateString(locale, { weekday: "short" })}
-            </Text>
-            <View style={styles.dayDotRow}>
+    <ScrollView
+      style={{ maxHeight: maxGridHeight }}
+      contentContainerStyle={styles.scrollContainer}
+      showsVerticalScrollIndicator={false}
+    >
+      <View style={styles.daysGrid}>
+        {daysWithSpacers.map((item, index) => {
+          // Render invisible spacers to fill the last row
+          if (!item) {
+            return (
               <View
-                style={[
-                  styles.dayDot,
-                  { backgroundColor: colors.border, borderColor: dotBorder },
-                  item.hasPlanned && {
-                    backgroundColor: plannedDotColor,
-                  },
-                ]}
+                key={`spacer-${index}`}
+                style={[styles.dayChip, styles.spacer]}
+                pointerEvents="none"
               />
-              <View
+            );
+          }
+
+          const isToday = item.key === todayKey;
+          const isSelected = item.key === selectedDate;
+          const dotBorder = isSelected ? colors.surface : colors.border;
+
+          return (
+            <Pressable
+              key={item.key}
+              style={[
+                styles.dayChip,
+                {
+                  backgroundColor: colors.surface,
+                  borderColor: colors.border,
+                },
+                isSelected && {
+                  borderColor: colors.primary,
+                  backgroundColor: colors.primary,
+                },
+                isToday && {
+                  borderColor: colors.primary,
+                  backgroundColor: colors.overlay,
+                },
+              ]}
+              onPress={() => onSelectDay(item.key)}
+              hitSlop={6}
+            >
+              <Text
                 style={[
-                  styles.dayDot,
-                  styles.secondaryDot,
-                  { backgroundColor: colors.border, borderColor: dotBorder },
-                  item.hasOfficial && {
-                    backgroundColor: officialDotColor,
-                  },
+                  styles.dayNumber,
+                  { color: colors.text },
+                  isSelected && { color: colors.background },
+                  isToday && { color: colors.primary, fontWeight: "800" },
                 ]}
-              />
-            </View>
-          </Pressable>
-        );
-      })}
-    </View>
+              >
+                {item.date.getDate()}
+              </Text>
+              <Text
+                style={[
+                  styles.dayChipText,
+                  { color: colors.secondaryText },
+                  isSelected && { color: colors.background, fontWeight: "800" },
+                  isToday && { color: colors.primary, fontWeight: "800" },
+                ]}
+              >
+                {item.date.toLocaleDateString(locale, { weekday: "short" })}
+              </Text>
+              <View style={styles.dayDotRow}>
+                <View
+                  style={[
+                    styles.dayDot,
+                    { backgroundColor: colors.border, borderColor: dotBorder },
+                    item.hasPlanned && {
+                      backgroundColor: plannedDotColor,
+                    },
+                  ]}
+                />
+                <View
+                  style={[
+                    styles.dayDot,
+                    styles.secondaryDot,
+                    { backgroundColor: colors.border, borderColor: dotBorder },
+                    item.hasOfficial && {
+                      backgroundColor: officialDotColor,
+                    },
+                  ]}
+                />
+              </View>
+            </Pressable>
+          );
+        })}
+      </View>
+    </ScrollView>
   );
 };
 
 export default DayGrid;
 
 const styles = StyleSheet.create({
+  scrollContainer: {
+    paddingBottom: 10,
+  },
   daysGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "flex-start",
-    columnGap: 6,
+    justifyContent: "space-between",
     rowGap: 10,
     marginBottom: 10,
   },
@@ -145,5 +193,8 @@ const styles = StyleSheet.create({
   },
   secondaryDot: {
     marginTop: 0,
+  },
+  spacer: {
+    opacity: 0,
   },
 });

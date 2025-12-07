@@ -1,19 +1,13 @@
 import React, {
   useEffect,
-  useMemo,
   useRef,
   useState,
   useCallback,
+  useMemo,
 } from "react";
-import {
-  View,
-  StyleSheet,
-  Alert,
-  Pressable,
-  Text,
-  ScrollView,
-} from "react-native";
+import { View, StyleSheet, Alert, Pressable, Text } from "react-native";
 import type { Region } from "react-native-maps";
+import type BottomSheet from "@gorhom/bottom-sheet";
 import { useAppSelector, useAppDispatch } from "@core/store/hook";
 import { activitiesSelectors } from "@features/activities/store/activitiesSelectors";
 import { selectAuthUser } from "@features/auth/store/authSelectors";
@@ -44,12 +38,19 @@ import {
 import { useAppTheme } from "@common/theme/appTheme";
 import { formatCategoryName } from "@features/activities/utils/categorySummary";
 import { settingsSelectors } from "@features/settings/store/settingsSelectors";
+import {
+  buildInitialRegion,
+  getActivityCategories,
+  getFallbackAddress,
+} from "@features/map/utils/regionUtils";
+import MapHeader from "../components/MapHeader";
 
-const MapScreen = () => {
+const MapScreen: React.FC = () => {
   const dispatch = useAppDispatch();
   const { confirm } = useConfirmDialog();
   const { t } = useTranslation();
   const { colors, mode: themeMode } = useAppTheme();
+
   const profile = useAppSelector(settingsSelectors.profile);
   const user = useAppSelector(selectAuthUser);
   const loading = useAppSelector(activitiesSelectors.loading);
@@ -59,67 +60,72 @@ const MapScreen = () => {
   const selectedCategory = useAppSelector(mapSelectors.selectedCategory);
 
   const [userRegion, setUserRegion] = useState<Region | null>(null);
+  const [initialRegion, setInitialRegion] = useState<Region | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+
   const selectedSelector = useMemo(
     () => (selectedId ? activitiesSelectors.byId(selectedId) : null),
     [selectedId]
   );
+
   const selected = useAppSelector((state) =>
     selectedSelector ? selectedSelector(state) : null
   );
-  const fallbackAddress = useMemo(() => {
-    const profileAddress = profile.address?.trim();
-    const metadataAddress = (
-      user?.user_metadata as { address?: string } | undefined
-    )?.address?.trim();
 
-    return profileAddress || metadataAddress || null;
-  }, [profile.address, user?.user_metadata]);
+  const fallbackAddress = useMemo(
+    () =>
+      getFallbackAddress(
+        profile.address,
+        (user?.user_metadata as { address?: string } | undefined)?.address
+      ),
+    [profile.address, user?.user_metadata]
+  );
+
   const [sheetMode, setSheetMode] = useState<"list" | "details">("list");
   const [sheetIndex, setSheetIndex] = useState(-1);
-  const sheetRef = useRef(null);
+  const sheetRef = useRef<BottomSheet | null>(null);
   const mapRef = useRef<ActivitiesMapHandle | null>(null);
+
   const snapPoints = useMemo(
     () => (sheetMode === "list" ? ["25%", "60%"] : ["25%", "60%", "90%"]),
     [sheetMode]
   );
 
   useEffect(() => {
-    const requestLocation = async () => {
-      const region = await requestUserRegion(fallbackAddress);
-      if (!region) {
+    const load = async () => {
+      const regionFromLocation = await requestUserRegion(fallbackAddress);
+
+      if (!regionFromLocation) {
         Alert.alert(
           t("activities:map.permissionDeniedTitle"),
           t("activities:map.permissionDeniedMessage")
         );
-        return;
       }
-      setUserRegion(region);
+
+      const finalRegion = buildInitialRegion({
+        userRegion: regionFromLocation,
+        activities,
+      });
+
+      setUserRegion(regionFromLocation ?? finalRegion);
+      setInitialRegion(finalRegion);
     };
 
-    requestLocation().catch(() => {});
-  }, [fallbackAddress, t]);
+    load().catch(() => {
+      const fallbackRegion = buildInitialRegion({
+        userRegion: null,
+        activities,
+      });
 
-  const initialRegion = useMemo<Region>(() => {
-    if (userRegion) return userRegion;
-    const withCoords = activities.find(
-      (a) => typeof a.latitude === "number" && typeof a.longitude === "number"
-    );
-    if (withCoords) {
-      return {
-        latitude: withCoords.latitude as number,
-        longitude: withCoords.longitude as number,
-        latitudeDelta: 0.15,
-        longitudeDelta: 0.15,
-      };
-    }
-    return {
-      latitude: 47.3769,
-      longitude: 8.5417,
-      latitudeDelta: 0.35,
-      longitudeDelta: 0.35,
-    };
-  }, [userRegion, activities]);
+      setUserRegion(fallbackRegion);
+      setInitialRegion(fallbackRegion);
+
+      Alert.alert(
+        t("activities:map.permissionDeniedTitle"),
+        t("activities:map.permissionDeniedMessage")
+      );
+    });
+  }, [fallbackAddress, activities, t]);
 
   const handleCloseSheet = useCallback(() => {
     sheetRef.current?.close?.();
@@ -128,7 +134,6 @@ const MapScreen = () => {
     setSelectedId(null);
   }, []);
 
-  // ⬇️ ici la modif : on snap à l'index 0 au lieu d'expand
   const openDetails = useCallback(
     (activity: Activity) => {
       dispatch(mapActions.setLastFocusedActivity(activity.id));
@@ -155,10 +160,6 @@ const MapScreen = () => {
         () => {
           dispatch(deleteActivity(activity.id));
           handleCloseSheet();
-        },
-        {
-          cancelText: t("activities:confirmDelete.cancel"),
-          confirmText: t("activities:confirmDelete.confirm"),
         }
       );
     },
@@ -167,22 +168,23 @@ const MapScreen = () => {
 
   const handleToggleFavorite = useCallback(
     (activity: Activity) => {
-      const isFav = favoriteIds.includes(activity.id);
-      if (isFav) dispatch(removeFavorite(activity.id));
-      else dispatch(addFavorite(activity.id));
+      const isFavorite = favoriteIds.includes(activity.id);
+      if (isFavorite) {
+        dispatch(removeFavorite(activity.id));
+      } else {
+        dispatch(addFavorite(activity.id));
+      }
     },
     [favoriteIds, dispatch]
   );
 
-  const handleOpenMaps = useCallback(
-    (activity: Activity) => openActivityInMaps(activity),
-    []
-  );
+  const handleOpenMaps = useCallback((activity: Activity) => {
+    openActivityInMaps(activity);
+  }, []);
 
-  const handleOpenSource = useCallback(
-    (activity: Activity) => openActivitySource(activity),
-    []
-  );
+  const handleOpenSource = useCallback((activity: Activity) => {
+    openActivitySource(activity);
+  }, []);
 
   const handleAddToCalendar = useCallback(
     (activity: Activity) => {
@@ -210,11 +212,11 @@ const MapScreen = () => {
     [dispatch]
   );
 
-  const handleShowNearby = () => {
+  const handleShowNearby = useCallback(() => {
     setSheetMode("list");
     setSheetIndex(0);
     sheetRef.current?.snapToIndex?.(0);
-  };
+  }, []);
 
   const handleSelectFromNearby = useCallback(
     (activity: Activity) => {
@@ -233,88 +235,40 @@ const MapScreen = () => {
     [dispatch]
   );
 
-  const categories = useMemo(() => {
-    const set = new Set<string>();
-    activities.forEach((a) => {
-      if (a.category) set.add(a.category);
-    });
-    return Array.from(set);
-  }, [activities]);
+  const categories = useMemo(
+    () => getActivityCategories(activities),
+    [activities]
+  );
 
   const isLoading = !initialized || loading || !initialRegion;
 
   return (
     <Screen noPadding loading={isLoading}>
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <Text style={[styles.title, { color: colors.text }]}>
-          {t("activities:map.title")}
-        </Text>
-
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.headerContent}
-        >
-          <Pressable
-            onPress={() => handleCategoryChange(null)}
-            style={[
-              styles.chip,
-              { backgroundColor: colors.overlay, borderColor: colors.border },
-              selectedCategory === null && styles.chipActive,
-              selectedCategory === null && {
-                backgroundColor: colors.primary,
-                borderColor: colors.primary,
-              },
-            ]}
-          >
-            <Text
-              style={[
-                styles.chipText,
-                selectedCategory === null && styles.chipTextActive,
-                { color: colors.text },
-                selectedCategory === null && { color: "#fff" },
-              ]}
-            >
-              {t("activities:map.all")}
-            </Text>
-          </Pressable>
-          {categories.map((cat) => (
-            <Pressable
-              key={cat}
-              onPress={() => handleCategoryChange(cat)}
-              style={[
-                styles.chip,
-                { backgroundColor: colors.overlay, borderColor: colors.border },
-                selectedCategory === cat && styles.chipActive,
-                selectedCategory === cat && {
-                  backgroundColor: colors.primary,
-                  borderColor: colors.primary,
-                },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.chipText,
-                  selectedCategory === cat && styles.chipTextActive,
-                  { color: colors.text },
-                  selectedCategory === cat && { color: "#fff" },
-                ]}
-              >
-                {formatCategoryName(cat)}
-              </Text>
-            </Pressable>
-          ))}
-        </ScrollView>
-      </View>
+      <MapHeader
+        title={t("activities:map.title")}
+        allLabel={t("activities:map.all")}
+        colors={{
+          border: colors.border,
+          text: colors.text,
+          overlay: colors.overlay,
+          primary: colors.primary,
+        }}
+        categories={categories}
+        selectedCategory={selectedCategory}
+        onChangeCategory={handleCategoryChange}
+        renderCategoryLabel={formatCategoryName}
+      />
 
       <View style={styles.mapContainer}>
-        <ActivitiesMap
-          ref={mapRef}
-          activities={activities}
-          initialRegion={initialRegion}
-          onSelectActivity={handleMapSelect}
-          selectedCategory={selectedCategory}
-        />
+        {initialRegion && (
+          <ActivitiesMap
+            ref={mapRef}
+            activities={activities}
+            initialRegion={initialRegion}
+            onSelectActivity={handleMapSelect}
+            selectedCategory={selectedCategory}
+          />
+        )}
 
         <Pressable
           style={[
@@ -368,48 +322,20 @@ const MapScreen = () => {
 export default MapScreen;
 
 const styles = StyleSheet.create({
-  header: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  title: {
-    paddingHorizontal: 12,
-    paddingTop: 12,
-    paddingBottom: 4,
-    fontSize: 22,
-    fontWeight: "700",
-  },
-  headerContent: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    gap: 8,
-  },
-  chip: {
-    borderWidth: 1,
-    borderRadius: 999,
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-  },
-  chipActive: {},
-  chipText: {
-    fontSize: 13,
-  },
-  chipTextActive: {
-    color: "#fff",
-  },
   mapContainer: {
     flex: 1,
   },
   fab: {
     position: "absolute",
     right: 16,
+    bottom: 16,
     width: 48,
     height: 48,
     borderRadius: 999,
-    alignItems: "center",
-    justifyContent: "center",
     elevation: 4,
     zIndex: 20,
-    bottom: 16,
+    alignItems: "center",
+    justifyContent: "center",
   },
   fabText: {
     fontSize: 20,

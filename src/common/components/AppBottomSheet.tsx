@@ -37,7 +37,7 @@ const AppBottomSheet = React.forwardRef<BottomSheet, AppBottomSheetProps>(
     },
     ref
   ) => {
-    const { colors, mode } = useAppTheme();
+    const { colors } = useAppTheme();
     const insets = useSafeAreaInsets();
     const bottomSpacing = Math.max(insets.bottom, 8);
     const resolvedSnapPoints = snapPoints ?? ["25%", "60%", "90%"];
