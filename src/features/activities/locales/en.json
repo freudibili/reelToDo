@@ -28,7 +28,7 @@
     "reportLocationSubject": "Fix location: {{title}}",
     "reportLocationPrompt": "Describe what is wrong with the location:",
     "reportLocationErrorTitle": "Can't open mail app",
-    "reportLocationError": "Please email support@reeltodo.app to flag this location.",
+    "reportLocationError": "Please email hello@reeltodo.com to flag this location.",
     "officialDates": "Official dates",
     "currentDates": "Current dates",
     "suggestDateTitle": "Suggest a better date",

@@ -92,7 +92,7 @@ const AppBottomSheet = React.forwardRef<BottomSheet, AppBottomSheetProps>(
           style={[styles.content, { backgroundColor: colors.surface }, style]}
         >
           <Pressable
-            style={[styles.closeBtn, { backgroundColor: colors.overlay }]}
+            style={[styles.closeBtn, { backgroundColor: colors.lightGray }]}
             onPress={onClose}
           >
             <Text style={[styles.closeText, { color: colors.text }]}>×</Text>
@@ -114,12 +114,11 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 16,
     ...Platform.select({
       ios: {
-        shadowOffset: { width: 0, height: -6 }, // 👈 shadow on top
-        shadowOpacity: 0.15,
+        shadowOffset: { width: 0, height: -6 },
         shadowRadius: 10,
       },
       android: {
-        elevation: 15, // 👈 Android shadow (always below, but helps soften edges)
+        elevation: 15,
       },
     }),
   },

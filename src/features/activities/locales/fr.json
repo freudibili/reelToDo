@@ -28,7 +28,7 @@
     "reportLocationSubject": "Corriger le lieu : {{title}}",
     "reportLocationPrompt": "Décris ce qui ne va pas avec le lieu :",
     "reportLocationErrorTitle": "Impossible d'ouvrir l'app mail",
-    "reportLocationError": "Écris à support@reeltodo.app pour signaler ce lieu.",
+    "reportLocationError": "Écris à hello@reeltodo.com pour signaler ce lieu.",
     "officialDates": "Dates officielles",
     "currentDates": "Dates actuelles",
     "suggestDateTitle": "Suggérer une meilleure date",

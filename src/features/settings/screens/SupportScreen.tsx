@@ -11,7 +11,7 @@ const SupportScreen = () => {
   const { t } = useTranslation();
 
   const openMail = (subject: string) => {
-    const uri = `mailto:support@reeltodo.app?subject=${encodeURIComponent(
+    const uri = `mailto:hello@reeltodo.com?subject=${encodeURIComponent(
       subject
     )}`;
     Linking.openURL(uri).catch(() =>
