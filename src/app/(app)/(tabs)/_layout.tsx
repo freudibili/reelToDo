@@ -37,7 +37,7 @@ const TabsLayout = () => {
         options={{
           title: t("navigation.tabs.activities"),
           tabBarIcon: ({ color, size }) => (
-            <Icon source="pine-tree" color={color} size={size} />
+            <Icon source="home" color={color} size={size} />
           ),
         }}
       />

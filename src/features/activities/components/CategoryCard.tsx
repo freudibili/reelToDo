@@ -1,16 +1,10 @@
 import React, { useRef } from "react";
-import {
-  Animated,
-  Image,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
 import { Icon } from "react-native-paper";
 import { useAppTheme } from "@common/theme/appTheme";
 import type { CategoryCardItem } from "../utils/categorySummary";
 import { formatCategoryName } from "../utils/categorySummary";
+import AppImage from "@common/components/AppImage";
 
 interface Props extends CategoryCardItem {
   onPress: (category: string) => void;
@@ -24,7 +18,7 @@ const CategoryCard: React.FC<Props> = ({
   hasCluster,
   onPress,
 }) => {
-  const { colors, mode } = useAppTheme();
+  const { colors } = useAppTheme();
   const scale = useRef(new Animated.Value(1)).current;
 
   const handlePressIn = () => {
@@ -49,7 +43,11 @@ const CategoryCard: React.FC<Props> = ({
 
   const displayName = formatCategoryName(name);
   const countLabel =
-    activityCount > 99 ? "99+" : activityCount > 9 ? `+${activityCount}` : `${activityCount}`;
+    activityCount > 99
+      ? "99+"
+      : activityCount > 9
+        ? `+${activityCount}`
+        : `${activityCount}`;
   const countBackground = "rgba(255,255,255,0.85)";
   const countIconColor = "#0f172a";
   const placeholderBackground =
@@ -64,46 +62,47 @@ const CategoryCard: React.FC<Props> = ({
         style={styles.card}
       >
         <View
-          style={[
-            styles.media,
-            { backgroundColor: placeholderBackground },
-          ]}
+          style={[styles.media, { backgroundColor: placeholderBackground }]}
         >
-          {heroImageUrl ? (
-            <Image
-              source={{ uri: heroImageUrl }}
-              style={[StyleSheet.absoluteFillObject, styles.image]}
-              resizeMode="cover"
-            />
-          ) : (
-            <View
-              style={[
-                styles.placeholder,
-                { backgroundColor: placeholderBackground },
-              ]}
-            >
-              <Icon source="folder-outline" size={32} color={colors.secondaryText} />
-            </View>
-          )}
-
-          {activityCount > 0 ? (
-            <View style={[styles.countBadge, { backgroundColor: countBackground }]}>
-              <View style={styles.countRow}>
-                <Text style={[styles.countText, { color: countIconColor }]}>
-                  {countLabel} spots
-                </Text>
+          <AppImage
+            uri={heroImageUrl}
+            style={StyleSheet.absoluteFillObject}
+            resizeMode="cover"
+          >
+            {activityCount > 0 ? (
+              <View
+                style={[
+                  styles.countBadge,
+                  { backgroundColor: countBackground },
+                ]}
+              >
+                <View style={styles.countRow}>
+                  <Text style={[styles.countText, { color: countIconColor }]}>
+                    {countLabel} spots
+                  </Text>
+                </View>
               </View>
-            </View>
-          ) : null}
+            ) : null}
 
-          {hasCluster ? (
-            <View style={[styles.clusterBadge, { backgroundColor: colors.card }]}>
-              <Icon source="map-marker-multiple" size={18} color={colors.primary} />
-            </View>
-          ) : null}
+            {hasCluster ? (
+              <View
+                style={[styles.clusterBadge, { backgroundColor: colors.card }]}
+              >
+                <Icon
+                  source="map-marker-multiple"
+                  size={18}
+                  color={colors.primary}
+                />
+              </View>
+            ) : null}
+          </AppImage>
         </View>
+
         <View style={styles.content}>
-          <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>
+          <Text
+            style={[styles.title, { color: colors.text }]}
+            numberOfLines={1}
+          >
             {displayName}
           </Text>
         </View>
@@ -126,12 +125,6 @@ const styles = StyleSheet.create({
     position: "relative",
     borderRadius: 14,
     overflow: "hidden",
-  },
-  image: { borderRadius: 14 },
-  placeholder: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: "center",
-    alignItems: "center",
   },
   content: {
     paddingHorizontal: 6,

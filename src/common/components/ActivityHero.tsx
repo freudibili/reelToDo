@@ -1,15 +1,10 @@
 import React from "react";
-import {
-  ImageBackground,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Icon } from "react-native-paper";
 import { formatCategoryName } from "@features/activities/utils/categorySummary";
 import { useAppTheme } from "@common/theme/appTheme";
+import AppImage from "./AppImage";
 
 interface ActivityHeroProps {
   title: string;
@@ -34,69 +29,46 @@ const ActivityHero: React.FC<ActivityHeroProps> = ({
 }) => {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
+
   const fallbackTitle = t("labels.activity");
   const displayTitle = title || fallbackTitle;
-  const displayCategory = category ? formatCategoryName(category) : fallbackTitle;
+  const displayCategory = category
+    ? formatCategoryName(category)
+    : fallbackTitle;
   const chips = [location, dateLabel].filter(Boolean) as string[];
-  const initial =
-    title?.trim()?.[0]?.toUpperCase() ||
-    fallbackTitle?.trim()?.[0]?.toUpperCase() ||
-    "A";
-
-  const renderHeroContent = () => (
-    <View style={styles.overlayContent}>
-      <Text style={styles.category}>{displayCategory}</Text>
-      <Text style={styles.title} numberOfLines={2}>
-        {displayTitle}
-      </Text>
-      {chips.length > 0 ? (
-        <View style={styles.chipRow}>
-          {chips.map((chip, idx) => (
-            <View style={styles.chip} key={`${chip}-${idx}`}>
-              <Text style={styles.chipText}>{chip}</Text>
-            </View>
-          ))}
-        </View>
-      ) : null}
-    </View>
-  );
 
   return (
     <View style={styles.container}>
-      {imageUrl ? (
-        <ImageBackground
-          source={{ uri: imageUrl }}
-          style={styles.cover}
-          resizeMode="cover"
-          imageStyle={styles.coverImage}
-        >
-          <View style={styles.scrim} />
-          {onToggleFavorite ? (
-            <Pressable style={styles.favoriteBtn} onPress={onToggleFavorite}>
-              <Icon
-                source={isFavorite ? "heart" : "heart-outline"}
-                size={18}
-                color={isFavorite ? colors.favorite : colors.background}
-              />
-            </Pressable>
-          ) : null}
-          {showOverlayContent ? renderHeroContent() : null}
-        </ImageBackground>
-      ) : (
-        <View style={[styles.cover, styles.placeholder]}>
-          <Text style={styles.placeholderInitial}>{initial}</Text>
-          {onToggleFavorite ? (
-            <Pressable style={styles.favoriteBtn} onPress={onToggleFavorite}>
-              <Icon
-                source={isFavorite ? "heart" : "heart-outline"}
-                size={18}
-                color={colors.favorite}
-              />
-            </Pressable>
-          ) : null}
-          {showOverlayContent ? renderHeroContent() : null}
-        </View>
-      )}
+      <AppImage uri={imageUrl} style={styles.image} resizeMode="cover">
+        {onToggleFavorite && (
+          <Pressable style={styles.favoriteBtn} onPress={onToggleFavorite}>
+            <Icon
+              source={isFavorite ? "heart" : "heart-outline"}
+              size={18}
+              color={isFavorite ? colors.favorite : colors.background}
+            />
+          </Pressable>
+        )}
+
+        {showOverlayContent && (
+          <View style={styles.overlayContent}>
+            <Text style={styles.category}>{displayCategory}</Text>
+            <Text style={styles.title} numberOfLines={2}>
+              {displayTitle}
+            </Text>
+
+            {chips.length > 0 && (
+              <View style={styles.chipRow}>
+                {chips.map((chip, idx) => (
+                  <View style={styles.chip} key={`${chip}-${idx}`}>
+                    <Text style={styles.chipText}>{chip}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
+        )}
+      </AppImage>
     </View>
   );
 };
@@ -109,30 +81,9 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     backgroundColor: "#0f172a",
   },
-  cover: {
+  image: {
+    width: "100%",
     height: 210,
-    position: "relative",
-    padding: 12,
-  },
-  coverImage: {
-    borderRadius: 20,
-  },
-  scrim: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.22)",
-  },
-  placeholder: {
-    backgroundColor: "#0f172a",
-    justifyContent: "flex-end",
-  },
-  placeholderInitial: {
-    position: "absolute",
-    top: 18,
-    left: 18,
-    fontSize: 42,
-    fontWeight: "800",
-    color: "#ffffff",
-    opacity: 0.3,
   },
   overlayContent: {
     position: "absolute",
@@ -144,7 +95,6 @@ const styles = StyleSheet.create({
     color: "#dbeafe",
     fontSize: 13,
     fontWeight: "600",
-    letterSpacing: 0.2,
   },
   title: {
     color: "#fff",
@@ -177,7 +127,7 @@ const styles = StyleSheet.create({
     height: 34,
     width: 34,
     borderRadius: 17,
-    backgroundColor: "rgba(0,0,0,0.45)",
+    backgroundColor: "rgba(0,0,0,0.4)",
     alignItems: "center",
     justifyContent: "center",
     zIndex: 2,

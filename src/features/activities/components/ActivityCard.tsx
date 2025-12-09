@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet, Image, Pressable } from "react-native";
+import { View, Text, StyleSheet, Pressable } from "react-native";
 import { Icon } from "react-native-paper";
 import {
   formatActivityLocation,
@@ -10,6 +10,7 @@ import type { Activity } from "../utils/types";
 import { useTranslation } from "react-i18next";
 import { useAppTheme } from "@common/theme/appTheme";
 import FavoriteHeart from "./FavoriteHeart";
+import AppImage from "@common/components/AppImage";
 
 interface Props {
   activity: Activity;
@@ -26,6 +27,7 @@ const ActivityCard: React.FC<Props> = ({
 }) => {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
+
   const locationLabel = formatActivityLocation(activity);
   const primaryDate = getPrimaryDateValue(activity);
   const dateLabel = formatDisplayDate(primaryDate);
@@ -36,30 +38,23 @@ const ActivityCard: React.FC<Props> = ({
       <View
         style={[styles.imageWrapper, { backgroundColor: colors.mutedSurface }]}
       >
-        {activity.image_url ? (
-          <Image
-            source={{ uri: activity.image_url }}
-            style={styles.image}
-            resizeMode="cover"
-          />
-        ) : (
-          <View
-            style={[
-              styles.imagePlaceholder,
-              { backgroundColor: colors.overlay },
-            ]}
-          />
-        )}
-        {onToggleFavorite ? (
-          <Pressable
-            hitSlop={10}
-            onPress={() => onToggleFavorite(activity)}
-            style={styles.favoriteBtn}
-          >
-            <FavoriteHeart selected={isFavorite} size={20} />
-          </Pressable>
-        ) : null}
+        <AppImage
+          uri={activity.image_url}
+          style={styles.image}
+          resizeMode="cover"
+        >
+          {onToggleFavorite && (
+            <Pressable
+              hitSlop={10}
+              onPress={() => onToggleFavorite(activity)}
+              style={styles.favoriteBtn}
+            >
+              <FavoriteHeart selected={isFavorite} size={20} />
+            </Pressable>
+          )}
+        </AppImage>
       </View>
+
       <View style={styles.content}>
         <Text
           style={[styles.title, { color: colors.text }]}
@@ -68,6 +63,7 @@ const ActivityCard: React.FC<Props> = ({
         >
           {activity.title ?? t("activities:card.untitled")}
         </Text>
+
         {locationLabel ? (
           <View style={styles.metaRow}>
             <Icon source="map-marker" size={14} color={colors.secondaryText} />
@@ -80,6 +76,7 @@ const ActivityCard: React.FC<Props> = ({
             </Text>
           </View>
         ) : null}
+
         {dateLabel ? (
           <View style={styles.metaRow}>
             <Icon
@@ -103,6 +100,8 @@ const ActivityCard: React.FC<Props> = ({
   );
 };
 
+export default ActivityCard;
+
 const styles = StyleSheet.create({
   card: {
     borderRadius: 12,
@@ -114,8 +113,10 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     position: "relative",
   },
-  image: { width: "100%", height: "100%" },
-  imagePlaceholder: { width: "100%", height: "100%" },
+  image: {
+    width: "100%",
+    height: "100%",
+  },
   content: {
     paddingHorizontal: 6,
     paddingVertical: 8,
@@ -144,5 +145,3 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
 });
-
-export default ActivityCard;
