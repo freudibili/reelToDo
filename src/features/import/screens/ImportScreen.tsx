@@ -276,9 +276,7 @@ const ImportScreen = () => {
       loadingContent={<ImportLoader message={t("import:loader.message")} />}
       scrollable
       onBackPress={
-        alreadyHadActivity || !fromActivities
-          ? handleGoHome
-          : handleBackPress
+        alreadyHadActivity || !fromActivities ? handleGoHome : handleBackPress
       }
       footer={
         activity && !alreadyHadActivity ? (
@@ -299,7 +297,7 @@ const ImportScreen = () => {
           <ImportErrorState message={error} onGoHome={handleGoHome} />
         ) : null}
 
-        {!hasSharedParam ? (
+        {!hasSharedParam && !displayActivity ? (
           <ManualLinkCard
             value={manualLink}
             onChange={setManualLink}
@@ -331,9 +329,9 @@ const ImportScreen = () => {
                 }
                 dateLabel={
                   displayNeedsDate
-                    ? formatDisplayDate(
+                    ? (formatDisplayDate(
                         getOfficialDateValue(displayActivity)
-                      ) ?? t("activities:details.dateMissing")
+                      ) ?? t("activities:details.dateMissing"))
                     : undefined
                 }
                 style={styles.headerBlock}
@@ -347,9 +345,9 @@ const ImportScreen = () => {
                 }
                 dateLabel={
                   displayNeedsDate
-                    ? formatDisplayDate(
+                    ? (formatDisplayDate(
                         getOfficialDateValue(displayActivity)
-                      ) ?? t("activities:details.dateMissing")
+                      ) ?? t("activities:details.dateMissing"))
                     : undefined
                 }
                 imageUrl={displayActivity.image_url}
@@ -409,10 +407,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     gap: 10,
   },
-  alreadyHaveTitle: {
-    fontSize: 15,
-    fontWeight: "700",
-  },
+  alreadyHaveTitle: {},
   returnHomeBtn: {
     alignSelf: "flex-start",
     paddingVertical: 10,

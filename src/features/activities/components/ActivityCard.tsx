@@ -32,15 +32,9 @@ const ActivityCard: React.FC<Props> = ({
   const isPlanned = Boolean(activity.planned_at);
 
   return (
-    <Pressable
-      style={styles.card}
-      onPress={() => onPress(activity)}
-    >
+    <Pressable style={styles.card} onPress={() => onPress(activity)}>
       <View
-        style={[
-          styles.imageWrapper,
-          { backgroundColor: colors.mutedSurface },
-        ]}
+        style={[styles.imageWrapper, { backgroundColor: colors.mutedSurface }]}
       >
         {activity.image_url ? (
           <Image
@@ -62,10 +56,7 @@ const ActivityCard: React.FC<Props> = ({
             onPress={() => onToggleFavorite(activity)}
             style={styles.favoriteBtn}
           >
-            <FavoriteHeart
-              selected={isFavorite}
-              size={20}
-            />
+            <FavoriteHeart selected={isFavorite} size={20} />
           </Pressable>
         ) : null}
       </View>

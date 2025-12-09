@@ -51,9 +51,8 @@ const ImportResultCard: React.FC<ImportResultCardProps> = ({
       ]}
     >
       <View style={styles.resultHeader}>
-        <View style={styles.badge}>
-          <Icon source="check-circle" size={22} color={colors.primary} />
-        </View>
+        <Icon source="check-circle" size={22} color={colors.success} />
+
         <View>
           <Text style={[styles.title, { color: colors.text }]}>
             {t(titleKey, "Analysis ready")}
@@ -117,7 +116,6 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: "rgba(34,197,94,0.12)",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -127,6 +125,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 13,
+    width: "95%",
   },
   summary: {
     marginTop: 8,
