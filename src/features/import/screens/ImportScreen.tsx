@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, Pressable, Text } from "react-native";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import type { ShareIntent } from "expo-share-intent";
 
@@ -19,6 +19,7 @@ import {
   analyzeSharedLink,
   saveImportedActivityDetails,
   resetImport,
+  restartImportProcessing,
 } from "@features/import/store/importSlice";
 import {
   fetchActivities,
@@ -33,11 +34,12 @@ import ImportResultCard from "../components/ImportResultCard";
 import type { ImportDetailsFormHandle } from "../components/ImportDetailsForm";
 import ImportFooter from "../components/ImportFooter";
 import ImportErrorState from "../components/ImportErrorState";
-import ImportLoader from "../components/ImportLoader";
-import type { Activity } from "@features/activities/utils/types";
+import type {
+  Activity,
+  ActivityProcessingStatus,
+} from "@features/activities/utils/types";
 import { UpdateActivityPayload } from "../utils/types";
 import { useTranslation } from "react-i18next";
-import { Pressable, Text } from "react-native";
 import ActivitySummaryHeader from "@common/components/ActivitySummaryHeader";
 import ActivityHero from "@common/components/ActivityHero";
 import {
@@ -47,6 +49,10 @@ import {
 } from "@features/activities/utils/activityDisplay";
 import { categoryNeedsDate } from "@features/activities/utils/activityHelper";
 import { useAppTheme } from "@common/theme/appTheme";
+import { useActivityProcessingWatcher } from "../hooks/useActivityProcessingWatcher";
+import ProcessingStateCard from "../components/ProcessingStateCard";
+import { useImportNotificationPermission } from "../hooks/useImportNotificationPermission";
+import { showToast as showToastAction } from "@common/store/appSlice";
 
 const isValidHttpUrl = (input: string) => {
   if (!input) return false;
@@ -68,6 +74,15 @@ const ImportScreen = () => {
   const { confirm } = useConfirmDialog();
   const { t } = useTranslation();
   const { colors, mode } = useAppTheme();
+  const requestNotificationPermission = useImportNotificationPermission(
+    user?.id ?? null
+  );
+  const showToast = useCallback(
+    (message: string, type: "success" | "error") => {
+      dispatch(showToastAction({ message, type }));
+    },
+    [dispatch]
+  );
 
   const loading = useAppSelector(selectImportLoading);
   const error = useAppSelector(selectImportError);
@@ -113,7 +128,6 @@ const ImportScreen = () => {
     return null;
   }, [sharedData]);
   const [manualLink, setManualLink] = useState("");
-  const screenLoading = loading || (hasSharedParam && !activity && !showError);
   const alreadyHadActivity = activity
     ? knownActivityIdsRef.current.has(activity.id)
     : false;
@@ -125,10 +139,22 @@ const ImportScreen = () => {
   const displayNeedsDate = displayActivity
     ? categoryNeedsDate(displayActivity.category)
     : false;
+  const processingStatus = (displayActivity?.processing_status ??
+    "complete") as ActivityProcessingStatus;
+  const isProcessing = processingStatus === "processing";
+  const isFailed = processingStatus === "failed";
+  const processingErrorMessage =
+    displayActivity?.processing_error ?? error ?? null;
+  const showAnalyzingCard =
+    !displayActivity && !showError && (loading || hasSharedParam);
+  const showManualCard = !hasSharedParam && !displayActivity && !loading;
 
   const hasAnalyzedRef = useRef(false);
   const detailsRef = useRef<ImportDetailsFormHandle>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const lastStatusRef = useRef<{ id: string; status: ActivityProcessingStatus | null } | null>(null);
+  const lastActivityIdRef = useRef<string | null>(null);
+  const clearingRef = useRef(false);
   const trimmedLink = manualLink.trim();
   const canAnalyzeManual =
     isValidHttpUrl(trimmedLink) && !loading && !sharedUrl;
@@ -147,6 +173,7 @@ const ImportScreen = () => {
     (payload: ShareIntent) => {
       if (!user?.id || hasAnalyzedRef.current) return;
       hasAnalyzedRef.current = true;
+      void requestNotificationPermission();
       dispatch(
         analyzeSharedLink({
           shared: payload,
@@ -156,7 +183,7 @@ const ImportScreen = () => {
         hasAnalyzedRef.current = false;
       });
     },
-    [dispatch, user?.id]
+    [dispatch, requestNotificationPermission, user?.id]
   );
 
   const handleManualAnalyze = useCallback(() => {
@@ -167,6 +194,16 @@ const ImportScreen = () => {
       text: trimmedLink,
     } as ShareIntent);
   }, [loading, triggerAnalyze, trimmedLink, user?.id]);
+
+  const handleRetryProcessing = useCallback(() => {
+    if (!activity?.id || !user?.id) return;
+    dispatch(
+      restartImportProcessing({
+        activityId: activity.id,
+        userId: user.id,
+      })
+    );
+  }, [activity?.id, dispatch, user?.id]);
 
   useEffect(() => {
     if (!sharedUrl && sharedData?.text && !manualLink) {
@@ -184,10 +221,10 @@ const ImportScreen = () => {
   }, [sharedData?.text, sharedUrl, triggerAnalyze, user?.id]);
 
   useEffect(() => {
-    if (activity) {
+    if (activity && processingStatus === "complete") {
       setHasUnsavedChanges(!alreadyHadActivity);
     }
-  }, [activity, alreadyHadActivity]);
+  }, [activity, alreadyHadActivity, processingStatus]);
 
   useEffect(() => {
     if (activity || error) {
@@ -195,8 +232,69 @@ const ImportScreen = () => {
     }
   }, [activity, error]);
 
+  const handleProcessingFailure = useCallback(
+    async (activityId: string, alreadyDeleted = false) => {
+      if (clearingRef.current) return;
+      clearingRef.current = true;
+      try {
+        if (!alreadyDeleted) {
+          await dispatch(cancelActivity(activityId)).unwrap();
+        }
+        await dispatch(fetchActivities());
+        showToast(t("import:toast.failed"), "error");
+      } catch {
+        showToast(t("import:toast.failed"), "error");
+      } finally {
+        dispatch(resetImport());
+        setHasUnsavedChanges(false);
+        lastStatusRef.current = null;
+        lastActivityIdRef.current = null;
+        setManualLink("");
+        router.replace("/import" as never);
+        clearingRef.current = false;
+      }
+    },
+    [dispatch, showToast, t, router]
+  );
+
+  const handleActivityDeleted = useCallback(() => {
+    const deletedId = lastActivityIdRef.current;
+    if (deletedId) {
+      void handleProcessingFailure(deletedId, true);
+    }
+  }, [handleProcessingFailure]);
+
+  useActivityProcessingWatcher(displayActivity?.id ?? null, isProcessing, handleActivityDeleted);
+
+  useEffect(() => {
+    if (!displayActivity) {
+      lastStatusRef.current = null;
+      return;
+    }
+
+    const prev =
+      lastStatusRef.current?.id === displayActivity.id
+        ? lastStatusRef.current.status
+        : null;
+
+    lastActivityIdRef.current = displayActivity.id;
+
+    if (processingStatus === "failed" && prev !== "failed") {
+      void handleProcessingFailure(displayActivity.id);
+    }
+
+    if (processingStatus === "complete" && prev === "processing") {
+      showToast(t("import:toast.success"), "success");
+    }
+
+    lastStatusRef.current = {
+      id: displayActivity.id,
+      status: processingStatus,
+    };
+  }, [displayActivity, handleProcessingFailure, processingStatus, showToast, t]);
+
   const handleSaveDetails = (payload: UpdateActivityPayload) => {
-    if (!activity) return;
+    if (!activity || isProcessing || isFailed) return;
 
     confirm(
       t("import:confirm.saveTitle"),
@@ -272,14 +370,12 @@ const ImportScreen = () => {
 
   return (
     <Screen
-      loading={screenLoading}
-      loadingContent={<ImportLoader message={t("import:loader.message")} />}
       scrollable
       onBackPress={
         alreadyHadActivity || !fromActivities ? handleGoHome : handleBackPress
       }
       footer={
-        activity && !alreadyHadActivity ? (
+        activity && !alreadyHadActivity && processingStatus === "complete" ? (
           <ImportFooter
             disabled={!hasUnsavedChanges}
             onCancel={handleCancelDetails}
@@ -297,7 +393,15 @@ const ImportScreen = () => {
           <ImportErrorState message={error} onGoHome={handleGoHome} />
         ) : null}
 
-        {!hasSharedParam && !displayActivity ? (
+        {showAnalyzingCard ? (
+          <ProcessingStateCard
+            mode="processing"
+            message={t("import:loader.message")}
+            showAnimation
+          />
+        ) : null}
+
+        {showManualCard ? (
           <ManualLinkCard
             value={manualLink}
             onChange={setManualLink}
@@ -313,7 +417,18 @@ const ImportScreen = () => {
         ) : null}
 
         {displayActivity ? (
-          alreadyHadActivity ? (
+          isProcessing ? (
+            <ProcessingStateCard mode="processing" showAnimation />
+          ) : isFailed ? (
+            <ProcessingStateCard
+              mode="failed"
+              message={processingErrorMessage}
+              loading={loading}
+              onRetry={handleRetryProcessing}
+              onSecondary={handleGoHome}
+              secondaryLabel={t("import:processing.backHome")}
+            />
+          ) : alreadyHadActivity ? (
             <View
               style={[
                 styles.alreadyHaveCard,
@@ -380,7 +495,7 @@ const ImportScreen = () => {
             </View>
           ) : (
             <ImportResultCard
-              activity={activity}
+              activity={displayActivity ?? activity}
               detailsRef={detailsRef}
               onSave={handleSaveDetails}
               onCancel={handleCancelDetails}

@@ -1,15 +1,33 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
-import { supabase } from "./deps.ts";
-import { getSourceMetadata } from "./source.ts";
 import {
-  categoriesRequiringDate,
-  generateTitle,
-  mergeIfNull,
-  normalizeActivity,
-  normalizeActivityUrl,
-} from "./normalize.ts";
-import { fetchMediaAnalyzer, mapMediaAnalyzer } from "./mediaAnalyzer.ts";
-import { allowedCategories } from "./categories.ts";
+  supabase,
+  supabaseServiceRoleKey,
+  supabaseUrl,
+} from "./deps.ts";
+import { normalizeActivityUrl } from "./normalize.ts";
+
+const triggerProcessActivity = (payload: Record<string, unknown>) => {
+  if (!supabaseUrl || !supabaseServiceRoleKey) {
+    console.log("[fn] missing Supabase env for process-activity trigger");
+    return;
+  }
+
+  try {
+    fetch(`${supabaseUrl}/functions/v1/process-activity`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${supabaseServiceRoleKey}`,
+      },
+      body: JSON.stringify(payload),
+    }).catch((err) =>
+      console.log("[fn] process-activity trigger failed", err)
+    );
+  } catch (err) {
+    console.log("[fn] process-activity trigger error", err);
+  }
+};
+
 serve(async (req) => {
   console.log("[fn] --- analyze-post invoked ---");
 
@@ -37,16 +55,7 @@ serve(async (req) => {
   const extraSharedData = body.extraSharedData as
     | Record<string, any>
     | undefined;
-  // Map extraSharedData into the old metadata shape expected by getSourceMetadata
-  const userMeta = extraSharedData
-    ? {
-        title: extraSharedData.title ?? null,
-        description: extraSharedData.text ?? null,
-        thumbnail_url: extraSharedData.thumbnail_url ?? null,
-        video_url: extraSharedData.video_url ?? null,
-        author_name: extraSharedData.creator ?? null,
-      }
-    : (body.metadata as Record<string, any> | undefined);
+  const metadata = body.metadata as Record<string, any> | undefined;
 
   if (!url) {
     return new Response(JSON.stringify({ error: "Missing url" }), {
@@ -83,7 +92,8 @@ serve(async (req) => {
   if (existing) {
     console.log("[fn] already exists, returning existing id", existing.id);
 
-    if (userId && !existing.user_id) {
+    const needsOwner = userId && !existing.user_id;
+    if (needsOwner) {
       const { error: claimError } = await supabase
         .from("activities")
         .update({ user_id: userId })
@@ -116,95 +126,38 @@ serve(async (req) => {
       }
     }
 
+    const isProcessing =
+      (existing as any).processing_status === "processing" ||
+      (existing as any).processing_status === "failed";
+
+    if (isProcessing) {
+      triggerProcessActivity({
+        activityId: existing.id,
+        url: normalizedUrl,
+        userId,
+        platform,
+        extraSharedData,
+      });
+    }
+
     return new Response(JSON.stringify(existing), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
   }
 
-  console.log("[fn] fetching source meta for", url);
-  const sourceMetaPromise = getSourceMetadata(url, userMeta);
-  const analyzerPromise = fetchMediaAnalyzer(url, {
-    platform: platform ?? null,
-    extraSharedData: extraSharedData ?? null,
-  });
+  const placeholderTitle =
+    extraSharedData?.title ?? metadata?.title ?? "Processing activity";
+  const placeholderImage =
+    extraSharedData?.thumbnail_url ?? metadata?.thumbnail_url ?? null;
+  const placeholderCreator =
+    extraSharedData?.creator ?? metadata?.author_name ?? null;
+  const tags = Array.isArray(extraSharedData?.tags)
+    ? extraSharedData!.tags.filter((t: unknown) => typeof t === "string")
+    : [];
 
-  const sourceMeta = await sourceMetaPromise;
-  console.log("[fn] sourceMeta", sourceMeta);
-
-  const analyzerResult = await analyzerPromise;
-  let analyzerFailed = false;
-  let videoDownloadErrorReason: string | undefined = undefined;
-  if (analyzerResult && (analyzerResult as any)._errorReason) {
-    analyzerFailed = true;
-    videoDownloadErrorReason = (analyzerResult as any)._errorReason;
-    console.log("[fn] mediaanalyzer error", videoDownloadErrorReason);
-  }
-
-  if (analyzerResult && !(analyzerResult as any)._errorReason) {
-    const analyzerContent =
-      analyzerResult.activity ?? (analyzerResult as any)?.content ?? null;
-    console.log(
-      "[fn] mediaanalyzer platform",
-      analyzerResult.platform ?? "unknown"
-    );
-    console.log("[fn] mediaanalyzer activity", {
-      category: analyzerContent?.category ?? null,
-      title: analyzerContent?.title ?? null,
-      locations: analyzerContent?.locations ?? null,
-      dates: analyzerContent?.dates ?? null,
-      confidence: analyzerContent?.confidence ?? null,
-    });
-  } else {
-    if (!analyzerFailed) console.log("[fn] mediaanalyzer unavailable");
-  }
-  const { activity: analyzerActivity, description: analyzerDescription } =
-    await mapMediaAnalyzer(analyzerResult, url, {
-      title: extraSharedData?.title,
-      text: extraSharedData?.text,
-      creator: extraSharedData?.creator,
-      locationHint: extraSharedData?.locationHint,
-      cityHint: extraSharedData?.cityHint,
-      coordinates: extraSharedData?.coordinates,
-      tags: extraSharedData?.tags,
-    });
-
-  const baseDescription =
-    analyzerDescription ??
-    sourceMeta.description ??
-    analyzerResult?.rawDescription ??
-    null;
-
-  const hasAnySourceMeta = Boolean(
-    analyzerActivity?.title ||
-    sourceMeta.title ||
-    baseDescription ||
-    analyzerActivity?.image_url ||
-    analyzerResult?.thumbnailUrl ||
-    sourceMeta.image ||
-    sourceMeta.author ||
-    analyzerResult?.rawDescription
-  );
-  if (!hasAnySourceMeta) {
-    console.log("[fn] no usable metadata, aborting create");
-    return new Response(
-      JSON.stringify({
-        error: "NO_CONTENT",
-        reason: "Could not extract any metadata from the provided URL",
-      }),
-      {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
-  }
-
-  console.log("[fn] merge inputs", {
-    analyzerCategory: analyzerActivity?.category ?? null,
-  });
-
-  const emptyActivity = {
-    title: null,
+  const insertPayload = {
+    title: placeholderTitle,
     category: null,
     location_name: null,
     address: null,
@@ -212,249 +165,21 @@ serve(async (req) => {
     country: null,
     latitude: null,
     longitude: null,
-    date: null,
-    tags: [],
-    creator: null,
-    image_url: null,
-    confidence: null,
-    source_url: null,
-  };
-
-  const mergedPrimary = analyzerActivity ? analyzerActivity : emptyActivity;
-
-  let merged = mergeIfNull(mergedPrimary, {
-    title: sourceMeta.title ?? analyzerResult?.rawTitle ?? null,
-    creator:
-      mergedPrimary.creator ??
-      sourceMeta.author ??
-      analyzerResult?.creator ??
-      null,
-    source_url: mergedPrimary.source_url ?? analyzerResult?.sourceUrl ?? url,
-    image_url:
-      mergedPrimary.image_url ??
-      analyzerResult?.thumbnailUrl ??
-      sourceMeta.image ??
-      null,
-  });
-
-  // Merge extraSharedData.tags into merged tags (dedupe)
-  // Build final tags: prefer analyzer tags, merge hints and existing tags (dedup)
-  const analyzerTags = Array.isArray(analyzerActivity?.tags)
-    ? analyzerActivity!.tags
-        .map((t: any) => String(t ?? "").trim())
-        .filter(Boolean)
-    : [];
-  const hintTags = Array.isArray(extraSharedData?.tags)
-    ? extraSharedData!.tags
-        .map((t: any) => String(t ?? "").trim())
-        .filter(Boolean)
-    : [];
-  const existingTags = Array.isArray(merged.tags)
-    ? merged.tags.map((t: any) => String(t ?? "").trim()).filter(Boolean)
-    : [];
-
-  const finalTags =
-    analyzerTags.length > 0
-      ? Array.from(new Set([...analyzerTags, ...hintTags, ...existingTags]))
-      : Array.from(new Set([...existingTags, ...hintTags]));
-  merged = { ...merged, tags: finalTags };
-
-  // Apply coordinates hints if analyzer didn't provide coordinates
-  if (
-    (merged.latitude == null || merged.longitude == null) &&
-    extraSharedData?.coordinates
-  ) {
-    const lat = extraSharedData.coordinates.latitude;
-    const lon = extraSharedData.coordinates.longitude;
-    if (typeof lat === "number" && typeof lon === "number") {
-      merged = { ...merged, latitude: lat, longitude: lon };
-    }
-  }
-
-  const preferredTags =
-    (analyzerActivity?.tags ?? []).length > 0
-      ? (analyzerActivity?.tags ?? [])
-      : [];
-  if (
-    (!Array.isArray(merged.tags) || merged.tags.length === 0) &&
-    preferredTags.length > 0
-  ) {
-    merged = { ...merged, tags: preferredTags };
-  }
-
-  const normalized = normalizeActivity(merged);
-  console.log("[fn] merged/normalized", normalized);
-
-  let {
-    title,
-    category,
-    location_name,
-    address,
-    city,
-    country,
-    latitude,
-    longitude,
-    dates,
+    dates: [],
     tags,
-    creator,
-    image_url,
-    confidence,
-    source_url,
-  } = normalized;
-
-  const finalCategory =
-    category && allowedCategories.has(category) ? category : null;
-
-  console.log("[fn] finalCategory", finalCategory);
-
-  if (!finalCategory) {
-    const rejectionPayload = {
-      error: "UNSUPPORTED_CATEGORY",
-      code: "CATEGORY_UNSUPPORTED",
-      message:
-        "We couldn't map this content to a supported activity category yet. Try sharing a place or event link instead.",
-      reason: "Content category not in allowed list.",
-    };
-    console.log("[fn] rejected: unsupported category", {
-      category,
-      normalizedCategory: category,
-    });
-    return new Response(JSON.stringify(rejectionPayload), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-
-  const mainDate =
-    Array.isArray(dates) && dates.length > 0 ? (dates[0].start ?? null) : null;
-
-  const finalTitle = generateTitle(
-    finalCategory,
-    location_name ?? sourceMeta.title ?? "Activity",
-    city ?? null
-  );
-  console.log("[fn] finalTitle", finalTitle);
-
-  const confidenceValue = typeof confidence === "number" ? confidence : 0.9;
-
-  const hasLocation = !!location_name || !!city || (!!latitude && !!longitude);
-
-  const needsLocationConfirmation = !hasLocation || confidenceValue < 0.7;
-
-  const needsDateConfirmation =
-    categoriesRequiringDate.has(finalCategory) && !mainDate;
-
-  if (confidenceValue < 0.5) {
-    const rejectionPayload = {
-      error: "UNSUITABLE_CONTENT",
-      code: "LOW_CONFIDENCE",
-      message:
-        "We couldn't map this content to a supported activity category yet. Try sharing a place or event link instead.",
-      reason: "Content did not meet activity criteria (category/confidence).",
-    };
-    console.log("[fn] rejected: unsuitable content", {
-      category: finalCategory,
-      confidence: confidenceValue,
-      code: rejectionPayload.code,
-    });
-    return new Response(JSON.stringify(rejectionPayload), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-
-  // Secondary dedup: same date + city/location + overlapping title
-  if (mainDate && (city || location_name)) {
-    const titleFragment = (title ?? sourceMeta.title ?? "").slice(0, 80);
-    const titlePattern = titleFragment ? `%${titleFragment}%` : null;
-
-    let dupQuery = supabase
-      .from("activities")
-      .select("*")
-      .contains("dates", [mainDate]);
-
-    if (city) dupQuery = dupQuery.ilike("city", `%${city}%`);
-    if (location_name) {
-      dupQuery = dupQuery.ilike("location_name", `%${location_name}%`);
-    }
-    if (titlePattern) dupQuery = dupQuery.ilike("title", titlePattern);
-
-    const { data: similar } = await dupQuery.limit(1).maybeSingle();
-
-    if (similar) {
-      console.log(
-        "[fn] found potential duplicate by title/city/date",
-        similar.id
-      );
-
-      if (userId) {
-        console.log("[fn] upserting user_activities for duplicate activity");
-        const { error: uaError } = await supabase
-          .from("user_activities")
-          .upsert(
-            [
-              {
-                user_id: userId,
-                activity_id: similar.id,
-                is_favorite: false,
-              },
-            ],
-            {
-              onConflict: "user_id,activity_id",
-            }
-          );
-
-        if (uaError) {
-          console.log("[fn] user_activities upsert error", uaError);
-        }
-      }
-
-      const outSimilar = analyzerFailed
-        ? {
-            ...similar,
-            content: { videoDownloaded: false, videoDownloadErrorReason },
-          }
-        : { ...similar, content: { videoDownloaded: true } };
-      return new Response(JSON.stringify(outSimilar), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-  }
-
-  const analyzerLocations =
-    Array.isArray(analyzerActivity?.locations) &&
-    analyzerActivity.locations.length > 0
-      ? analyzerActivity.locations
-      : Array.isArray(analyzerResult?.activity?.locations) &&
-          analyzerResult.activity.locations.length > 0
-        ? analyzerResult.activity.locations
-        : null;
-
-  const insertPayload = {
-    title: finalTitle,
-    category: finalCategory,
-    location_name: location_name ?? null,
-    address: address ?? null,
-    city: city ?? null,
-    country: country ?? null,
-    latitude: latitude ?? null,
-    longitude: longitude ?? null,
-    dates: Array.isArray(dates)
-      ? dates.map((d: any) => d?.start).filter((d): d is string => Boolean(d))
-      : [],
-    tags: Array.isArray(tags) ? tags : [],
-    creator: creator ?? sourceMeta.author ?? null,
-    source_url: source_url ?? url,
-    image_url: image_url ?? sourceMeta.image ?? null,
-    confidence: typeof confidence === "number" ? confidence : 0.9,
-    needs_location_confirmation: needsLocationConfirmation,
-    needs_date_confirmation: needsDateConfirmation,
+    creator: placeholderCreator,
+    source_url: normalizedUrl,
+    image_url: placeholderImage,
+    confidence: null,
+    needs_location_confirmation: false,
+    needs_date_confirmation: false,
     user_id: userId ?? null,
-    analyzer_locations: analyzerLocations,
-  };
-
-  console.log("[fn] insertPayload", insertPayload);
+    processing_status: "processing",
+    processing_step: "queued",
+    processing_error: null,
+    import_platform: platform ?? null,
+    import_shared_data: extraSharedData ?? null,
+  } as const;
 
   const { data: activity, error: insertError } = await supabase
     .from("activities")
@@ -489,13 +214,7 @@ serve(async (req) => {
           );
         }
 
-        const out = analyzerFailed
-          ? {
-              ...existingDup,
-              content: { videoDownloaded: false, videoDownloadErrorReason },
-            }
-          : { ...existingDup, content: { videoDownloaded: true } };
-        return new Response(JSON.stringify(out), {
+        return new Response(JSON.stringify(existingDup), {
           status: 200,
           headers: { "Content-Type": "application/json" },
         });
@@ -512,21 +231,6 @@ serve(async (req) => {
         headers: { "Content-Type": "application/json" },
       }
     );
-  }
-
-  if (activity && Array.isArray(dates) && dates.length > 0) {
-    const rows = dates
-      .filter((d: any) => d && d.start)
-      .map((d: any) => ({
-        activity_id: activity.id,
-        start_date: d.start,
-        end_date: d.end ?? null,
-        recurrence_rule: d.recurrence_rule ?? null,
-      }));
-    if (rows.length > 0) {
-      console.log("[fn] inserting activity_dates", rows.length);
-      await supabase.from("activity_dates").insert(rows);
-    }
   }
 
   if (userId && activity?.id) {
@@ -549,16 +253,17 @@ serve(async (req) => {
     }
   }
 
-  console.log("[fn] done", activity?.id);
+  if (activity?.id) {
+    triggerProcessActivity({
+      activityId: activity.id,
+      url: normalizedUrl,
+      userId,
+      platform,
+      extraSharedData,
+    });
+  }
 
-  const outActivity = analyzerFailed
-    ? {
-        ...activity,
-        content: { videoDownloaded: false, videoDownloadErrorReason },
-      }
-    : { ...activity, content: { videoDownloaded: true } };
-
-  return new Response(JSON.stringify(outActivity), {
+  return new Response(JSON.stringify(activity), {
     status: 200,
     headers: { "Content-Type": "application/json" },
   });

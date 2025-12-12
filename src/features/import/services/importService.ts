@@ -112,6 +112,31 @@ export const importService = {
     return data as Activity;
   },
 
+  processActivity: async (
+    activityId: string,
+    userId: string
+  ): Promise<Activity> => {
+    const { data, error } = await supabase.functions.invoke(
+      "process-activity",
+      {
+        body: { activityId, user_id: userId },
+      }
+    );
+
+    if (error) {
+      const { message: extractedMessage } = extractFunctionError(error);
+      throw new Error(
+        extractedMessage ?? i18next.t("import:errors.analyze")
+      );
+    }
+
+    if (!data) {
+      throw new Error(i18next.t("import:errors.analyze"));
+    }
+
+    return data as Activity;
+  },
+
   ensureOwner: async (
     activityId: string,
     userId: string

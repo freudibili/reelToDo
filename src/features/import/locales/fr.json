@@ -13,6 +13,16 @@
     "analyzing": "Analyse en cours...",
     "helper": "Ajoute un lien valide pour démarrer."
   },
+  "processing": {
+    "title": "Analyse en cours...",
+    "subtitle": "On a enregistré ce lien et on lance l'analyse en arrière-plan.",
+    "hint": "Tu peux quitter cet écran, on te notifiera quand l'activité sera prête.",
+    "failedTitle": "Analyse inachevée",
+    "failedSubtitle": "Relance l'analyse avec « Réessayer ».",
+    "retry": "Réessayer",
+    "retrying": "Relance...",
+    "backHome": "Retour accueil"
+  },
   "confirm": {
     "saveTitle": "Enregistrer l'activité ?",
     "saveMessage": "Cela enregistrera l'activité avec le lieu et la date sélectionnés.",
@@ -67,5 +77,9 @@
     "description": "On ne peut pas importer cette vidéo pour l'instant. Retourne à l'accueil et réessaie dans un instant.",
     "reasonLabel": "Ce qui s'est passé",
     "homeCta": "Retour à l'accueil"
+  },
+  "toast": {
+    "success": "Activité analysée avec succès !",
+    "failed": "Analyse impossible. L'activité a été supprimée."
   }
 }

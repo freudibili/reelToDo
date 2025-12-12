@@ -24,3 +24,5 @@ export const youtubeApiKey = YOUTUBE_API_KEY;
 export const facebookAppToken = FACEBOOK_APP_TOKEN;
 export const mediaAnalyzerUrl = MEDIA_ANALYZER_URL;
 export const mediaAnalyzerApiToken = MEDIA_ANALYZER_API_TOKEN;
+export const supabaseUrl = SUPABASE_URL;
+export const supabaseServiceRoleKey = SUPABASE_SERVICE_ROLE_KEY;

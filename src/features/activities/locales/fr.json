@@ -111,7 +111,9 @@
     "ctaClear": "Retirer"
   },
   "card": {
-    "untitled": "Activité"
+    "untitled": "Activité",
+    "processing": "En cours",
+    "failed": "À réessayer"
   },
   "errors": {
     "noUser": "Aucun utilisateur connecté",

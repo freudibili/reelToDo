@@ -1,12 +1,18 @@
 import React from "react";
-import { View, Text, StyleSheet, Pressable } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  ActivityIndicator,
+} from "react-native";
 import { Icon } from "react-native-paper";
 import {
   formatActivityLocation,
   formatDisplayDate,
   getPrimaryDateValue,
 } from "../utils/activityDisplay";
-import type { Activity } from "../utils/types";
+import type { Activity, ActivityProcessingStatus } from "../utils/types";
 import { useTranslation } from "react-i18next";
 import { useAppTheme } from "@common/theme/appTheme";
 import FavoriteHeart from "./FavoriteHeart";
@@ -32,6 +38,10 @@ const ActivityCard: React.FC<Props> = ({
   const primaryDate = getPrimaryDateValue(activity);
   const dateLabel = formatDisplayDate(primaryDate);
   const isPlanned = Boolean(activity.planned_at);
+  const processingStatus = (activity.processing_status ??
+    "complete") as ActivityProcessingStatus;
+  const isProcessing = processingStatus === "processing";
+  const isFailed = processingStatus === "failed";
 
   return (
     <Pressable style={styles.card} onPress={() => onPress(activity)}>
@@ -43,6 +53,22 @@ const ActivityCard: React.FC<Props> = ({
           style={styles.image}
           resizeMode="cover"
         >
+          {isProcessing ? (
+            <View style={[styles.statusPill, { backgroundColor: "#0f172a99" }]}>
+              <ActivityIndicator color={colors.surface} size="small" />
+              <Text style={[styles.statusText, { color: colors.surface }]}>
+                {t("activities:card.processing")}
+              </Text>
+            </View>
+          ) : null}
+          {isFailed ? (
+            <View style={[styles.statusPill, { backgroundColor: colors.danger }]}>
+              <Icon source="alert" size={14} color="#fff" />
+              <Text style={[styles.statusText, { color: "#fff" }]}>
+                {t("activities:card.failed")}
+              </Text>
+            </View>
+          ) : null}
           {onToggleFavorite && (
             <Pressable
               hitSlop={10}
@@ -143,5 +169,20 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     zIndex: 2,
+  },
+  statusPill: {
+    position: "absolute",
+    top: 12,
+    left: 12,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 999,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: "700",
   },
 });

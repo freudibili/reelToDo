@@ -30,6 +30,9 @@ export interface Activity {
   image_url: string | null;
   confidence: number | null;
   created_at: string;
+  processing_status?: ActivityProcessingStatus | null;
+  processing_step?: string | null;
+  processing_error?: string | null;
   distance?: number | null;
   location_status?: "confirmed" | "suggested" | "unconfirmed" | "missing";
   location_confirmed_at?: string | null;
@@ -51,3 +54,8 @@ export type ActivityCategory =
   | "nightlife_social"
   | "shopping_markets"
   | "travel_practical";
+
+export type ActivityProcessingStatus =
+  | "processing"
+  | "complete"
+  | "failed";

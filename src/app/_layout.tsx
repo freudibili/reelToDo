@@ -8,6 +8,7 @@ import AuthGate from "@features/auth/navigation/AuthGate";
 import { useShareListener } from "@features/import/hooks/useShareListener";
 import AppPreferencesProvider from "@common/providers/AppPreferencesProvider";
 import "@common/i18n/i18n";
+import { useNotificationsSetup } from "@common/hooks/useNotificationsSetup";
 
 const RootLayout = () => {
   useShareListener();
@@ -18,6 +19,7 @@ const RootLayout = () => {
         <Provider store={store}>
           <PersistGate loading={null} persistor={persistor}>
             <AppPreferencesProvider>
+              <AppBootstrap />
               <AuthGate />
             </AppPreferencesProvider>
           </PersistGate>
@@ -25,6 +27,11 @@ const RootLayout = () => {
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
+};
+
+const AppBootstrap = () => {
+  useNotificationsSetup();
+  return null;
 };
 
 export default RootLayout;

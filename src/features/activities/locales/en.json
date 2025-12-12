@@ -111,7 +111,9 @@
     "ctaClear": "Clear"
   },
   "card": {
-    "untitled": "Activity"
+    "untitled": "Activity",
+    "processing": "Processing",
+    "failed": "Needs attention"
   },
   "errors": {
     "noUser": "No user authenticated",

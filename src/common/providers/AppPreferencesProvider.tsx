@@ -16,6 +16,7 @@ import {
   createAppTheme,
   type AppThemeMode,
 } from "@common/theme/appTheme";
+import ToastHost from "@common/components/ToastHost";
 
 type Props = {
   children: React.ReactNode;
@@ -81,6 +82,7 @@ const AppPreferencesProvider: React.FC<Props> = ({ children }) => {
           backgroundColor={theme.colors.background}
         />
         {children}
+        <ToastHost />
       </PaperProvider>
     </AppThemeContext.Provider>
   );

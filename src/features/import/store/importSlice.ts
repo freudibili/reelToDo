@@ -61,6 +61,27 @@ export const analyzeSharedLink = createAsyncThunk<
   }
 );
 
+export const restartImportProcessing = createAsyncThunk<
+  Activity,
+  { activityId: string; userId: string },
+  { rejectValue: string }
+>(
+  "import/restartImportProcessing",
+  async ({ activityId, userId }, { rejectWithValue }) => {
+    try {
+      return await importService.processActivity(activityId, userId);
+    } catch (err) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : typeof err === "string"
+            ? err
+            : i18next.t("import:errors.analyze");
+      return rejectWithValue(message);
+    }
+  }
+);
+
 export const confirmImportedLocation = createAsyncThunk<
   Activity,
   string,
@@ -125,6 +146,12 @@ const importSlice = createSlice({
   initialState,
   reducers: {
     resetImport: (): ImportState => initialState,
+    setImportActivity: (state, action: PayloadAction<Activity | null>) => {
+      state.activity = action.payload;
+      if (action.payload) {
+        state.error = null;
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -141,6 +168,18 @@ const importSlice = createSlice({
         state.loading = false;
         state.error =
           action.payload ?? i18next.t("import:errors.analyze");
+      })
+      .addCase(restartImportProcessing.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(restartImportProcessing.fulfilled, (state, action) => {
+        state.loading = false;
+        state.activity = action.payload;
+      })
+      .addCase(restartImportProcessing.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload ?? i18next.t("import:errors.analyze");
       })
       .addCase(confirmImportedLocation.fulfilled, (state, action) => {
         state.importedActivity = action.payload;
@@ -167,9 +206,19 @@ const importSlice = createSlice({
       .addCase(saveImportedActivityDetails.rejected, (state, action) => {
         state.error =
           action.payload || i18next.t("import:errors.saveDetails");
+      })
+      .addCase(activityUpdated, (state, action) => {
+        if (state.activity?.id === action.payload.id) {
+          state.activity = action.payload;
+        }
+      })
+      .addCase(activityInserted, (state, action) => {
+        if (state.activity?.id === action.payload.id) {
+          state.activity = action.payload;
+        }
       });
   },
 });
 
-export const { resetImport } = importSlice.actions;
+export const { resetImport, setImportActivity } = importSlice.actions;
 export default importSlice.reducer;
