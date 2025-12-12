@@ -19,6 +19,7 @@
   "details": {
     "overview": "Overview",
     "locationFallback": "Location to confirm or refine",
+    "dateFallback": "Date to confirm",
     "addressMissing": "Address not provided",
     "dateMissing": "Date not provided",
     "reportLocation": "Suggest a better location",
@@ -55,13 +56,28 @@
   },
   "editor": {
     "changeLocation": "Change location",
-    "saveLocation": "Save & confirm",
-    "cancelActivity": "Cancel activity",
+    "saveLocation": "Save",
+    "suggestLocation": "Suggest an update",
+    "changeDate": "Change date",
+    "saveDate": "Save",
+    "suggestDate": "Suggest an update",
+    "cancelActivity": "Cancel",
     "locationConfirmedTitle": "Location",
+    "dateConfirmedTitle": "Date",
     "deleteConfirmTitle": "Delete this activity?",
     "deleteConfirmBody": "This removes it for you and anyone else. This action cannot be undone.",
     "deleteConfirmCta": "Delete it",
     "deleteConfirmCancel": "Keep it"
+  },
+  "dateStatus": {
+    "needsConfirm": "We found this date automatically. Please confirm or pick the right one.",
+    "needsConfirmLabel": "Needs confirmation",
+    "confirmed": "Date confirmed. Update it anytime.",
+    "confirmedLabel": "Confirmed",
+    "missing": "We still need a date for this activity.",
+    "missingLabel": "Missing date",
+    "optional": "This activity doesn't require a date, but you can add one.",
+    "optionalLabel": "Optional"
   },
   "locationStatus": {
     "needsConfirm": "We found this automatically. Please confirm or pick a better spot.",
@@ -76,6 +92,8 @@
   "toasts": {
     "locationSaved": "Location updated",
     "locationSaveError": "Couldn't update location",
+    "dateSaved": "Date updated",
+    "dateSaveError": "Couldn't update date",
     "deleteSuccess": "Activity deleted",
     "deleteError": "Couldn't delete activity"
   },

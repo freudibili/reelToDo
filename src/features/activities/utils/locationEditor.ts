@@ -12,6 +12,7 @@ export type LocationStatusMeta = {
   tone: LocationStatusTone;
   needsConfirmation: boolean;
 };
+export type LocationAction = "save" | "suggest" | "continue";
 
 const unconfirmedStatuses: Array<Activity["location_status"]> = [
   "missing",
@@ -103,6 +104,26 @@ export const hasLocationChanged = (activity: Activity, next: PlaceDetails): bool
   }
 
   return !(sameAddress && sameName);
+};
+
+export const resolveLocationAction = (params: {
+  activity: Activity;
+  isOwner: boolean;
+  draftLocation: PlaceDetails | null;
+}): LocationAction => {
+  const { activity, isOwner, draftLocation } = params;
+
+  if (!draftLocation) {
+    return "continue";
+  }
+
+  const changed = hasLocationChanged(activity, draftLocation);
+
+  if (isOwner) {
+    return changed ? "save" : "continue";
+  }
+
+  return changed ? "suggest" : "continue";
 };
 
 export const saveActivityLocation = async (

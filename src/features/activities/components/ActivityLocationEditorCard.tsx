@@ -6,7 +6,10 @@ import type { Activity } from "../utils/types";
 import type { PlaceDetails } from "@features/import/services/locationService";
 import LocationChangeModal from "@common/components/LocationChangeModal";
 import { formatActivityLocation } from "../utils/activityDisplay";
-import type { LocationStatusMeta } from "../utils/locationEditor";
+import {
+  resolveLocationAction,
+  type LocationStatusMeta,
+} from "../utils/locationEditor";
 import InfoRow from "./InfoRow";
 import SuggestionPill from "./SuggestionPill";
 
@@ -14,11 +17,12 @@ type ActivityLocationEditorCardProps = {
   activity: Activity;
   status: LocationStatusMeta;
   draftLocation: PlaceDetails | null;
-  onChangeLocation: (place: PlaceDetails) => void;
+  onChangeLocation: (payload: { place: PlaceDetails; note: string | null }) => void;
   onSave: () => void;
   onCancelActivity: () => void;
   saving: boolean;
   deleting: boolean;
+  isOwner: boolean;
 };
 
 const ActivityLocationEditorCard: React.FC<ActivityLocationEditorCardProps> = ({
@@ -30,6 +34,7 @@ const ActivityLocationEditorCard: React.FC<ActivityLocationEditorCardProps> = ({
   onCancelActivity,
   saving,
   deleting,
+  isOwner,
 }) => {
   const { colors, mode } = useAppTheme();
   const { t } = useTranslation();
@@ -41,6 +46,10 @@ const ActivityLocationEditorCard: React.FC<ActivityLocationEditorCardProps> = ({
     }
     return formatActivityLocation(activity) ?? t("common:labels.locationPending");
   }, [activity, draftLocation, t]);
+  const action = useMemo(
+    () => resolveLocationAction({ activity, isOwner, draftLocation }),
+    [activity, draftLocation, isOwner],
+  );
 
   const title = status.needsConfirmation
     ? t("activities:details.locationFallback")
@@ -52,6 +61,13 @@ const ActivityLocationEditorCard: React.FC<ActivityLocationEditorCardProps> = ({
       : status.tone === "warning"
         ? colors.danger
         : colors.accent;
+  const primaryLabel = saving
+    ? t("common:locationPicker.submitting")
+    : action === "continue"
+      ? t("common:buttons.continue")
+      : action === "save"
+      ? t("activities:editor.saveLocation")
+      : t("activities:editor.suggestLocation");
 
   const handleOpenModal = () => {
     if (saving || deleting) return;
@@ -69,17 +85,19 @@ const ActivityLocationEditorCard: React.FC<ActivityLocationEditorCardProps> = ({
         />
       </View>
 
-      <View style={styles.headerRow}>
-        <View style={styles.titleGroup}>
-          <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
-          <Text style={[styles.subtitle, { color: colors.secondaryText }]}>
-            {status.helper}
-          </Text>
+      {isOwner ? (
+        <View style={styles.headerRow}>
+          <View style={styles.titleGroup}>
+            <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
+            <Text style={[styles.subtitle, { color: colors.secondaryText }]}>
+              {status.helper}
+            </Text>
+          </View>
+          <View style={[styles.statusPill, { backgroundColor: statusColor }]}>
+            <Text style={styles.statusText}>{status.label}</Text>
+          </View>
         </View>
-        <View style={[styles.statusPill, { backgroundColor: statusColor }]}>
-          <Text style={styles.statusText}>{status.label}</Text>
-        </View>
-      </View>
+      ) : null}
 
       <InfoRow
         icon="map-marker"
@@ -131,7 +149,7 @@ const ActivityLocationEditorCard: React.FC<ActivityLocationEditorCardProps> = ({
               },
             ]}
           >
-            {saving ? t("common:locationPicker.submitting") : t("activities:editor.saveLocation")}
+            {primaryLabel}
           </Text>
         </Pressable>
       </View>
@@ -140,10 +158,11 @@ const ActivityLocationEditorCard: React.FC<ActivityLocationEditorCardProps> = ({
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
         onSelectPlace={(payload) => {
-          onChangeLocation(payload.place);
+          onChangeLocation(payload);
           setModalVisible(false);
         }}
         initialValue={activity.address ?? activity.location_name ?? undefined}
+        submitting={saving}
       />
     </View>
   );

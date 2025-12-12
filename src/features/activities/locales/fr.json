@@ -19,6 +19,7 @@
   "details": {
     "overview": "Présentation",
     "locationFallback": "Lieu à confirmer ou à préciser",
+    "dateFallback": "Date à confirmer",
     "addressMissing": "Adresse non précisée",
     "dateMissing": "Date non précisée",
     "reportLocation": "Suggérer un meilleur lieu",
@@ -55,13 +56,28 @@
   },
   "editor": {
     "changeLocation": "Modifier le lieu",
-    "saveLocation": "Enregistrer et confirmer",
-    "cancelActivity": "Annuler l'activité",
+    "saveLocation": "Enregistrer",
+    "suggestLocation": "Proposer une mise à jour",
+    "changeDate": "Modifier la date",
+    "saveDate": "Enregistrer",
+    "suggestDate": "Proposer une mise à jour",
+    "cancelActivity": "Annuler",
     "locationConfirmedTitle": "Lieu",
+    "dateConfirmedTitle": "Date",
     "deleteConfirmTitle": "Supprimer cette activité ?",
     "deleteConfirmBody": "Elle sera supprimée pour toi et pour les autres. Action irréversible.",
     "deleteConfirmCta": "Supprimer",
     "deleteConfirmCancel": "Garder"
+  },
+  "dateStatus": {
+    "needsConfirm": "Date détectée automatiquement. Merci de confirmer ou de choisir la bonne.",
+    "needsConfirmLabel": "À confirmer",
+    "confirmed": "Date confirmée. Tu peux la modifier à tout moment.",
+    "confirmedLabel": "Confirmée",
+    "missing": "Nous avons encore besoin d'une date pour cette activité.",
+    "missingLabel": "Date manquante",
+    "optional": "Cette activité ne nécessite pas de date, mais tu peux en ajouter une.",
+    "optionalLabel": "Optionnel"
   },
   "locationStatus": {
     "needsConfirm": "Lieu détecté automatiquement. Merci de confirmer ou de choisir un meilleur endroit.",
@@ -76,6 +92,8 @@
   "toasts": {
     "locationSaved": "Lieu mis à jour",
     "locationSaveError": "Impossible de mettre à jour le lieu",
+    "dateSaved": "Date mise à jour",
+    "dateSaveError": "Impossible de mettre à jour la date",
     "deleteSuccess": "Activité supprimée",
     "deleteError": "Impossible de supprimer l'activité"
   },

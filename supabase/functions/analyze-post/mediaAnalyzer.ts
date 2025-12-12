@@ -202,6 +202,7 @@ export const fetchMediaAnalyzer = async (
     }
 
     const json = (await res.json()) as MediaAnalyzerResponse;
+    console.log("[mediaanalyzer] full response object", json);
     const activity = json.activity ?? json.content ?? null;
     console.log("[mediaanalyzer] raw response", {
       platform: json.platform ?? null,

@@ -149,6 +149,12 @@ serve(async (req) => {
       console.log("[fn] media analyzer call failed", err);
     }
 
+    if (analyzerResult !== undefined) {
+      console.log("[fn] mediaanalyzer raw result", analyzerResult);
+    } else {
+      console.log("[fn] mediaanalyzer returned undefined result");
+    }
+
     if (analyzerResult && (analyzerResult as any)._errorReason) {
       analyzerFailed = true;
       console.log(

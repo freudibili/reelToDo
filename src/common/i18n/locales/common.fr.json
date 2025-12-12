@@ -8,7 +8,8 @@
     "saveChanges": "Enregistrer les modifications",
     "open": "Ouvrir",
     "delete": "Supprimer",
-    "signOut": "Se déconnecter"
+    "signOut": "Se déconnecter",
+    "continue": "Continuer"
   },
   "fields": {
     "email": "Email",
