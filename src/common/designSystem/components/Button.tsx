@@ -161,12 +161,13 @@ const getButtonPalette = (
         ripple: overlay,
         shadow: "md" as ShadowLevel,
       };
-    case "primary":
+  case "primary":
     default:
       return {
         background: colors.primary,
         borderColor: colors.primaryBorder,
-        text: colors.primaryText,
+        text: colors.favoriteContrast,
+        pressedBackground: colors.primaryStrong,
         ripple: overlay,
         shadow: "md" as ShadowLevel,
       };

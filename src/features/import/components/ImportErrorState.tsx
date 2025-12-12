@@ -1,138 +1,85 @@
 import React from "react";
-import { View, Text, StyleSheet, Pressable } from "react-native";
+import { StyleSheet } from "react-native";
 import { Icon } from "react-native-paper";
 import { useTranslation } from "react-i18next";
+
+import { Box, Button, Card, Stack, Text } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";
 
-interface ImportErrorStateProps {
+type ImportErrorStateProps = {
   message?: string | null;
   onGoHome: () => void;
-}
+};
 
 const ImportErrorState: React.FC<ImportErrorStateProps> = ({
   message,
   onGoHome,
 }) => {
   const { t } = useTranslation();
-  const { colors, mode } = useAppTheme();
+  const { colors } = useAppTheme();
 
   return (
-    <View
-      style={[
-        styles.card,
-        { backgroundColor: colors.surface, borderColor: colors.border },
-      ]}
-    >
-      <View style={[styles.iconBadge, { backgroundColor: colors.overlay }]}>
-        <Icon source="emoticon-happy-outline" size={30} color={colors.primary} />
-      </View>
-
-      <Text style={[styles.title, { color: colors.text }]}>
-        {t("import:errorState.title")}
-      </Text>
-      <Text style={[styles.description, { color: colors.secondaryText }]}>
-        {t("import:errorState.description")}
-      </Text>
-
-      {message ? (
-        <View
-          style={[
-            styles.messageBox,
-            { backgroundColor: colors.card, borderColor: colors.border },
-          ]}
+    <Card padding="lg" radius="xl" shadow="md" variant="outlined">
+      <Stack align="center" gap="sm">
+        <Box
+          padding="md"
+          rounded="pill"
+          background={colors.overlay}
+          style={styles.iconWrapper}
         >
-          <Text style={[styles.messageLabel, { color: colors.text }]}>
-            {t("import:errorState.reasonLabel")}
-          </Text>
-          <Text style={[styles.messageText, { color: colors.secondaryText }]}>
-            {message}
-          </Text>
-        </View>
-      ) : null}
+          <Icon source="emoticon-happy-outline" size={30} color={colors.primary} />
+        </Box>
 
-      <Pressable
-        style={[
-          styles.homeBtn,
-          { backgroundColor: colors.primary },
-        ]}
-        onPress={onGoHome}
-      >
-        <Icon
-          source="home-variant-outline"
-          size={18}
-          color={mode === "dark" ? colors.background : "#fff"}
-        />
-        <Text
-          style={[
-            styles.homeBtnText,
-            { color: mode === "dark" ? colors.background : "#fff" },
-          ]}
-        >
-          {t("import:errorState.homeCta")}
+        <Text variant="title2" weight="700" align="center">
+          {t("import:errorState.title")}
         </Text>
-      </Pressable>
-    </View>
+        <Text variant="body" tone="muted" align="center">
+          {t("import:errorState.description")}
+        </Text>
+
+        {message ? (
+          <Box
+            padding="md"
+            rounded="md"
+            border
+            background={colors.card}
+            style={styles.fullWidth}
+          >
+            <Text variant="eyebrow" tone="muted">
+              {t("import:errorState.reasonLabel")}
+            </Text>
+            <Text variant="bodySmall" tone="muted">
+              {message}
+            </Text>
+          </Box>
+        ) : null}
+
+        <Button
+          label={t("import:errorState.homeCta")}
+          onPress={onGoHome}
+          variant="primary"
+          shadow="sm"
+          icon={
+            <Icon
+              source="home-variant-outline"
+              size={18}
+              color={colors.favoriteContrast}
+            />
+          }
+        />
+      </Stack>
+    </Card>
   );
 };
 
-export default ImportErrorState;
-
 const styles = StyleSheet.create({
-  card: {
-    borderRadius: 16,
-    padding: 18,
-    borderWidth: 1,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 2,
-    alignItems: "center",
-    gap: 10,
-    marginTop: 12,
+  fullWidth: {
+    alignSelf: "stretch",
   },
-  iconBadge: {
-    width: 58,
-    height: 58,
-    borderRadius: 29,
-    alignItems: "center",
+  iconWrapper: {
     justifyContent: "center",
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: "700",
-    textAlign: "center",
-  },
-  description: {
-    fontSize: 14,
-    textAlign: "center",
-  },
-  messageBox: {
-    width: "100%",
-    borderRadius: 12,
-    padding: 12,
-    borderWidth: 1,
-  },
-  messageLabel: {
-    fontSize: 12,
-    fontWeight: "700",
-    marginBottom: 4,
-    textTransform: "uppercase",
-  },
-  messageText: {
-    fontSize: 14,
-  },
-  homeBtn: {
-    flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    marginTop: 4,
-  },
-  homeBtnText: {
-    fontSize: 14,
-    fontWeight: "700",
   },
 });
+
+export default ImportErrorState;

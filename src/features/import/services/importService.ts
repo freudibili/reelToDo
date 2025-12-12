@@ -1,7 +1,7 @@
 import { supabase } from "@config/supabase";
 import type { ShareIntent } from "expo-share-intent";
 import type { Activity } from "@features/activities/utils/types";
-import type { UpdateActivityPayload } from "../utils/types";
+import type { UpdateActivityPayload } from "../types";
 import i18next from "@common/i18n/i18n";
 
 interface AnalyzeArgs {

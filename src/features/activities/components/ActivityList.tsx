@@ -1,29 +1,51 @@
 import React from "react";
 import { StyleSheet, ScrollView, View } from "react-native";
 import { useTranslation } from "react-i18next";
+import { Icon } from "react-native-paper";
 
-import { Box, Text } from "@common/designSystem";
-import { useAppTheme } from "@common/theme/appTheme";
+import { Box, GradientButton, Stack, Text } from "@common/designSystem";
 import CategoryCard from "./CategoryCard";
 import type { CategoryCardItem } from "../store/activitiesSelectors";
 
 interface Props {
   data: CategoryCardItem[];
   onSelectCategory: (category: string) => void;
+  onImport: () => void;
 }
 
-const ActivityList: React.FC<Props> = ({ data, onSelectCategory }) => {
+const ActivityList: React.FC<Props> = ({
+  data,
+  onSelectCategory,
+  onImport,
+}) => {
   const { t } = useTranslation();
-  const { colors } = useAppTheme();
 
-  if (!data || data.length === 0) {
+  const noActivities = !data || data.length === 0;
+
+  if (noActivities) {
     return (
-      <Stack align="center" gap="xs" style={styles.empty}>
-        <Text variant="headline">{t("activities:list.emptyTitle")}</Text>
-        <Text variant="bodySmall" tone="muted">
-          {t("activities:list.emptySubtitle")}
-        </Text>
-      </Stack>
+      <View style={styles.emptyContainer}>
+        <Stack
+          align="center"
+          justify="center"
+          gap="lg"
+          style={styles.emptyContent}
+        >
+          <Stack align="center" gap="xs" style={styles.emptyCopy}>
+            <Text variant="headline" align="center">
+              {t("activities:list.emptyTitle")}
+            </Text>
+            <Text variant="bodySmall" tone="muted" align="center">
+              {t("activities:list.emptySubtitle")}
+            </Text>
+          </Stack>
+          <GradientButton
+            label={t("activities:list.emptyCta")}
+            icon={<Icon source="link-plus" size={18} color="#fff" />}
+            onPress={onImport}
+          />
+        </Stack>
+      </View>
     );
   }
 
@@ -61,7 +83,16 @@ const styles = StyleSheet.create({
     width: "50%",
     paddingHorizontal: 8,
   },
-  empty: { marginTop: 40, alignItems: "center", gap: 4 },
+  emptyContainer: {
+    flex: 1,
+  },
+  emptyContent: {
+    flex: 1,
+    paddingHorizontal: 12,
+  },
+  emptyCopy: {
+    maxWidth: 320,
+  },
 });
 
 export default ActivityList;

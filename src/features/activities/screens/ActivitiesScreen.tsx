@@ -45,21 +45,29 @@ const ActivitiesScreen = () => {
     [router]
   );
 
+  const noActivities = !categories || categories.length === 0;
+
   return (
     <Screen
       loading={loading && !initialized}
       flushBottom
       headerTitle={t("activities:header")}
       headerRight={
-        <GradientButton
-          label={t("activities:list.importFromLink")}
-          icon={<Icon source="link-plus" size={16} color="#fff" />}
-          onPress={handleOpenImport}
-          size="sm"
-        />
+        noActivities ? null : (
+          <GradientButton
+            label={t("activities:list.importFromLink")}
+            icon={<Icon source="link-plus" size={16} color="#fff" />}
+            onPress={handleOpenImport}
+            size="sm"
+          />
+        )
       }
     >
-      <ActivityList data={categories} onSelectCategory={handleOpenCategory} />
+      <ActivityList
+        data={categories}
+        onSelectCategory={handleOpenCategory}
+        onImport={handleOpenImport}
+      />
     </Screen>
   );
 };

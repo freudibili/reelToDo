@@ -13,6 +13,7 @@ type Props = {
   disabled?: boolean;
   icon?: React.ReactNode;
   gradient?: [string, string];
+  disabledGradient?: [string, string];
   size?: "sm" | "md";
   style?: ViewStyle;
 };
@@ -24,21 +25,27 @@ const GradientButton: React.FC<Props> = ({
   disabled = false,
   icon,
   gradient,
+  disabledGradient,
   size = "md",
   style,
 }) => {
   const { colors } = useAppTheme();
-  const gradientColors = gradient ?? [colors.gradientPrimaryStart, colors.gradientPrimaryEnd];
+  const isDisabled = disabled || loading;
+  const gradientColors =
+    isDisabled && disabledGradient
+      ? disabledGradient
+      : gradient ?? [colors.gradientPrimaryStart, colors.gradientPrimaryEnd];
+  const contentColor = colors.favoriteContrast;
   const height = size === "sm" ? 42 : 48;
   const horizontalPadding = size === "sm" ? spacing.md : spacing.lg;
 
   return (
     <Pressable
       onPress={onPress}
-      disabled={disabled || loading}
+      disabled={isDisabled}
       style={({ pressed }) => [
         styles.pressable,
-        { opacity: disabled ? 0.6 : pressed ? 0.92 : 1 },
+        { opacity: isDisabled ? 0.5 : pressed ? 0.92 : 1 },
         style,
       ]}
     >
@@ -52,11 +59,11 @@ const GradientButton: React.FC<Props> = ({
         ]}
       >
         {loading ? (
-          <ActivityIndicator color="#fff" />
+          <ActivityIndicator color={contentColor} />
         ) : (
           <View style={styles.content}>
             {icon ? <View style={styles.icon}>{icon}</View> : null}
-            <Text variant="headline" weight="700" style={styles.label} numberOfLines={1}>
+            <Text variant="headline" weight="700" style={{ color: contentColor }} numberOfLines={1}>
               {label}
             </Text>
           </View>
@@ -83,9 +90,6 @@ const styles = StyleSheet.create({
   },
   icon: {
     transform: [{ translateY: 0.5 }],
-  },
-  label: {
-    color: "#fff",
   },
 });
 

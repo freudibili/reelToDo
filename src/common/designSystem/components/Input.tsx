@@ -5,6 +5,7 @@ import {
   View,
   StyleSheet,
   Pressable,
+  type ViewStyle,
 } from "react-native";
 import { Icon } from "react-native-paper";
 
@@ -20,6 +21,8 @@ type InputProps = TextInputProps & {
   leftIcon?: React.ReactNode | string;
   rightIcon?: React.ReactNode | string;
   onRightIconPress?: () => void;
+  fullWidth?: boolean;
+  containerStyle?: ViewStyle;
 };
 
 const Input = React.forwardRef<TextInput, InputProps>(
@@ -32,6 +35,8 @@ const Input = React.forwardRef<TextInput, InputProps>(
       rightIcon,
       onRightIconPress,
       style,
+      fullWidth = false,
+      containerStyle,
       editable = true,
       multiline = false,
       ...rest
@@ -58,7 +63,10 @@ const Input = React.forwardRef<TextInput, InputProps>(
       );
 
     return (
-      <Box gap={spacing.xs}>
+      <Box
+        gap={spacing.xs}
+        style={[fullWidth ? styles.fullWidth : undefined, containerStyle]}
+      >
         {label ? (
           <Text variant="headline" weight="700">
             {label}
@@ -106,11 +114,11 @@ const Input = React.forwardRef<TextInput, InputProps>(
           {rightIcon ? (
             <Pressable
               style={styles.icon}
-              onPress={onRightIconPress}
-              hitSlop={10}
-              disabled={!onRightIconPress}
-            >
-              {renderIcon(rightIcon)}
+            onPress={onRightIconPress}
+            hitSlop={10}
+            disabled={!onRightIconPress}
+          >
+            {renderIcon(rightIcon)}
             </Pressable>
           ) : null}
         </View>
@@ -153,5 +161,8 @@ const styles = StyleSheet.create({
   },
   icon: {
     marginRight: spacing.xs,
+  },
+  fullWidth: {
+    width: "100%",
   },
 });

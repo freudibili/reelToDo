@@ -1,20 +1,22 @@
 import React, { useEffect, useRef, useState } from "react";
-import { View, Text, Pressable, StyleSheet } from "react-native";
-import InfoRow from "@features/activities/components/InfoRow";
+import { StyleSheet } from "react-native";
 import DateTimePicker, {
   type DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
+import { Icon } from "react-native-paper";
 import { useTranslation } from "react-i18next";
-import { formatDisplayDate } from "@features/activities/utils/activityDisplay";
-import { useAppTheme } from "@common/theme/appTheme";
 
-interface DateSectionProps {
+import { Button, Card, Stack, Text } from "@common/designSystem";
+import { useAppTheme } from "@common/theme/appTheme";
+import { formatDisplayDate } from "@features/activities/utils/activityDisplay";
+
+type DateSectionProps = {
   infoValue: string;
   date: Date | null;
   confirmed: boolean;
   onChange: (date: Date | null) => void;
   editRequest?: number;
-}
+};
 
 const DateSection: React.FC<DateSectionProps> = ({
   infoValue,
@@ -60,136 +62,85 @@ const DateSection: React.FC<DateSectionProps> = ({
   const hasDate = !!date;
 
   return (
-    <View
-      style={[
-        styles.section,
-        { backgroundColor: colors.card, borderColor: colors.border },
-      ]}
+    <Card
+      padding="lg"
+      radius="lg"
+      variant="outlined"
+      shadow="sm"
+      style={styles.section}
     >
-      <InfoRow icon="calendar" value={infoValue} />
-
-      <Text style={[styles.sectionLabel, { color: colors.text }]}>
-        {t("import:dateSection.label")}
-      </Text>
-
-      {!hasDate ? (
-        <Text style={[styles.helperText, { color: colors.secondaryText }]}>
-          {t("import:dateSection.notFound")}
-        </Text>
-      ) : (
-        <Text style={[styles.helperText, { color: colors.secondaryText }]}>
-          {confirmed
-            ? t("import:dateSection.confirmed")
-            : t("import:dateSection.notAccurate")}
-        </Text>
-      )}
-
-      {hasDate ? (
-        <Text style={[styles.previewText, { color: colors.text }]}>
-          {displayLabel()}
-        </Text>
-      ) : null}
-
-      <Pressable
-        style={[
-          styles.primaryBtn,
-          { backgroundColor: colors.primary },
-        ]}
-        onPress={() => {
-          setEditing((prev) => {
-            const next = !prev;
-            setPickerVisible(next);
-            return next;
-          });
-        }}
-      >
-        <Text
-          style={[
-            styles.primaryBtnText,
-            { color: mode === "dark" ? colors.background : colors.surface },
-          ]}
-        >
-          {hasDate
-            ? t("import:dateSection.edit")
-            : t("import:dateSection.add")}
-        </Text>
-      </Pressable>
-
-      {editing && (
-        <>
-          <Pressable
-            style={[
-              styles.dateBtn,
-              { backgroundColor: colors.mutedSurface, borderColor: colors.border },
-            ]}
-            onPress={showPicker}
-          >
-            <Text style={[styles.dateBtnText, { color: colors.text }]}>
-              {displayLabel()}
+      <Stack gap="sm">
+        <Stack direction="row" align="center" gap="sm">
+          <Icon source="calendar" size={20} color={colors.primary} />
+          <Stack gap="xxs">
+            <Text variant="headline" weight="700">
+              {t("import:dateSection.label")}
             </Text>
-          </Pressable>
+            <Text variant="bodySmall" tone="muted">
+              {infoValue}
+            </Text>
+          </Stack>
+        </Stack>
 
-          {pickerVisible && (
-            <DateTimePicker
-              value={date || new Date()}
-              mode="date"
-              themeVariant={themeVariant}
-              textColor={colors.text}
-              onChange={handleDateChange}
+        <Text variant="bodySmall" tone="muted">
+          {hasDate
+            ? confirmed
+              ? t("import:dateSection.confirmed")
+              : t("import:dateSection.notAccurate")
+            : t("import:dateSection.notFound")}
+        </Text>
+
+        {hasDate ? (
+          <Text variant="bodySmall">{displayLabel()}</Text>
+        ) : null}
+
+        <Button
+          label={
+            hasDate ? t("import:dateSection.edit") : t("import:dateSection.add")
+          }
+          onPress={() => {
+            setEditing(true);
+            setPickerVisible(true);
+          }}
+          variant="primary"
+          icon={
+            <Icon
+              source="calendar-edit"
+              size={18}
+              color={colors.favoriteContrast}
             />
-          )}
-        </>
-      )}
-    </View>
+          }
+          shadow="sm"
+        />
+
+        {editing ? (
+          <Stack gap="xs">
+            <Button
+              label={displayLabel()}
+              onPress={showPicker}
+              variant="secondary"
+              icon={<Icon source="calendar" size={16} color={colors.primary} />}
+            />
+
+            {pickerVisible ? (
+              <DateTimePicker
+                value={date || new Date()}
+                mode="date"
+                themeVariant={themeVariant}
+                textColor={colors.text}
+                onChange={handleDateChange}
+              />
+            ) : null}
+          </Stack>
+        ) : null}
+      </Stack>
+    </Card>
   );
 };
 
 const styles = StyleSheet.create({
   section: {
     marginTop: 16,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-  },
-  sectionLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-    marginBottom: 6,
-  },
-  dateBtn: {
-    borderRadius: 999,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderWidth: 1,
-    marginTop: 6,
-    alignSelf: "flex-start",
-  },
-  dateBtnText: {
-    fontSize: 14,
-  },
-  dateText: {
-    fontSize: 14,
-    marginTop: 6,
-  },
-  helperText: {
-    fontSize: 13,
-    marginTop: 2,
-  },
-  previewText: {
-    fontSize: 14,
-    marginTop: 6,
-  },
-  primaryBtn: {
-    marginTop: 10,
-    borderRadius: 999,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    alignSelf: "flex-start",
-  },
-  primaryBtnText: {
-    fontSize: 13,
-    fontWeight: "700",
   },
 });
 

@@ -1,13 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  View,
-  TextInput,
+  ActivityIndicator,
   Pressable,
-  Text,
-  StyleSheet,
   ScrollView,
-  type StyleProp,
-  type ViewStyle,
+  StyleSheet,
 } from "react-native";
 import {
   fetchPlaceSuggestions,
@@ -17,15 +13,16 @@ import {
 } from "../services/locationService";
 import { useTranslation } from "react-i18next";
 import { useAppTheme } from "@common/theme/appTheme";
+import { Card, Input, Stack, Text } from "@common/designSystem";
 
-interface LocationAutocompleteInputProps {
+type LocationAutocompleteInputProps = {
   initialValue?: string;
   value?: string;
   onSelectPlace: (place: PlaceDetails) => void;
   placeholder?: string;
   onChangeText?: (text: string) => void;
-  style?: StyleProp<ViewStyle>;
-}
+  style?: React.ComponentProps<typeof Stack>["style"];
+};
 
 const debounce = <T extends (...args: any[]) => void>(fn: T, delay: number) => {
   let timeout: ReturnType<typeof setTimeout>;
@@ -139,52 +136,52 @@ const LocationAutocompleteInput: React.FC<LocationAutocompleteInputProps> = ({
   };
 
   return (
-    <View style={[styles.container, style]}>
-      <TextInput
+    <Stack style={[styles.container, style]} gap="xs">
+      <Input
         value={inputValue}
         onChangeText={handleChangeText}
         placeholder={resolvedPlaceholder}
-        placeholderTextColor={colors.secondaryText}
-        style={[
-          styles.input,
-          {
-            backgroundColor: colors.card,
-            borderColor: colors.border,
-            color: colors.text,
-          },
-        ]}
         autoCorrect={false}
+        rightIcon={
+          loading && inputValue.length > 0 ? (
+            <ActivityIndicator size="small" color={colors.secondaryText} />
+          ) : undefined
+        }
       />
 
-      {loading && inputValue.length > 0 && (
-        <Text style={[styles.helperText, { color: colors.secondaryText }]}>
+      {loading && inputValue.length > 0 ? (
+        <Text variant="caption" tone="muted">
           {t("import:autocomplete.searching")}
         </Text>
-      )}
+      ) : null}
 
-      {shouldShowSuggestions && (
-        <View
-          style={[
-            styles.suggestionsContainer,
-            { backgroundColor: colors.surface, borderColor: colors.border },
-          ]}
+      {shouldShowSuggestions ? (
+        <Card
+          padding="xs"
+          radius="md"
+          variant="outlined"
+          shadow="sm"
+          style={styles.suggestionsContainer}
         >
           <ScrollView nestedScrollEnabled keyboardShouldPersistTaps="handled">
-            {suggestions.map((item) => (
-              <Pressable
-                key={item.place_id}
-                style={styles.suggestionItem}
-                onPress={() => handleSelect(item)}
-              >
-                <Text style={[styles.suggestionText, { color: colors.text }]}>
-                  {item.description}
-                </Text>
-              </Pressable>
-            ))}
+            <Stack gap="xxs">
+              {suggestions.map((item) => (
+                <Pressable
+                  key={item.place_id}
+                  style={({ pressed }) => [
+                    styles.suggestionItem,
+                    pressed ? { backgroundColor: colors.overlay } : undefined,
+                  ]}
+                  onPress={() => handleSelect(item)}
+                >
+                  <Text variant="bodySmall">{item.description}</Text>
+                </Pressable>
+              ))}
+            </Stack>
           </ScrollView>
-        </View>
-      )}
-    </View>
+        </Card>
+      ) : null}
+    </Stack>
   );
 };
 
@@ -193,30 +190,14 @@ const styles = StyleSheet.create({
     position: "relative",
     zIndex: 10,
   },
-  input: {
-    borderWidth: 1,
-    borderRadius: 14,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    fontSize: 15,
-  },
-  helperText: {
-    marginTop: 4,
-    fontSize: 12,
-    minHeight: 20,
-  },
   suggestionsContainer: {
     marginTop: 4,
-    borderRadius: 14,
     maxHeight: 180,
     overflow: "hidden",
   },
   suggestionItem: {
     paddingHorizontal: 10,
     paddingVertical: 8,
-  },
-  suggestionText: {
-    fontSize: 14,
   },
 });
 

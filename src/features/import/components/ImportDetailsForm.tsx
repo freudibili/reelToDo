@@ -4,44 +4,44 @@ import React, {
   useImperativeHandle,
   useState,
 } from "react";
-import { View, Text, StyleSheet, Alert } from "react-native";
+import { Alert, StyleSheet } from "react-native";
+import { useTranslation } from "react-i18next";
 
-import type { Activity } from "@features/activities/utils/types";
+import { Box, Stack, Text } from "@common/designSystem";
 import ActivityHero from "@common/components/ActivityHero";
 import ActivitySummaryHeader from "@common/components/ActivitySummaryHeader";
-import LocationSection from "./LocationSection";
-import DateSection from "./DateSection";
+import { useAppTheme } from "@common/theme/appTheme";
+import { ActivitiesService } from "@features/activities/services/activitiesService";
+import { activityPatched } from "@features/activities/store/activitiesSlice";
 import { categoryNeedsDate } from "@features/activities/utils/activityHelper";
 import {
   formatActivityLocation,
   formatDisplayDate,
   getOfficialDateValue,
 } from "@features/activities/utils/activityDisplay";
-
-import { PlaceDetails } from "../services/locationService";
-import type { ImportDraftDetails, UpdateActivityPayload } from "../utils/types";
-import { useTranslation } from "react-i18next";
-import { useAppTheme } from "@common/theme/appTheme";
-import { ActivitiesService } from "@features/activities/services/activitiesService";
-import { activityPatched } from "@features/activities/store/activitiesSlice";
+import type { Activity } from "@features/activities/utils/types";
 import { useAppDispatch } from "@core/store/hook";
+import DateSection from "./DateSection";
+import LocationSection from "./LocationSection";
+import type { PlaceDetails } from "../services/locationService";
+import { type ImportDraftDetails, type UpdateActivityPayload } from "../types";
 
-interface ImportDetailsFormProps {
+export type ImportDetailsFormHandle = {
+  save: () => void;
+};
+
+type ImportDetailsFormProps = {
   activity: Activity;
   onSave: (payload: UpdateActivityPayload) => void;
-  onCancel: () => void;
+  onCancel?: () => void;
   onDirtyChange?: (dirty: boolean) => void;
   userId?: string | null;
-}
-
-export interface ImportDetailsFormHandle {
-  save: () => void;
-}
+};
 
 const ImportDetailsForm = React.forwardRef<
   ImportDetailsFormHandle,
   ImportDetailsFormProps
->(({ activity, onSave, onCancel: _onCancel, onDirtyChange, userId }, ref) => {
+>(({ activity, onSave, onDirtyChange, userId }, ref) => {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
   const dispatch = useAppDispatch();
@@ -162,7 +162,7 @@ const ImportDetailsForm = React.forwardRef<
   const dateInfo = heroDate ?? t("activities:details.dateMissing");
 
   return (
-    <View style={styles.container}>
+    <Stack gap="md" style={styles.container}>
       <ActivitySummaryHeader
         title={activity.title ?? t("common:labels.activity")}
         category={activity.category}
@@ -181,14 +181,12 @@ const ImportDetailsForm = React.forwardRef<
         showOverlayContent={false}
       />
 
-      <View style={styles.sectionHeader}>
-        <Text style={[styles.sectionHeaderText, { color: colors.text }]}>
+      <Stack gap="xxs" style={styles.sectionHeader}>
+        <Text variant="headline" weight="700">
           {t("import:details.infoLabel")}
         </Text>
-        <View
-          style={[styles.sectionUnderline, { backgroundColor: colors.primary }]}
-        />
-      </View>
+        <Box height={2} width={40} rounded="pill" background={colors.primary} />
+      </Stack>
 
       <LocationSection
         infoValue={locationInfo}
@@ -210,7 +208,7 @@ const ImportDetailsForm = React.forwardRef<
           onChange={handleDateChange}
         />
       ) : null}
-    </View>
+    </Stack>
   );
 });
 
@@ -219,7 +217,6 @@ ImportDetailsForm.displayName = "ImportDetailsForm";
 const styles = StyleSheet.create({
   container: {
     paddingVertical: 8,
-    gap: 12,
   },
   headerBlock: {
     paddingHorizontal: 4,
@@ -228,16 +225,6 @@ const styles = StyleSheet.create({
     marginTop: 4,
     marginBottom: 2,
     paddingHorizontal: 12,
-  },
-  sectionHeaderText: {
-    fontSize: 14,
-    fontWeight: "700",
-  },
-  sectionUnderline: {
-    marginTop: 4,
-    height: 2,
-    width: 40,
-    borderRadius: 999,
   },
 });
 

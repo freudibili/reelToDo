@@ -12,7 +12,7 @@ import {
   activityUpdated,
 } from "@features/activities/store/activitiesSlice";
 import { AppDispatch, RootState } from "@core/store";
-import { UpdateActivityPayload } from "../utils/types";
+import type { UpdateActivityPayload } from "../types";
 import i18next from "@common/i18n/i18n";
 
 export interface ImportState {

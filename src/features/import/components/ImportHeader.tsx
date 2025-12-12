@@ -1,14 +1,16 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Icon } from "react-native-paper";
+
+import { Stack, Text } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";
 
-interface ImportHeaderProps {
+type ImportHeaderProps = {
   title: string;
   subtitle: string;
   showText?: boolean;
-}
+};
 
 const ImportHeader: React.FC<ImportHeaderProps> = ({
   title,
@@ -18,31 +20,36 @@ const ImportHeader: React.FC<ImportHeaderProps> = ({
   const { colors } = useAppTheme();
 
   return (
-    <View style={styles.container}>
+    <Stack align="center" gap="xs" style={styles.container}>
       <LinearGradient
         colors={[colors.gradientPrimaryStart, colors.gradientPrimaryEnd]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.heroIcon}
       >
-        <Icon source="link-variant" size={32} color="#fff" />
+        <Icon
+          source="link-variant"
+          size={32}
+          color={colors.favoriteContrast}
+        />
       </LinearGradient>
+
       {showText ? (
         <>
-          <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
-          <Text style={[styles.subtitle, { color: colors.secondaryText }]}>
+          <Text variant="title2" weight="700" align="center">
+            {title}
+          </Text>
+          <Text variant="body" tone="muted" align="center">
             {subtitle}
           </Text>
         </>
       ) : null}
-    </View>
+    </Stack>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    alignItems: "center",
-    gap: 8,
     marginBottom: 10,
   },
   heroIcon: {
@@ -51,13 +58,6 @@ const styles = StyleSheet.create({
     borderRadius: 36,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 2,
-  },
-  title: { fontSize: 22, fontWeight: "700" },
-  subtitle: {
-    fontSize: 14,
-    textAlign: "center",
-    paddingHorizontal: 12,
   },
 });
 

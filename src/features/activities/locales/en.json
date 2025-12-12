@@ -1,8 +1,9 @@
 {
   "header": "Activities",
   "list": {
-    "emptyTitle": "No activities yet.",
-    "emptySubtitle": "Import one from the Import screen.",
+    "emptyTitle": "Ready to plan something fun?",
+    "emptySubtitle": "Import an activity to start building your list.",
+    "emptyCta": "Import an activity",
     "importFromLink": "Import link",
     "more": {
       "title": "See more",

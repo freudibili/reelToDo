@@ -1,50 +1,37 @@
-import React, {
-  useEffect,
-  useMemo,
-  useCallback,
-  useRef,
-  useState,
-} from "react";
-import { View, StyleSheet } from "react-native";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { StyleSheet, View } from "react-native";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import type { ShareIntent } from "expo-share-intent";
+import { useTranslation } from "react-i18next";
 
-import { selectAuthUser } from "@features/auth/store/authSelectors";
-import {
-  selectImportLoading,
-  selectImportError,
-  selectImportedActivity,
-} from "@features/import/store/importSelectors";
-import {
-  analyzeSharedLink,
-  resetImport,
-  restartImportProcessing,
-} from "@features/import/store/importSlice";
-import { fetchActivities, cancelActivity } from "@features/activities/store/activitiesSlice";
-import { useAppDispatch, useAppSelector } from "@core/store/hook";
+import { showToast as showToastAction } from "@common/store/appSlice";
+import { Stack } from "@common/designSystem";
 import Screen from "@common/components/AppScreen";
-import ImportHeader from "../components/ImportHeader";
-import ManualLinkCard from "../components/ManualLinkCard";
-import ImportErrorState from "../components/ImportErrorState";
+import { cancelActivity, fetchActivities } from "@features/activities/store/activitiesSlice";
 import type {
   Activity,
   ActivityProcessingStatus,
 } from "@features/activities/utils/types";
-import { useTranslation } from "react-i18next";
-import { useActivityProcessingWatcher } from "../hooks/useActivityProcessingWatcher";
+import { selectAuthUser } from "@features/auth/store/authSelectors";
+import ImportErrorState from "../components/ImportErrorState";
+import ImportHeader from "../components/ImportHeader";
+import ManualLinkCard from "../components/ManualLinkCard";
 import ProcessingStateCard from "../components/ProcessingStateCard";
+import { useActivityProcessingWatcher } from "../hooks/useActivityProcessingWatcher";
 import { useImportNotificationPermission } from "../hooks/useImportNotificationPermission";
-import { showToast as showToastAction } from "@common/store/appSlice";
-
-const isValidHttpUrl = (input: string) => {
-  if (!input) return false;
-  try {
-    const url = new URL(input);
-    return url.protocol === "http:" || url.protocol === "https:";
-  } catch {
-    return false;
-  }
-};
+import { useImportProcessingState } from "../hooks/useImportProcessingState";
+import {
+  analyzeSharedLink,
+  resetImport,
+  restartImportProcessing,
+} from "../store/importSlice";
+import {
+  selectImportError,
+  selectImportLoading,
+  selectImportedActivity,
+} from "../store/importSelectors";
+import { useAppDispatch, useAppSelector } from "@core/store/hook";
+import { parseSharedIntent, isValidHttpUrl } from "../utils/sharedIntent";
 
 const ImportScreen = () => {
   const { shared, from } = useLocalSearchParams();
@@ -68,59 +55,28 @@ const ImportScreen = () => {
   const error = useAppSelector(selectImportError);
   const activity = useAppSelector(selectImportedActivity) as Activity | null;
   const activities = useAppSelector((state) => state.activities.items);
-  const hasSharedParam = !!shared && !Array.isArray(shared);
-  const showError = error && !activity;
-  const sharedData = useMemo<ShareIntent | null>(() => {
-    if (!shared || Array.isArray(shared)) return null;
+  const parsedShared = useMemo(() => parseSharedIntent(shared), [shared]);
+  const sharedData = parsedShared.data;
+  const sharedUrl = parsedShared.sharedUrl;
+  const hasSharedParam = !!parsedShared.raw;
+  const [manualLink, setManualLink] = useState(() => sharedData?.text ?? "");
 
-    const attemptParse = (raw: string) => {
-      try {
-        return JSON.parse(raw) as ShareIntent;
-      } catch {
-        return null;
-      }
-    };
-
-    // Try decoded then raw.
-    return (
-      attemptParse(shared) ||
-      attemptParse(
-        (() => {
-          try {
-            return decodeURIComponent(shared);
-          } catch {
-            return shared;
-          }
-        })()
-      )
-    );
-  }, [shared]);
-  const sharedUrl = useMemo(() => {
-    const candidate = sharedData?.webUrl;
-    if (candidate && isValidHttpUrl(candidate)) return candidate;
-    if (sharedData?.text) {
-      const match = sharedData.text.match(/https?:\/\/\\S+/i);
-      if (match && isValidHttpUrl(match[0])) {
-        return match[0];
-      }
-    }
-    return null;
-  }, [sharedData]);
-  const [manualLink, setManualLink] = useState("");
-  const displayActivity = useMemo(() => {
-    if (!activity) return null;
-    const linked = activities.find((item) => item.id === activity.id);
-    return linked ?? activity;
-  }, [activities, activity]);
-  const processingStatus = (displayActivity?.processing_status ??
-    "complete") as ActivityProcessingStatus;
-  const isProcessing = processingStatus === "processing";
-  const isFailed = processingStatus === "failed";
-  const processingErrorMessage =
-    displayActivity?.processing_error ?? error ?? null;
-  const showAnalyzingCard =
-    !displayActivity && !showError && (loading || hasSharedParam);
-  const showManualCard = !hasSharedParam && !displayActivity && !loading;
+  const {
+    displayActivity,
+    processingStatus,
+    isProcessing,
+    isFailed,
+    processingErrorMessage,
+    showAnalyzingCard,
+    showManualCard,
+  } = useImportProcessingState({
+    activity: activity as Activity | null,
+    activities,
+    error,
+    loading,
+    hasSharedParam,
+  });
+  const showError = !!error && !displayActivity;
 
   const hasAnalyzedRef = useRef(false);
   const lastStatusRef = useRef<{
@@ -136,9 +92,9 @@ const ImportScreen = () => {
   useFocusEffect(
     useCallback(() => {
       dispatch(resetImport());
-      setManualLink("");
+      setManualLink(sharedData?.text ?? "");
       hasAnalyzedRef.current = false;
-    }, [dispatch])
+    }, [dispatch, sharedData?.text])
   );
 
   const triggerAnalyze = useCallback(
@@ -168,14 +124,14 @@ const ImportScreen = () => {
   }, [loading, triggerAnalyze, trimmedLink, user?.id]);
 
   const handleRetryProcessing = useCallback(() => {
-    if (!activity?.id || !user?.id) return;
+    if (!displayActivity?.id || !user?.id) return;
     dispatch(
       restartImportProcessing({
-        activityId: activity.id,
+        activityId: displayActivity.id,
         userId: user.id,
       })
     );
-  }, [activity?.id, dispatch, user?.id]);
+  }, [dispatch, displayActivity?.id, user?.id]);
 
   useEffect(() => {
     if (!sharedUrl && sharedData?.text && !manualLink) {
@@ -193,10 +149,10 @@ const ImportScreen = () => {
   }, [sharedData?.text, sharedUrl, triggerAnalyze, user?.id]);
 
   useEffect(() => {
-    if (activity || error) {
+    if (displayActivity || error) {
       hasAnalyzedRef.current = false;
     }
-  }, [activity, error]);
+  }, [displayActivity, error]);
 
   const handleProcessingFailure = useCallback(
     async (activityId: string, alreadyDeleted = false) => {
@@ -212,15 +168,15 @@ const ImportScreen = () => {
         showToast(t("import:toast.failed"), "error");
       } finally {
         dispatch(resetImport());
-      lastStatusRef.current = null;
-      lastActivityIdRef.current = null;
-      setManualLink("");
-      router.replace("/import" as never);
-      clearingRef.current = false;
-    }
-  },
-  [dispatch, showToast, t, router]
-);
+        lastStatusRef.current = null;
+        lastActivityIdRef.current = null;
+        setManualLink("");
+        router.replace("/import" as never);
+        clearingRef.current = false;
+      }
+    },
+    [dispatch, showToast, t, router]
+  );
 
   const handleActivityDeleted = useCallback(() => {
     const deletedId = lastActivityIdRef.current;
@@ -260,9 +216,6 @@ const ImportScreen = () => {
     displayActivity,
     handleProcessingFailure,
     processingStatus,
-    showToast,
-    t,
-    router,
   ]);
 
   const handleBackPress = useCallback(() => {
@@ -279,7 +232,7 @@ const ImportScreen = () => {
       scrollable
       onBackPress={!fromActivities ? handleGoHome : handleBackPress}
     >
-      <View style={styles.container}>
+      <Stack gap="lg" fullWidth style={styles.container}>
         <ImportHeader
           title={t("import:header.title")}
           subtitle={t("import:header.subtitle")}
@@ -325,15 +278,13 @@ const ImportScreen = () => {
             />
           ) : null
         ) : null}
-      </View>
+      </Stack>
     </Screen>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    gap: 16,
-    alignItems: "stretch",
     marginTop: 16,
   },
 });

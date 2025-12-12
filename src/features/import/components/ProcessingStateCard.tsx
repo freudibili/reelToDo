@@ -1,23 +1,14 @@
 import React from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  ActivityIndicator,
-  Platform,
-} from "react-native";
+import { ActivityIndicator, Platform, StyleSheet } from "react-native";
 import LottieView from "lottie-react-native";
 import { Icon } from "react-native-paper";
 import { useTranslation } from "react-i18next";
+
+import { Button, Card, Stack, Text } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";
 
-const processingAnimation = require("../../../../assets/animations/travel-is-fun.json");
-
-type Mode = "processing" | "failed";
-
-type Props = {
-  mode: Mode;
+type ProcessingStateCardProps = {
+  mode: "processing" | "failed";
   message?: string | null;
   loading?: boolean;
   onRetry?: () => void;
@@ -26,7 +17,9 @@ type Props = {
   showAnimation?: boolean;
 };
 
-const ProcessingStateCard: React.FC<Props> = ({
+const processingAnimation = require("../../../../assets/animations/travel-is-fun.json");
+
+const ProcessingStateCard: React.FC<ProcessingStateCardProps> = ({
   mode,
   message,
   loading = false,
@@ -36,7 +29,7 @@ const ProcessingStateCard: React.FC<Props> = ({
   showAnimation = false,
 }) => {
   const { t } = useTranslation();
-  const { colors, mode: themeMode } = useAppTheme();
+  const { colors } = useAppTheme();
   const isProcessing = mode === "processing";
   const isWeb = Platform.OS === "web";
 
@@ -55,140 +48,73 @@ const ProcessingStateCard: React.FC<Props> = ({
     <Icon source="alert-circle" size={22} color={colors.danger} />
   );
 
+  const title = isProcessing
+    ? t("import:processing.title")
+    : t("import:processing.failedTitle");
+  const subtitle =
+    message ||
+    (isProcessing
+      ? t("import:processing.subtitle")
+      : t("import:processing.failedSubtitle"));
+  const hint = isProcessing
+    ? t("import:processing.hint")
+    : t("import:processing.failedSubtitle");
+
   return (
-    <View
-      style={[
-        styles.card,
-        { backgroundColor: colors.surface, borderColor: colors.border },
-      ]}
-    >
-      <View style={styles.header}>
-        <View>
-          <Text style={[styles.title, { color: colors.text }]}>
-            {isProcessing
-              ? t("import:processing.title")
-              : t("import:processing.failedTitle")}
-          </Text>
-          <Text style={[styles.subtitle, { color: colors.secondaryText }]}>
-            {message ||
-              (isProcessing
-                ? t("import:processing.subtitle")
-                : t("import:processing.failedSubtitle"))}
-          </Text>
-        </View>
-        {indicator}
-      </View>
+    <Card padding="lg" radius="lg" variant="outlined" shadow="sm">
+      <Stack gap="sm">
+        <Stack direction="row" align="center" justify="space-between" gap="sm">
+          <Stack gap="xs" style={styles.flex}>
+            <Text variant="headline" weight="700">
+              {title}
+            </Text>
+            <Text variant="bodySmall" tone="muted">
+              {subtitle}
+            </Text>
+          </Stack>
+          {indicator}
+        </Stack>
 
-      <Text style={[styles.hint, { color: colors.secondaryText }]}>
-        {isProcessing
-          ? t("import:processing.hint")
-          : t("import:processing.failedSubtitle")}
-      </Text>
+        <Text variant="caption" tone="muted">
+          {hint}
+        </Text>
 
-      {!isProcessing ? (
-        <View style={styles.actions}>
-          {onRetry ? (
-            <Pressable
-              style={[
-                styles.primaryBtn,
-                {
-                  backgroundColor: colors.primary,
-                  opacity: loading ? 0.7 : 1,
-                },
-              ]}
-              onPress={onRetry}
-              disabled={loading}
-            >
-              <Text
-                style={[
-                  styles.btnText,
-                  {
-                    color:
-                      themeMode === "dark" ? colors.background : colors.surface,
-                  },
-                ]}
-              >
-                {loading
-                  ? t("import:processing.retrying")
-                  : t("import:processing.retry")}
-              </Text>
-            </Pressable>
-          ) : null}
-          {onSecondary && secondaryLabel ? (
-            <Pressable
-              style={[styles.secondaryBtn, { borderColor: colors.border }]}
-              onPress={onSecondary}
-            >
-              <Text style={[styles.secondaryText, { color: colors.text }]}>
-                {secondaryLabel}
-              </Text>
-            </Pressable>
-          ) : null}
-        </View>
-      ) : null}
-    </View>
+        {!isProcessing ? (
+          <Stack direction="row" gap="sm" wrap>
+            {onRetry ? (
+              <Button
+                label={
+                  loading
+                    ? t("import:processing.retrying")
+                    : t("import:processing.retry")
+                }
+                onPress={onRetry}
+                disabled={loading}
+                loading={loading}
+                variant="primary"
+              />
+            ) : null}
+            {onSecondary && secondaryLabel ? (
+              <Button
+                label={secondaryLabel}
+                onPress={onSecondary}
+                variant="outline"
+              />
+            ) : null}
+          </Stack>
+        ) : null}
+      </Stack>
+    </Card>
   );
 };
 
 const styles = StyleSheet.create({
-  card: {
-    marginTop: 12,
-    padding: 16,
-    borderRadius: 14,
-    borderWidth: 1,
-    gap: 10,
-  },
-  header: {
-    flexDirection: "column",
-    gap: 10,
-    alignItems: "center",
-  },
   animation: {
     width: 72,
     height: 72,
   },
-  title: {
-    fontSize: 15,
-    fontWeight: "700",
-  },
-  subtitle: {
-    fontSize: 13,
-    lineHeight: 18,
-    flexShrink: 1,
-  },
-  hint: {
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  actions: {
-    flexDirection: "row",
-    gap: 10,
-    marginTop: 6,
-  },
-  primaryBtn: {
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 10,
-    minWidth: 120,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  btnText: {
-    fontSize: 14,
-    fontWeight: "700",
-  },
-  secondaryBtn: {
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 10,
-    borderWidth: 1,
-    minWidth: 120,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  secondaryText: {
-    fontSize: 14,
-    fontWeight: "600",
+  flex: {
+    flex: 1,
   },
 });
 

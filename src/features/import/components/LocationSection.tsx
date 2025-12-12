@@ -1,12 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
-import { View, Text, StyleSheet, Pressable } from "react-native";
-import { PlaceDetails } from "../services/locationService";
+import { StyleSheet } from "react-native";
+import { Icon } from "react-native-paper";
 import { useTranslation } from "react-i18next";
-import InfoRow from "@features/activities/components/InfoRow";
+
+import { Button, Card, Stack, Text } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";
 import LocationChangeModal from "@common/components/LocationChangeModal";
+import type { PlaceDetails } from "../services/locationService";
 
-interface LocationSectionProps {
+type LocationSectionProps = {
   infoValue: string;
   locationName: string;
   address: string;
@@ -17,7 +19,7 @@ interface LocationSectionProps {
   onSuggest?: (payload: { place: PlaceDetails; note: string | null }) => Promise<void> | void;
   submitting?: boolean;
   activityTitle?: string;
-}
+};
 
 const LocationSection: React.FC<LocationSectionProps> = ({
   infoValue,
@@ -34,7 +36,7 @@ const LocationSection: React.FC<LocationSectionProps> = ({
   const { t } = useTranslation();
   const [modalVisible, setModalVisible] = useState(false);
   const lastEditRequestRef = useRef(editRequest);
-  const { colors, mode } = useAppTheme();
+  const { colors } = useAppTheme();
 
   const hasAddress = !!address;
   const isSuggestMode = sectionMode === "suggest";
@@ -72,39 +74,54 @@ const LocationSection: React.FC<LocationSectionProps> = ({
   }, [locationName, address, confirmed]);
 
   return (
-    <View
-      style={[
-        styles.section,
-        { backgroundColor: colors.card, borderColor: colors.border },
-      ]}
+    <Card
+      padding="lg"
+      radius="lg"
+      variant="outlined"
+      shadow="sm"
+      style={styles.section}
     >
-      <InfoRow icon="map-marker" value={infoValue} />
+      <Stack gap="sm">
+        <Stack direction="row" align="center" gap="sm">
+          <Icon source="map-marker" size={20} color={colors.primary} />
+          <Stack gap="xxs">
+            <Text variant="headline" weight="700">
+              {t("import:locationSection.label")}
+            </Text>
+            <Text variant="bodySmall" tone="muted">
+              {infoValue}
+            </Text>
+          </Stack>
+        </Stack>
 
-      <Text style={[styles.helperText, { color: colors.secondaryText }]}>
-        {!hasAddress
-          ? t("import:locationSection.notFound")
-          : isSuggestMode
-            ? t("import:locationSection.suggestHelper")
-            : needsConfirmation
-              ? t("import:locationSection.notAccurate")
-              : t("import:locationSection.confirmed")}
-      </Text>
-
-      <Pressable
-        style={[styles.primaryBtn, { backgroundColor: colors.primary }]}
-        onPress={() => setModalVisible(true)}
-      >
-        <Text
-          style={[
-            styles.primaryBtnText,
-            { color: mode === "dark" ? colors.background : colors.surface },
-          ]}
-        >
-          {isSuggestMode
-            ? t("activities:details.reportLocation")
-            : t("import:locationSection.edit")}
+        <Text variant="bodySmall" tone="muted">
+          {!hasAddress
+            ? t("import:locationSection.notFound")
+            : isSuggestMode
+              ? t("import:locationSection.suggestHelper")
+              : needsConfirmation
+                ? t("import:locationSection.notAccurate")
+                : t("import:locationSection.confirmed")}
         </Text>
-      </Pressable>
+
+        <Button
+          label={
+            isSuggestMode
+              ? t("activities:details.reportLocation")
+              : t("import:locationSection.edit")
+          }
+          onPress={() => setModalVisible(true)}
+          variant={isSuggestMode ? "secondary" : "primary"}
+          icon={
+            <Icon
+              source={isSuggestMode ? "map-marker-question" : "pencil"}
+              size={18}
+              color={isSuggestMode ? colors.primary : colors.favoriteContrast}
+            />
+          }
+          shadow="sm"
+        />
+      </Stack>
 
       <LocationChangeModal
         visible={modalVisible}
@@ -125,41 +142,13 @@ const LocationSection: React.FC<LocationSectionProps> = ({
             : t("import:locationSection.modalSubtitle")
         }
       />
-    </View>
+    </Card>
   );
 };
 
 const styles = StyleSheet.create({
   section: {
     marginTop: 20,
-    paddingVertical: 14,
-    paddingHorizontal: 14,
-    borderRadius: 12,
-    borderWidth: 1,
-  },
-  sectionLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-    marginBottom: 6,
-  },
-  helperText: {
-    fontSize: 13,
-    marginTop: 8,
-  },
-  previewText: {
-    fontSize: 14,
-    marginTop: 6,
-  },
-  primaryBtn: {
-    marginTop: 14,
-    borderRadius: 999,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    alignSelf: "flex-start",
-  },
-  primaryBtnText: {
-    fontSize: 13,
-    fontWeight: "700",
   },
 });
 
