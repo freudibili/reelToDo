@@ -62,8 +62,38 @@ export const importService = {
         }
       : undefined;
 
+    // Build extraSharedData hints to send to the analyze-post function
+    const extraSharedData: Record<string, unknown> = {};
+    if (shared?.meta?.title) extraSharedData.title = shared.meta.title;
+    if (shared?.text) extraSharedData.text = shared.text;
+    if (shared?.meta?.author) extraSharedData.creator = shared.meta.author;
+    else if (shared?.meta?.siteName)
+      extraSharedData.creator = shared.meta.siteName;
+
+    // Some share providers may include richer fields; safely copy if present
+    const anyShared = shared as any;
+    if (anyShared?.location?.name)
+      extraSharedData.locationHint = anyShared.location.name;
+    if (anyShared?.city) extraSharedData.cityHint = anyShared.city;
+    if (anyShared?.coordinates)
+      extraSharedData.coordinates = anyShared.coordinates;
+    if (Array.isArray(anyShared?.tags) && anyShared.tags.length > 0)
+      extraSharedData.tags = anyShared.tags;
+
+    // Infer platform from the URL when possible
+    let platform: string | undefined = undefined;
+    try {
+      const host = new URL(url).hostname.toLowerCase();
+      if (host.includes("instagram.com")) platform = "instagram";
+      else if (host.includes("tiktok.com")) platform = "tiktok";
+      else if (host.includes("youtube.com") || host.includes("youtu.be"))
+        platform = "youtube";
+    } catch {
+      platform = undefined;
+    }
+
     const { data, error } = await supabase.functions.invoke("analyze-post", {
-      body: { url, user_id: userId, metadata },
+      body: { url, user_id: userId, metadata, platform, extraSharedData },
     });
 
     if (error) {
@@ -75,7 +105,7 @@ export const importService = {
 
       const message = isUnsupportedCategory
         ? i18next.t("import:errors.unsupportedCategory")
-        : extractedMessage ?? i18next.t("import:errors.analyze");
+        : (extractedMessage ?? i18next.t("import:errors.analyze"));
       throw new Error(message);
     }
     if (!data) throw new Error(i18next.t("import:errors.analyze"));

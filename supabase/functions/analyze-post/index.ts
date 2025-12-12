@@ -33,7 +33,20 @@ serve(async (req) => {
 
   const url = body.url as string | undefined;
   const userId = body.user_id as string | undefined;
-  const userMeta = body.metadata as Record<string, any> | undefined;
+  const platform = body.platform as string | undefined;
+  const extraSharedData = body.extraSharedData as
+    | Record<string, any>
+    | undefined;
+  // Map extraSharedData into the old metadata shape expected by getSourceMetadata
+  const userMeta = extraSharedData
+    ? {
+        title: extraSharedData.title ?? null,
+        description: extraSharedData.text ?? null,
+        thumbnail_url: extraSharedData.thumbnail_url ?? null,
+        video_url: extraSharedData.video_url ?? null,
+        author_name: extraSharedData.creator ?? null,
+      }
+    : (body.metadata as Record<string, any> | undefined);
 
   if (!url) {
     return new Response(JSON.stringify({ error: "Missing url" }), {
@@ -55,7 +68,7 @@ serve(async (req) => {
       {
         status: 400,
         headers: { "Content-Type": "application/json" },
-      },
+      }
     );
   }
 
@@ -95,7 +108,7 @@ serve(async (req) => {
         ],
         {
           onConflict: "user_id,activity_id",
-        },
+        }
       );
 
       if (uaError) {
@@ -111,19 +124,29 @@ serve(async (req) => {
 
   console.log("[fn] fetching source meta for", url);
   const sourceMetaPromise = getSourceMetadata(url, userMeta);
-  const analyzerPromise = fetchMediaAnalyzer(url);
+  const analyzerPromise = fetchMediaAnalyzer(url, {
+    platform: platform ?? null,
+    extraSharedData: extraSharedData ?? null,
+  });
 
   const sourceMeta = await sourceMetaPromise;
   console.log("[fn] sourceMeta", sourceMeta);
 
   const analyzerResult = await analyzerPromise;
-  if (analyzerResult) {
-    const analyzerContent = analyzerResult.activity ??
-      (analyzerResult as any)?.content ??
-      null;
+  let analyzerFailed = false;
+  let videoDownloadErrorReason: string | undefined = undefined;
+  if (analyzerResult && (analyzerResult as any)._errorReason) {
+    analyzerFailed = true;
+    videoDownloadErrorReason = (analyzerResult as any)._errorReason;
+    console.log("[fn] mediaanalyzer error", videoDownloadErrorReason);
+  }
+
+  if (analyzerResult && !(analyzerResult as any)._errorReason) {
+    const analyzerContent =
+      analyzerResult.activity ?? (analyzerResult as any)?.content ?? null;
     console.log(
       "[fn] mediaanalyzer platform",
-      analyzerResult.platform ?? "unknown",
+      analyzerResult.platform ?? "unknown"
     );
     console.log("[fn] mediaanalyzer activity", {
       category: analyzerContent?.category ?? null,
@@ -133,25 +156,34 @@ serve(async (req) => {
       confidence: analyzerContent?.confidence ?? null,
     });
   } else {
-    console.log("[fn] mediaanalyzer unavailable");
+    if (!analyzerFailed) console.log("[fn] mediaanalyzer unavailable");
   }
   const { activity: analyzerActivity, description: analyzerDescription } =
-    await mapMediaAnalyzer(analyzerResult, url);
+    await mapMediaAnalyzer(analyzerResult, url, {
+      title: extraSharedData?.title,
+      text: extraSharedData?.text,
+      creator: extraSharedData?.creator,
+      locationHint: extraSharedData?.locationHint,
+      cityHint: extraSharedData?.cityHint,
+      coordinates: extraSharedData?.coordinates,
+      tags: extraSharedData?.tags,
+    });
 
-  const baseDescription = analyzerDescription ??
+  const baseDescription =
+    analyzerDescription ??
     sourceMeta.description ??
     analyzerResult?.rawDescription ??
     null;
 
   const hasAnySourceMeta = Boolean(
     analyzerActivity?.title ||
-      sourceMeta.title ||
-      baseDescription ||
-      analyzerActivity?.image_url ||
-      analyzerResult?.thumbnailUrl ||
-      sourceMeta.image ||
-      sourceMeta.author ||
-      analyzerResult?.rawDescription,
+    sourceMeta.title ||
+    baseDescription ||
+    analyzerActivity?.image_url ||
+    analyzerResult?.thumbnailUrl ||
+    sourceMeta.image ||
+    sourceMeta.author ||
+    analyzerResult?.rawDescription
   );
   if (!hasAnySourceMeta) {
     console.log("[fn] no usable metadata, aborting create");
@@ -163,7 +195,7 @@ serve(async (req) => {
       {
         status: 400,
         headers: { "Content-Type": "application/json" },
-      },
+      }
     );
   }
 
@@ -192,20 +224,57 @@ serve(async (req) => {
 
   let merged = mergeIfNull(mergedPrimary, {
     title: sourceMeta.title ?? analyzerResult?.rawTitle ?? null,
-    creator: mergedPrimary.creator ??
+    creator:
+      mergedPrimary.creator ??
       sourceMeta.author ??
       analyzerResult?.creator ??
       null,
     source_url: mergedPrimary.source_url ?? analyzerResult?.sourceUrl ?? url,
-    image_url: mergedPrimary.image_url ??
+    image_url:
+      mergedPrimary.image_url ??
       analyzerResult?.thumbnailUrl ??
       sourceMeta.image ??
       null,
   });
 
-  const preferredTags = (analyzerActivity?.tags ?? []).length > 0
-    ? (analyzerActivity?.tags ?? [])
+  // Merge extraSharedData.tags into merged tags (dedupe)
+  // Build final tags: prefer analyzer tags, merge hints and existing tags (dedup)
+  const analyzerTags = Array.isArray(analyzerActivity?.tags)
+    ? analyzerActivity!.tags
+        .map((t: any) => String(t ?? "").trim())
+        .filter(Boolean)
     : [];
+  const hintTags = Array.isArray(extraSharedData?.tags)
+    ? extraSharedData!.tags
+        .map((t: any) => String(t ?? "").trim())
+        .filter(Boolean)
+    : [];
+  const existingTags = Array.isArray(merged.tags)
+    ? merged.tags.map((t: any) => String(t ?? "").trim()).filter(Boolean)
+    : [];
+
+  const finalTags =
+    analyzerTags.length > 0
+      ? Array.from(new Set([...analyzerTags, ...hintTags, ...existingTags]))
+      : Array.from(new Set([...existingTags, ...hintTags]));
+  merged = { ...merged, tags: finalTags };
+
+  // Apply coordinates hints if analyzer didn't provide coordinates
+  if (
+    (merged.latitude == null || merged.longitude == null) &&
+    extraSharedData?.coordinates
+  ) {
+    const lat = extraSharedData.coordinates.latitude;
+    const lon = extraSharedData.coordinates.longitude;
+    if (typeof lat === "number" && typeof lon === "number") {
+      merged = { ...merged, latitude: lat, longitude: lon };
+    }
+  }
+
+  const preferredTags =
+    (analyzerActivity?.tags ?? []).length > 0
+      ? (analyzerActivity?.tags ?? [])
+      : [];
   if (
     (!Array.isArray(merged.tags) || merged.tags.length === 0) &&
     preferredTags.length > 0
@@ -233,9 +302,8 @@ serve(async (req) => {
     source_url,
   } = normalized;
 
-  const finalCategory = category && allowedCategories.has(category)
-    ? category
-    : null;
+  const finalCategory =
+    category && allowedCategories.has(category) ? category : null;
 
   console.log("[fn] finalCategory", finalCategory);
 
@@ -257,14 +325,13 @@ serve(async (req) => {
     });
   }
 
-  const mainDate = Array.isArray(dates) && dates.length > 0
-    ? (dates[0].start ?? null)
-    : null;
+  const mainDate =
+    Array.isArray(dates) && dates.length > 0 ? (dates[0].start ?? null) : null;
 
   const finalTitle = generateTitle(
     finalCategory,
     location_name ?? sourceMeta.title ?? "Activity",
-    city ?? null,
+    city ?? null
   );
   console.log("[fn] finalTitle", finalTitle);
 
@@ -274,8 +341,8 @@ serve(async (req) => {
 
   const needsLocationConfirmation = !hasLocation || confidenceValue < 0.7;
 
-  const needsDateConfirmation = categoriesRequiringDate.has(finalCategory) &&
-    !mainDate;
+  const needsDateConfirmation =
+    categoriesRequiringDate.has(finalCategory) && !mainDate;
 
   if (confidenceValue < 0.5) {
     const rejectionPayload = {
@@ -290,13 +357,10 @@ serve(async (req) => {
       confidence: confidenceValue,
       code: rejectionPayload.code,
     });
-    return new Response(
-      JSON.stringify(rejectionPayload),
-      {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      },
-    );
+    return new Response(JSON.stringify(rejectionPayload), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
   // Secondary dedup: same date + city/location + overlapping title
@@ -320,7 +384,7 @@ serve(async (req) => {
     if (similar) {
       console.log(
         "[fn] found potential duplicate by title/city/date",
-        similar.id,
+        similar.id
       );
 
       if (userId) {
@@ -337,7 +401,7 @@ serve(async (req) => {
             ],
             {
               onConflict: "user_id,activity_id",
-            },
+            }
           );
 
         if (uaError) {
@@ -345,20 +409,27 @@ serve(async (req) => {
         }
       }
 
-      return new Response(JSON.stringify(similar), {
+      const outSimilar = analyzerFailed
+        ? {
+            ...similar,
+            content: { videoDownloaded: false, videoDownloadErrorReason },
+          }
+        : { ...similar, content: { videoDownloaded: true } };
+      return new Response(JSON.stringify(outSimilar), {
         status: 200,
         headers: { "Content-Type": "application/json" },
       });
     }
   }
 
-  const analyzerLocations = Array.isArray(analyzerActivity?.locations) &&
-      analyzerActivity.locations.length > 0
-    ? analyzerActivity.locations
-    : Array.isArray(analyzerResult?.activity?.locations) &&
-        analyzerResult.activity.locations.length > 0
-    ? analyzerResult.activity.locations
-    : null;
+  const analyzerLocations =
+    Array.isArray(analyzerActivity?.locations) &&
+    analyzerActivity.locations.length > 0
+      ? analyzerActivity.locations
+      : Array.isArray(analyzerResult?.activity?.locations) &&
+          analyzerResult.activity.locations.length > 0
+        ? analyzerResult.activity.locations
+        : null;
 
   const insertPayload = {
     title: finalTitle,
@@ -395,7 +466,7 @@ serve(async (req) => {
     if (insertError.code === "23505") {
       console.log(
         "[fn] duplicate source_url on insert, fetching existing",
-        normalizedUrl,
+        normalizedUrl
       );
       const { data: existingDup } = await supabase
         .from("activities")
@@ -414,11 +485,17 @@ serve(async (req) => {
                 is_favorite: false,
               },
             ],
-            { onConflict: "user_id,activity_id" },
+            { onConflict: "user_id,activity_id" }
           );
         }
 
-        return new Response(JSON.stringify(existingDup), {
+        const out = analyzerFailed
+          ? {
+              ...existingDup,
+              content: { videoDownloaded: false, videoDownloadErrorReason },
+            }
+          : { ...existingDup, content: { videoDownloaded: true } };
+        return new Response(JSON.stringify(out), {
           status: 200,
           headers: { "Content-Type": "application/json" },
         });
@@ -433,7 +510,7 @@ serve(async (req) => {
       {
         status: 500,
         headers: { "Content-Type": "application/json" },
-      },
+      }
     );
   }
 
@@ -464,7 +541,7 @@ serve(async (req) => {
       ],
       {
         onConflict: "user_id,activity_id",
-      },
+      }
     );
 
     if (uaError) {
@@ -474,7 +551,14 @@ serve(async (req) => {
 
   console.log("[fn] done", activity?.id);
 
-  return new Response(JSON.stringify(activity), {
+  const outActivity = analyzerFailed
+    ? {
+        ...activity,
+        content: { videoDownloaded: false, videoDownloadErrorReason },
+      }
+    : { ...activity, content: { videoDownloaded: true } };
+
+  return new Response(JSON.stringify(outActivity), {
     status: 200,
     headers: { "Content-Type": "application/json" },
   });
