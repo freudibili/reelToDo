@@ -2,12 +2,13 @@ import React from "react";
 import {
   Modal,
   StyleSheet,
-  Text,
   TouchableWithoutFeedback,
   View,
-  Pressable,
   ViewStyle,
 } from "react-native";
+import { useTranslation } from "react-i18next";
+
+import { IconButton, Text } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";
 
 interface AppModalProps {
@@ -30,6 +31,7 @@ const AppModal: React.FC<AppModalProps> = ({
   contentStyle,
 }) => {
   const { colors } = useAppTheme();
+  const { t } = useTranslation();
   const hasHeader = !!title || !!subtitle;
 
   return (
@@ -40,7 +42,7 @@ const AppModal: React.FC<AppModalProps> = ({
       onRequestClose={onClose}
     >
       <TouchableWithoutFeedback onPress={onClose}>
-        <View style={styles.backdrop} />
+        <View style={[styles.backdrop, { backgroundColor: colors.backdrop }]} />
       </TouchableWithoutFeedback>
 
       <View
@@ -50,20 +52,26 @@ const AppModal: React.FC<AppModalProps> = ({
           cardStyle,
         ]}
       >
-        <Pressable
-          style={[styles.closeBtn, { backgroundColor: colors.overlay }]}
+        <IconButton
+          icon="close"
+          size={32}
+          variant="subtle"
+          tone="default"
+          accessibilityLabel={t("accessibility.close")}
           onPress={onClose}
-        >
-          <Text style={[styles.closeText, { color: colors.text }]}>×</Text>
-        </Pressable>
+          style={styles.closeBtn}
+          shadow={false}
+        />
 
         {hasHeader && (
           <View style={styles.header}>
             {title ? (
-              <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
+              <Text variant="title3" weight="700">
+                {title}
+              </Text>
             ) : null}
             {subtitle ? (
-              <Text style={[styles.subtitle, { color: colors.secondaryText }]}>
+              <Text variant="body" tone="muted">
                 {subtitle}
               </Text>
             ) : null}
@@ -89,7 +97,6 @@ export default AppModal;
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.35)",
   },
   card: {
     position: "absolute",
@@ -111,24 +118,10 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  closeText: {
-    fontSize: 18,
-    fontWeight: "700",
-    lineHeight: 18,
   },
   header: {
     gap: 6,
     paddingRight: 36, // keep space from close button
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: "700",
-  },
-  subtitle: {
-    fontSize: 13,
   },
   content: {
     marginTop: 0,

@@ -1,7 +1,8 @@
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
+import { Icon } from "react-native-paper";
 
-import ActionPill from "@common/components/ActionPill";
+import { Box, Text } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";
 
 type Props = {
@@ -14,22 +15,35 @@ const InfoRow: React.FC<Props> = ({ icon, value, rightSlot }) => {
   const { colors } = useAppTheme();
 
   return (
-    <View
-      style={[
-        styles.infoRow,
-        { backgroundColor: colors.card, borderColor: colors.border },
-      ]}
+    <Box
+      direction="row"
+      align="center"
+      gap={12}
+      paddingHorizontal="md"
+      paddingVertical="sm"
+      rounded="md"
+      border
+      background={colors.card}
+      borderColor={colors.border}
+      style={styles.infoRow}
     >
-      <ActionPill
-        icon={icon}
-        label=""
-        onPress={() => {}}
-        style={styles.infoIcon}
-        textStyle={styles.hiddenText}
-      />
-      <Text style={[styles.infoValue, { color: colors.text }]}>{value}</Text>
+      <Box
+        height={36}
+        width={36}
+        rounded="pill"
+        align="center"
+        justify="center"
+        background={colors.accentSurface}
+        border
+        borderColor={colors.accentBorder}
+      >
+        <Icon source={icon} size={18} color={colors.accent} />
+      </Box>
+      <Text variant="body" style={styles.infoValue} numberOfLines={2}>
+        {value}
+      </Text>
       {rightSlot ? <View style={styles.rightSlot}>{rightSlot}</View> : null}
-    </View>
+    </Box>
   );
 };
 
@@ -37,27 +51,12 @@ export default InfoRow;
 
 const styles = StyleSheet.create({
   infoRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-  },
-  infoIcon: {
-    paddingVertical: 0,
-    paddingHorizontal: 0,
-    minWidth: 32,
-    backgroundColor: "transparent",
-    borderWidth: 0,
+    borderWidth: StyleSheet.hairlineWidth,
   },
   infoValue: {
-    fontSize: 14,
     flex: 1,
   },
   rightSlot: {
     marginLeft: 8,
   },
-  hiddenText: { display: "none" },
 });

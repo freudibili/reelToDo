@@ -75,7 +75,7 @@ const getPalette = (tone: MessageTone, colors: ReturnType<typeof useAppTheme>["c
   switch (tone) {
     case "danger":
       return {
-        background: mode === "dark" ? colors.mutedSurface : "#fef2f2",
+        background: colors.dangerSurface,
         border: colors.danger,
         text: colors.danger,
       };

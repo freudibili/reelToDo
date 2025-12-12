@@ -51,7 +51,7 @@ const AppScreen: React.FC<AppScreenProps> = ({
   alignToTabBar = true,
   flushBottom = false,
 }) => {
-  const { colors, mode } = useAppTheme();
+  const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
   const tabBarHeight = React.useContext(BottomTabBarHeightContext) ?? 0;
   const [footerHeight, setFooterHeight] = React.useState(0);
@@ -170,12 +170,7 @@ const AppScreen: React.FC<AppScreenProps> = ({
           <View
             style={[
               styles.loadingOverlay,
-              {
-                backgroundColor:
-                  mode === "dark"
-                    ? "rgba(0,0,0,0.35)"
-                    : "rgba(255,255,255,0.72)",
-              },
+              { backgroundColor: colors.backdrop },
             ]}
           >
             {loadingContent ?? (
@@ -211,7 +206,6 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.7)",
   },
 });
 

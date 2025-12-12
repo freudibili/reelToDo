@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, View, type ViewStyle, type TextStyle } from "react-native";
 
 import { useAppTheme } from "../../theme/appTheme";
 import { radii, spacing, type TextVariant } from "../tokens";
@@ -13,6 +13,8 @@ type Props = {
   muted?: boolean;
   icon?: React.ReactNode;
   variant?: TextVariant;
+  style?: ViewStyle;
+  textStyle?: TextStyle;
 };
 
 const Badge: React.FC<Props> = ({
@@ -21,6 +23,8 @@ const Badge: React.FC<Props> = ({
   muted = false,
   icon,
   variant = "caption",
+  style,
+  textStyle,
 }) => {
   const { colors } = useAppTheme();
   const palette = getPalette(tone, muted, colors);
@@ -33,13 +37,14 @@ const Badge: React.FC<Props> = ({
           backgroundColor: palette.background,
           borderColor: palette.borderColor,
         },
+        style,
       ]}
     >
       {icon ? <View style={styles.icon}>{icon}</View> : null}
       <Text
         variant={variant}
         weight="700"
-        style={{ color: palette.textColor }}
+        style={[{ color: palette.textColor }, textStyle]}
         numberOfLines={1}
       >
         {children}
@@ -60,7 +65,7 @@ const getPalette = (
     primary: { background: colors.primarySurface, text: colors.primaryText, border: colors.primaryBorder },
     accent: { background: colors.accentSurface, text: colors.accentText, border: colors.accentBorder },
     success: { background: colors.secondarySurface, text: colors.secondary, border: colors.secondaryBorder },
-    danger: { background: "#fef2f2", text: colors.danger, border: "#fecdd3" },
+    danger: { background: colors.dangerSurface, text: colors.danger, border: colors.danger },
   };
 
   const base = toneMap[tone];

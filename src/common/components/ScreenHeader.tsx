@@ -1,5 +1,6 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
+import { useTranslation } from "react-i18next";
 
 import { IconButton, Stack, Text } from "@common/designSystem";
 
@@ -22,6 +23,7 @@ const ScreenHeader: React.FC<ScreenHeaderProps> = ({
   compact = false,
   alignLeftWhenNoBack = true,
 }) => {
+  const { t } = useTranslation();
   const showPlaceholder = !onBackPress && !alignLeftWhenNoBack;
 
   return (
@@ -38,7 +40,7 @@ const ScreenHeader: React.FC<ScreenHeaderProps> = ({
           variant="subtle"
           tone="primary"
           onPress={onBackPress}
-          accessibilityLabel="Go back"
+          accessibilityLabel={t("accessibility.goBack")}
         />
       ) : showPlaceholder ? (
         <View style={styles.backPlaceholder} />

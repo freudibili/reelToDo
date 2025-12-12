@@ -99,10 +99,10 @@ const getPalette = (
       };
     case "danger":
       return {
-        background: "#fef2f2",
-        borderColor: "#fecdd3",
+        background: colors.dangerSurface,
+        borderColor: colors.danger,
         textColor: colors.danger,
-        ripple: "#fde2e1",
+        ripple: colors.dangerSurface,
       };
     case "neutral":
     default:

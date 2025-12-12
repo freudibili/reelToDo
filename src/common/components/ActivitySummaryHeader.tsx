@@ -1,10 +1,12 @@
 import React from "react";
-import { View, Text, StyleSheet, ViewStyle } from "react-native";
+import { StyleSheet, View, ViewStyle } from "react-native";
 import { useTranslation } from "react-i18next";
+
+import { Stack, Text } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";
-import DateBadge from "./DateBadge";
 import { formatCategoryName } from "@features/activities/utils/categorySummary";
 import { getDateVisuals } from "@features/activities/utils/dateVisuals";
+import DateBadge from "./DateBadge";
 
 interface ActivitySummaryHeaderProps {
   title: string;
@@ -54,12 +56,12 @@ const ActivitySummaryHeader: React.FC<ActivitySummaryHeaderProps> = ({
   }[];
 
   return (
-    <View style={[styles.container, style]}>
-      <Text style={[styles.title, { color: colors.text }]} numberOfLines={2}>
+    <Stack gap="xs" style={[styles.container, style]}>
+      <Text variant="title2" numberOfLines={2}>
         {displayTitle}
       </Text>
       {metaLine ? (
-        <Text style={[styles.meta, { color: colors.secondaryText }]} numberOfLines={2}>
+        <Text variant="body" tone="muted" numberOfLines={2}>
           {metaLine}
         </Text>
       ) : null}
@@ -79,7 +81,7 @@ const ActivitySummaryHeader: React.FC<ActivitySummaryHeaderProps> = ({
       ) : (
         <DateBadge label={dateLabel} />
       )}
-    </View>
+    </Stack>
   );
 };
 
@@ -87,16 +89,7 @@ export default ActivitySummaryHeader;
 
 const styles = StyleSheet.create({
   container: {
-    gap: 4,
     width: "90%",
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: "800",
-    lineHeight: 24,
-  },
-  meta: {
-    fontSize: 14,
   },
   badgeRow: {
     flexDirection: "row",

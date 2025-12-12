@@ -1,7 +1,8 @@
 import React from "react";
-import { Pressable, StyleSheet, Text, View, ViewStyle } from "react-native";
+import { StyleSheet, ViewStyle } from "react-native";
 import { Icon } from "react-native-paper";
 
+import { Button } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";
 
 interface ActionPillProps {
@@ -12,7 +13,6 @@ interface ActionPillProps {
   disabled?: boolean;
   tone?: "default" | "danger";
   style?: ViewStyle;
-  textStyle?: object;
 }
 
 const ActionPill: React.FC<ActionPillProps> = ({
@@ -23,90 +23,33 @@ const ActionPill: React.FC<ActionPillProps> = ({
   disabled,
   tone = "default",
   style,
-  textStyle,
 }) => {
   const { colors } = useAppTheme();
-  const primaryColor = tone === "danger" ? colors.danger : colors.accent;
-  const textColor = tone === "danger" ? colors.danger : colors.accentText;
-  const backgroundColor =
-    tone === "danger" ? styles.dangerBtn.backgroundColor : colors.accentSurface;
-  const borderColor =
-    tone === "danger" ? styles.dangerBtn.borderColor : colors.accentBorder;
+  const isDanger = tone === "danger";
+  const resolvedIconColor =
+    iconColor ??
+    (isDanger ? colors.favoriteContrast : colors.accent);
+  const variant = isDanger ? "danger" : "tonal";
 
   return (
-    <Pressable
-      style={[
-        styles.actionBtn,
-        {
-          backgroundColor,
-          borderColor,
-        },
-        tone === "danger" && styles.dangerBtn,
-        disabled && styles.disabled,
-        style,
-      ].filter(Boolean)}
+    <Button
+      label={label}
+      variant={variant}
+      size="sm"
+      pill
+      icon={<Icon source={icon} size={18} color={resolvedIconColor} />}
       onPress={onPress}
       disabled={disabled}
-    >
-      <View style={styles.actionContent}>
-        <Icon
-          source={icon}
-          size={18}
-          color={iconColor ?? (disabled ? colors.secondaryText : primaryColor)}
-        />
-        <Text
-          style={[
-            styles.actionBtnText,
-            { color: textColor },
-            tone === "danger" && { color: colors.danger },
-            disabled && styles.disabledText,
-            textStyle,
-          ]}
-        >
-          {label}
-        </Text>
-      </View>
-    </Pressable>
+      shadow={false}
+      style={[styles.button, style]}
+    />
   );
 };
 
 export default ActionPill;
 
 const styles = StyleSheet.create({
-  actionBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 14,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    backgroundColor: "#e0f2fe",
-    borderWidth: 1.5,
-    borderColor: "#bae6fd",
+  button: {
     minWidth: 120,
-  },
-  actionContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  actionBtnText: {
-    color: "#075985",
-    fontWeight: "700",
-    fontSize: 13,
-  },
-  dangerBtn: {
-    backgroundColor: "#fef2f2",
-    borderWidth: 1.5,
-    borderColor: "#fecdd3",
-  },
-  dangerBtnText: {
-    color: "#b91c1c",
-  },
-  disabled: {
-    opacity: 0.5,
-  },
-  disabledText: {
-    color: "#e5e7eb",
   },
 });

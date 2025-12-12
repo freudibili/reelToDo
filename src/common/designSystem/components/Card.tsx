@@ -43,7 +43,7 @@ const Card: React.FC<Props> = ({
       padding={padding}
       rounded={resolveRadius(radius) ?? radii.lg}
       background={background}
-      style={[border, showShadow ? getShadowStyle(mode, showShadow) : undefined, style]}
+      style={[border, showShadow ? getShadowStyle(mode, showShadow, colors.text) : undefined, style]}
       {...rest}
     >
       {children}

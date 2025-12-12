@@ -112,7 +112,7 @@ const Button: React.FC<ButtonProps> = ({
           },
           pressedStyle,
           fullWidth ? styles.fullWidth : undefined,
-          baseShadow ? getShadowStyle(mode, baseShadow) : undefined,
+          baseShadow ? getShadowStyle(mode, baseShadow, colors.text) : undefined,
           resolvedStyle,
         ];
       }}
@@ -131,8 +131,7 @@ const getButtonPalette = (
   mode: string,
   colors: ReturnType<typeof useAppTheme>["colors"]
 ) => {
-  const overlay =
-    mode === "dark" ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)";
+  const overlay = colors.overlay;
 
   switch (variant) {
     case "secondary":

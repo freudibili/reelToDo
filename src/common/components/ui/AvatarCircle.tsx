@@ -1,13 +1,8 @@
 import React from "react";
-import {
-  View,
-  Text,
-  Image,
-  StyleSheet,
-  ImageStyle,
-  ViewStyle,
-  TextStyle,
-} from "react-native";
+import { View, Image, StyleSheet, ImageStyle, ViewStyle, TextStyle } from "react-native";
+
+import { Text } from "@common/designSystem";
+import { useAppTheme } from "@common/theme/appTheme";
 
 type Props = {
   size?: number;
@@ -24,13 +19,17 @@ const AvatarCircle: React.FC<Props> = ({
   size = 64,
   initials,
   uri,
-  bg = "#DBEAFE",
-  color = "#1E3A8A",
+  bg,
+  color,
   style,
   imageStyle,
   textStyle,
 }) => {
+  const { colors } = useAppTheme();
   const radius = size / 2;
+  const background = bg ?? colors.accentSurface;
+  const textColor = color ?? colors.accent;
+
   return (
     <View
       style={[
@@ -39,7 +38,7 @@ const AvatarCircle: React.FC<Props> = ({
           width: size,
           height: size,
           borderRadius: radius,
-          backgroundColor: bg,
+          backgroundColor: background,
         },
         style,
       ]}
@@ -55,11 +54,9 @@ const AvatarCircle: React.FC<Props> = ({
         />
       ) : (
         <Text
-          style={[
-            styles.txt,
-            { color, fontSize: Math.max(18, size * 0.34) },
-            textStyle,
-          ]}
+          variant="title3"
+          weight="700"
+          style={[{ color: textColor, fontSize: Math.max(18, size * 0.34) }, textStyle]}
         >
           {initials}
         </Text>
@@ -71,7 +68,6 @@ const AvatarCircle: React.FC<Props> = ({
 const styles = StyleSheet.create({
   wrap: { alignItems: "center", justifyContent: "center", overflow: "hidden" },
   img: { resizeMode: "cover" },
-  txt: { fontWeight: "700" as const },
 });
 
 export default AvatarCircle;

@@ -49,7 +49,7 @@ const IconButton: React.FC<Props> = ({
           borderColor: palette.borderColor,
           borderWidth: palette.borderColor ? StyleSheet.hairlineWidth : 0,
         },
-        shadow ? getShadowStyle(mode, shadow) : undefined,
+        shadow ? getShadowStyle(mode, shadow, colors.text) : undefined,
         typeof style === "function" ? style({ pressed }) : style,
       ]}
       android_ripple={{ color: palette.ripple }}
@@ -76,8 +76,7 @@ const getPalette = (
         : tone === "accent"
           ? colors.accent
           : colors.text;
-  const overlay =
-    mode === "dark" ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)";
+  const overlay = colors.overlay;
 
   switch (variant) {
     case "filled":

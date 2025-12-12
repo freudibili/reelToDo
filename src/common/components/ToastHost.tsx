@@ -1,8 +1,9 @@
 import React from "react";
-import { Text, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
 import { Snackbar } from "react-native-paper";
 import { useAppSelector, useAppDispatch } from "@core/store/hook";
 import { hideToast, selectToast } from "@common/store/appSlice";
+import { Text } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";
 import { useRouter } from "expo-router";
 
@@ -37,12 +38,14 @@ const ToastHost = () => {
           ? {
               label: toast.action.label,
               onPress: handleAction,
-              labelStyle: [styles.action, { color: colors.surface }],
+              labelStyle: [styles.action, { color: colors.favoriteContrast }],
             }
           : undefined
       }
     >
-      <Text style={[styles.text, { color: colors.surface }]}>{toast.message ?? ""}</Text>
+      <Text variant="bodyStrong" weight="700" tone="inverse">
+        {toast.message ?? ""}
+      </Text>
     </Snackbar>
   );
 };
@@ -51,9 +54,6 @@ const styles = StyleSheet.create({
   snackbar: {
     marginHorizontal: 12,
     marginBottom: 10,
-  },
-  text: {
-    fontWeight: "700",
   },
   action: {
     fontWeight: "800",

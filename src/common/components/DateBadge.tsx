@@ -1,7 +1,8 @@
 import React from "react";
-import { StyleSheet, Text, View, ViewStyle } from "react-native";
+import { StyleSheet, ViewStyle } from "react-native";
 import { Icon } from "react-native-paper";
 
+import { Stack, Text } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";
 
 type Props = {
@@ -23,40 +24,31 @@ const DateBadge: React.FC<Props> = ({
   iconBackgroundColor,
   labelWeight = "bold",
 }) => {
-  const { colors, mode } = useAppTheme();
+  const { colors } = useAppTheme();
 
   if (!label) return null;
 
-  const textColor =
-    tone === "muted"
-      ? colors.secondaryText
-      : mode === "dark"
-        ? colors.text
-        : colors.text;
+  const textTone = tone === "muted" ? "muted" : "default";
+  const resolvedIconColor = iconColor ?? colors.accent;
+  const resolvedIconBackground = iconBackgroundColor ?? colors.accentSurface;
+  const fontWeight = labelWeight === "bold" ? "700" : "500";
 
   return (
-    <View style={[styles.container, style]}>
-      <View
-        style={[
-          styles.iconWrapper,
-          { backgroundColor: iconBackgroundColor ?? colors.accentSurface },
-        ]}
+    <Stack direction="row" align="center" gap="sm" style={[styles.container, style]}>
+      <Stack
+        align="center"
+        justify="center"
+        height={28}
+        width={28}
+        rounded="pill"
+        background={resolvedIconBackground}
       >
-        <Icon source={icon} size={16} color={iconColor ?? colors.accent} />
-      </View>
-      <Text
-        style={[
-          styles.label,
-          {
-            color: textColor,
-            fontWeight: labelWeight === "bold" ? "700" : "500",
-          },
-        ]}
-        numberOfLines={1}
-      >
+        <Icon source={icon} size={16} color={resolvedIconColor} />
+      </Stack>
+      <Text variant="body" weight={fontWeight} tone={textTone} numberOfLines={1}>
         {label}
       </Text>
-    </View>
+    </Stack>
   );
 };
 
@@ -64,19 +56,6 @@ export default DateBadge;
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  iconWrapper: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(37,99,235,0.12)",
-  },
-  label: {
-    fontSize: 14,
+    flexGrow: 0,
   },
 });

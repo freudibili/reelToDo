@@ -112,9 +112,9 @@ const Box: React.FC<BoxProps> = ({
 
   const shadowStyle =
     shadow === true
-      ? getShadowStyle(mode, "md")
+      ? getShadowStyle(mode, "md", colors.text)
       : shadow
-        ? getShadowStyle(mode, shadow)
+        ? getShadowStyle(mode, shadow, colors.text)
         : undefined;
 
   return (

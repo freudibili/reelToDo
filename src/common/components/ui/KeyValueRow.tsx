@@ -1,21 +1,30 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
+import { useTranslation } from "react-i18next";
+
+import { Stack, Text } from "@common/designSystem";
 
 type Props = { label: string; value: string; labelWidth?: number };
 
 const KeyValueRow: React.FC<Props> = ({ label, value, labelWidth = 140 }) => {
+  const { t } = useTranslation();
+  const displayValue = value || t("labels.notAvailable");
+
   return (
-    <View style={styles.row}>
-      <Text style={[styles.label, { width: labelWidth }]}>{label}</Text>
-      <Text style={styles.value}>{value || "—"}</Text>
-    </View>
+    <Stack direction="row" align="flex-start" gap="sm" style={styles.row}>
+      <Text variant="bodySmall" tone="muted" style={{ width: labelWidth }}>
+        {label}
+      </Text>
+      <Text variant="body" style={styles.value}>
+        {displayValue}
+      </Text>
+    </Stack>
   );
 };
 
 const styles = StyleSheet.create({
-  row: { flexDirection: "row", alignItems: "flex-start", paddingVertical: 8 },
-  label: { color: "#6B7280" },
-  value: { flex: 1, color: "#111827" },
+  row: { paddingVertical: 8 },
+  value: { flex: 1 },
 });
 
 export default KeyValueRow;

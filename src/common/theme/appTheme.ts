@@ -33,6 +33,8 @@ export type AppTheme = {
     mutedText: string;
     secondaryText: string;
     overlay: string;
+    overlayStrong: string;
+    backdrop: string;
     danger: string;
     dangerSurface: string;
     success: string;
@@ -89,6 +91,8 @@ const lightPalette: AppTheme["colors"] = {
 
   // Other
   overlay: "rgba(15,23,42,0.04)",
+  overlayStrong: "rgba(15,23,42,0.16)",
+  backdrop: "rgba(15,23,42,0.35)",
   lightGray: "#F1F5F9",
   danger: "#E35D5D",
   dangerSurface: "rgba(227,93,93,0.12)",
@@ -145,6 +149,8 @@ const darkPalette: AppTheme["colors"] = {
 
   // Other
   overlay: "rgba(255,255,255,0.06)",
+  overlayStrong: "rgba(255,255,255,0.12)",
+  backdrop: "rgba(4,13,18,0.65)",
   lightGray: "#122C35",
   danger: "#F19A9A",
   dangerSurface: "rgba(241,154,154,0.16)",

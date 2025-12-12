@@ -28,7 +28,8 @@
     "locationMissing": "Lieu à confirmer ou à préciser",
     "addressMissing": "Adresse non précisée",
     "dateMissing": "Date non précisée",
-    "untitled": "Sans titre"
+    "untitled": "Sans titre",
+    "notAvailable": "Non disponible"
   },
   "navigation": {
     "tabs": {
@@ -41,6 +42,12 @@
   },
   "status": {
     "searching": "Recherche…"
+  },
+  "accessibility": {
+    "goBack": "Revenir en arrière",
+    "close": "Fermer",
+    "addFavorite": "Ajouter aux favoris",
+    "removeFavorite": "Retirer des favoris"
   },
   "locationPicker": {
     "title": "Choisir un lieu",

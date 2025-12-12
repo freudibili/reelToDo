@@ -1,9 +1,11 @@
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Icon } from "react-native-paper";
-import { formatCategoryName } from "@features/activities/utils/categorySummary";
+
+import { Stack, Text } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";
+import { formatCategoryName } from "@features/activities/utils/categorySummary";
 import AppImage from "./AppImage";
 
 interface ActivityHeroProps {
@@ -38,34 +40,72 @@ const ActivityHero: React.FC<ActivityHeroProps> = ({
   const chips = [location, dateLabel].filter(Boolean) as string[];
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.card }]}>
       <AppImage uri={imageUrl} style={styles.image} resizeMode="cover">
         {onToggleFavorite && (
-          <Pressable style={styles.favoriteBtn} onPress={onToggleFavorite}>
+          <Pressable
+            style={[
+              styles.favoriteBtn,
+              {
+                backgroundColor: colors.overlayStrong,
+                borderColor: colors.border,
+              },
+            ]}
+            onPress={onToggleFavorite}
+            accessibilityLabel={
+              isFavorite
+                ? t("accessibility.removeFavorite")
+                : t("accessibility.addFavorite")
+            }
+            accessibilityRole="button"
+          >
             <Icon
               source={isFavorite ? "heart" : "heart-outline"}
               size={18}
-              color={isFavorite ? colors.favorite : colors.background}
+              color={isFavorite ? colors.favorite : colors.favoriteContrast}
             />
           </Pressable>
         )}
 
         {showOverlayContent && (
           <View style={styles.overlayContent}>
-            <Text style={styles.category}>{displayCategory}</Text>
-            <Text style={styles.title} numberOfLines={2}>
-              {displayTitle}
-            </Text>
+            <View
+              style={[
+                styles.overlayPanel,
+                {
+                  backgroundColor: colors.backdrop,
+                  borderColor: colors.border,
+                },
+              ]}
+            >
+              <Text variant="eyebrow" tone="inverse">
+                {displayCategory}
+              </Text>
+              <Text variant="title1" tone="inverse" numberOfLines={2}>
+                {displayTitle}
+              </Text>
 
-            {chips.length > 0 && (
-              <View style={styles.chipRow}>
-                {chips.map((chip, idx) => (
-                  <View style={styles.chip} key={`${chip}-${idx}`}>
-                    <Text style={styles.chipText}>{chip}</Text>
-                  </View>
-                ))}
-              </View>
-            )}
+              {chips.length > 0 ? (
+                <Stack direction="row" gap="sm" wrap style={styles.chipRow}>
+                  {chips.map((chip, idx) => (
+                    <View
+                      style={[
+                        styles.chip,
+                        {
+                          backgroundColor: colors.overlayStrong,
+                          borderColor: colors.border,
+                        },
+                      ]}
+                      key={`${chip}-${idx}`}
+                    >
+                      <Text variant="bodySmall" tone="inverse" weight="700">
+                        {chip}
+                      </Text>
+                    </View>
+                  ))}
+                </Stack>
+              ) : null}
+            </View>
           </View>
         )}
       </AppImage>
@@ -79,7 +119,6 @@ const styles = StyleSheet.create({
   container: {
     borderRadius: 20,
     overflow: "hidden",
-    backgroundColor: "#0f172a",
   },
   image: {
     width: "100%",
@@ -91,34 +130,20 @@ const styles = StyleSheet.create({
     right: 16,
     bottom: 16,
   },
-  category: {
-    color: "#dbeafe",
-    fontSize: 13,
-    fontWeight: "600",
-  },
-  title: {
-    color: "#fff",
-    fontSize: 22,
-    fontWeight: "800",
-    marginTop: 6,
-    lineHeight: 26,
+  overlayPanel: {
+    borderRadius: 16,
+    padding: 14,
+    borderWidth: StyleSheet.hairlineWidth,
+    gap: 6,
   },
   chipRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    marginTop: 10,
-    gap: 8,
+    marginTop: 8,
   },
   chip: {
     borderRadius: 999,
     paddingVertical: 6,
     paddingHorizontal: 10,
-    backgroundColor: "rgba(255,255,255,0.16)",
-  },
-  chipText: {
-    color: "#fff",
-    fontSize: 12,
-    fontWeight: "600",
+    borderWidth: StyleSheet.hairlineWidth,
   },
   favoriteBtn: {
     position: "absolute",
@@ -127,9 +152,9 @@ const styles = StyleSheet.create({
     height: 34,
     width: 34,
     borderRadius: 17,
-    backgroundColor: "rgba(0,0,0,0.4)",
     alignItems: "center",
     justifyContent: "center",
     zIndex: 2,
+    borderWidth: StyleSheet.hairlineWidth,
   },
 });

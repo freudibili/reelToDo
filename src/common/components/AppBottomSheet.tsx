@@ -1,8 +1,6 @@
 import React from "react";
 import {
   View,
-  Pressable,
-  Text,
   StyleSheet,
   ViewStyle,
   Platform,
@@ -12,6 +10,8 @@ import BottomSheet, {
   BottomSheetScrollView,
 } from "@gorhom/bottom-sheet";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
+import { IconButton } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";
 
 interface AppBottomSheetProps {
@@ -38,6 +38,7 @@ const AppBottomSheet = React.forwardRef<BottomSheet, AppBottomSheetProps>(
     ref
   ) => {
     const { colors } = useAppTheme();
+    const { t } = useTranslation();
     const insets = useSafeAreaInsets();
     const bottomSpacing = Math.max(insets.bottom, 8);
     const resolvedSnapPoints = snapPoints ?? ["25%", "60%", "90%"];
@@ -91,12 +92,16 @@ const AppBottomSheet = React.forwardRef<BottomSheet, AppBottomSheetProps>(
         <BottomSheetView
           style={[styles.content, { backgroundColor: colors.surface }, style]}
         >
-          <Pressable
-            style={[styles.closeBtn, { backgroundColor: colors.lightGray }]}
+          <IconButton
+            icon="close"
+            size={32}
+            variant="subtle"
+            tone="default"
+            accessibilityLabel={t("accessibility.close")}
             onPress={onClose}
-          >
-            <Text style={[styles.closeText, { color: colors.text }]}>×</Text>
-          </Pressable>
+            style={styles.closeBtn}
+            shadow={false}
+          />
           <View style={styles.body}>{content}</View>
         </BottomSheetView>
       </BottomSheet>
@@ -145,16 +150,6 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: 12,
     top: 12,
-    height: 32,
-    width: 32,
-    borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
     zIndex: 10,
-  },
-  closeText: {
-    fontSize: 18,
-    fontWeight: "700",
-    lineHeight: 18,
   },
 });

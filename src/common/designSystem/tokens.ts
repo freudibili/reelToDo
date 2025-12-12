@@ -1,6 +1,6 @@
 import { StyleSheet, type TextStyle } from "react-native";
 
-import { type AppThemeMode } from "../theme/appTheme";
+import { createAppTheme, type AppThemeMode } from "../theme/appTheme";
 
 export const spacing = {
   xxs: 4,
@@ -70,7 +70,11 @@ export const resolveRadius = (value: RadiusValue) => {
   return radii[value];
 };
 
-export const getShadowStyle = (mode: AppThemeMode, level: ShadowLevel = "md") => {
+export const getShadowStyle = (
+  mode: AppThemeMode,
+  level: ShadowLevel = "md",
+  shadowColor?: string
+) => {
   const isDark = mode === "dark";
   const presets: Record<ShadowLevel, { opacity: number; radius: number; height: number; elevation: number }> = {
     sm: { opacity: isDark ? 0.18 : 0.08, radius: 6, height: 3, elevation: 2 },
@@ -79,10 +83,12 @@ export const getShadowStyle = (mode: AppThemeMode, level: ShadowLevel = "md") =>
   };
 
   const preset = presets[level];
+  const palette = createAppTheme(mode).colors;
+  const resolvedShadowColor = shadowColor ?? palette.text;
 
   return StyleSheet.create({
     shadow: {
-      shadowColor: "#0f172a",
+      shadowColor: resolvedShadowColor,
       shadowOpacity: preset.opacity,
       shadowRadius: preset.radius,
       shadowOffset: { width: 0, height: preset.height },

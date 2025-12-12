@@ -52,7 +52,7 @@ const Text = React.forwardRef<RNText, Props>(
       accent: colors.accent,
       danger: colors.danger,
       success: colors.success,
-      inverse: mode === "dark" ? colors.surface : colors.background,
+      inverse: colors.favoriteContrast,
     };
 
     return (
