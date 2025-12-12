@@ -5,13 +5,18 @@ import { useAppTheme } from "@common/theme/appTheme";
 import type { Activity } from "../utils/types";
 import type { PlaceDetails } from "@features/import/services/locationService";
 import LocationChangeModal from "@common/components/LocationChangeModal";
-import { formatActivityLocation } from "../utils/activityDisplay";
+import {
+  formatActivityLocation,
+  formatLocationEntry,
+  getActivityLocations,
+} from "../utils/activityDisplay";
 import {
   resolveLocationAction,
   type LocationStatusMeta,
 } from "../utils/locationEditor";
 import InfoRow from "./InfoRow";
 import SuggestionPill from "./SuggestionPill";
+import AdditionalInfoList from "./AdditionalInfoList";
 
 type ActivityLocationEditorCardProps = {
   activity: Activity;
@@ -40,15 +45,31 @@ const ActivityLocationEditorCard: React.FC<ActivityLocationEditorCardProps> = ({
   const { t } = useTranslation();
   const [modalVisible, setModalVisible] = useState(false);
 
+  const locations = useMemo(() => getActivityLocations(activity), [activity]);
   const locationLabel = useMemo(() => {
     if (draftLocation) {
       return draftLocation.formattedAddress || draftLocation.name || draftLocation.description;
     }
-    return formatActivityLocation(activity) ?? t("common:labels.locationPending");
-  }, [activity, draftLocation, t]);
+    const formattedPrimary =
+      formatLocationEntry(
+        locations[0],
+        activity.city ?? activity.country ?? null,
+      ) ?? formatActivityLocation(activity);
+    return formattedPrimary ?? t("common:labels.locationPending");
+  }, [activity, draftLocation, locations, t]);
   const action = useMemo(
     () => resolveLocationAction({ activity, isOwner, draftLocation }),
     [activity, draftLocation, isOwner],
+  );
+  const alternateLocations = useMemo(
+    () =>
+      locations
+        .slice(1)
+        .map((loc) =>
+          formatLocationEntry(loc, activity.city ?? activity.country ?? null),
+        )
+        .filter((loc): loc is string => Boolean(loc)),
+    [activity.city, activity.country, locations],
   );
 
   const title = status.needsConfirmation
@@ -109,6 +130,13 @@ const ActivityLocationEditorCard: React.FC<ActivityLocationEditorCardProps> = ({
           />
         }
       />
+      {alternateLocations.length > 0 ? (
+        <AdditionalInfoList
+          title={t("activities:details.otherLocations")}
+          icon="map-marker-outline"
+          items={alternateLocations}
+        />
+      ) : null}
 
       <View style={styles.actionsRow}>
         <Pressable

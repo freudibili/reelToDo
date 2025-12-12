@@ -1,4 +1,4 @@
-import type { Activity } from "./types";
+import type { Activity, MediaAnalyzerLocation } from "./types";
 import i18next from "@common/i18n/i18n";
 
 export const formatDisplayDate = (
@@ -31,43 +31,135 @@ export const formatDisplayDateTime = (
   return date ?? time ?? null;
 };
 
-const getFirstArrayDate = (dates?: string[] | null): string | null => {
-  if (!Array.isArray(dates) || dates.length === 0) return null;
-  return dates[0] ?? null;
+const normalizeLocation = (
+  location: MediaAnalyzerLocation | null | undefined,
+): MediaAnalyzerLocation => ({
+  name: location?.name ?? null,
+  address: location?.address ?? null,
+  city: location?.city ?? null,
+  country: location?.country ?? null,
+  latitude:
+    typeof location?.latitude === "number" ? location?.latitude : null,
+  longitude:
+    typeof location?.longitude === "number" ? location?.longitude : null,
+});
+
+const isLocationEmpty = (location: MediaAnalyzerLocation | null | undefined) =>
+  !location ||
+  (!location.name &&
+    !location.address &&
+    !location.city &&
+    !location.country);
+
+const getLocationKey = (location: MediaAnalyzerLocation) =>
+  [
+    location.name,
+    location.address,
+    location.city,
+    location.country,
+    location.latitude,
+    location.longitude,
+  ]
+    .map((value) => (value === null ? "" : String(value)))
+    .join("|");
+
+export const getActivityLocations = (
+  activity: Pick<
+    Activity,
+    | "location_name"
+    | "address"
+    | "city"
+    | "country"
+    | "latitude"
+    | "longitude"
+    | "locations"
+    | "analyzer_locations"
+  >,
+): MediaAnalyzerLocation[] => {
+  const sources: MediaAnalyzerLocation[] = [
+    normalizeLocation({
+      name: activity.location_name,
+      address: activity.address,
+      city: activity.city,
+      country: activity.country,
+      latitude: activity.latitude,
+      longitude: activity.longitude,
+    }),
+    ...(Array.isArray(activity.analyzer_locations)
+      ? activity.analyzer_locations
+      : []),
+    ...(Array.isArray(activity.locations) ? activity.locations : []),
+  ]
+    .map(normalizeLocation)
+    .filter((loc) => !isLocationEmpty(loc));
+
+  const seen = new Set<string>();
+  const unique: MediaAnalyzerLocation[] = [];
+  sources.forEach((loc) => {
+    const key = getLocationKey(loc);
+    if (seen.has(key)) return;
+    seen.add(key);
+    unique.push(loc);
+  });
+
+  return unique;
+};
+
+export const formatLocationEntry = (
+  location: MediaAnalyzerLocation | null | undefined,
+  fallbackRegion?: string | null,
+): string | null => {
+  if (!location) return null;
+  const main = location.name ?? location.address;
+  const region = location.city ?? location.country ?? fallbackRegion;
+  const label = [main, region].filter(Boolean).join(" • ");
+  return label || null;
 };
 
 export const formatActivityLocation = (
   activity: Pick<
     Activity,
-    "location_name" | "city" | "country" | "address" | "locations"
+    | "location_name"
+    | "city"
+    | "country"
+    | "address"
+    | "locations"
+    | "analyzer_locations"
+    | "latitude"
+    | "longitude"
   >
 ): string | null => {
-  const primaryLocation = Array.isArray(activity.locations) &&
-      activity.locations.length > 0
-    ? activity.locations[0]
-    : null;
-  const main =
-    primaryLocation?.name ??
-    primaryLocation?.address ??
-    activity.location_name ??
-    activity.address;
-  const region =
-    primaryLocation?.city ?? activity.city ?? activity.country;
-  const label = [main, region].filter(Boolean).join(" • ");
-  return label || null;
+  const locations = getActivityLocations(activity);
+  const primaryLocation = locations.length > 0 ? locations[0] : null;
+  const fallbackRegion = activity.city ?? activity.country ?? null;
+
+  return (
+    formatLocationEntry(primaryLocation, fallbackRegion) ??
+    formatLocationEntry(
+      {
+        name: activity.location_name,
+        address: activity.address,
+        city: activity.city,
+        country: activity.country,
+        latitude: activity.latitude,
+        longitude: activity.longitude,
+      },
+      fallbackRegion,
+    )
+  );
 };
 
 export const getPrimaryDateValue = (
   activity: Pick<Activity, "planned_at" | "dates" | "main_date">
 ): string | null =>
-  activity.planned_at ??
-  getFirstArrayDate(activity.dates) ??
-  activity.main_date ??
-  null;
+  activity.planned_at ?? getOfficialDateValue(activity);
 
 export const getOfficialDateValue = (
   activity: Pick<Activity, "dates" | "main_date">
-): string | null => getFirstArrayDate(activity.dates) ?? activity.main_date ?? null;
+): string | null => {
+  const dates = getActivityDateValues(activity);
+  return dates.length > 0 ? dates[0] : null;
+};
 
 export const isSameDateValue = (
   a: string | Date | null | undefined,
@@ -92,6 +184,35 @@ export const parseDateValue = (
   }
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 };
+
+export const getActivityDateValues = (
+  activity: Pick<Activity, "dates" | "main_date">,
+): string[] => {
+  const rawValues = [
+    ...(Array.isArray(activity.dates) ? activity.dates.filter(Boolean) : []),
+    activity.main_date,
+  ].filter(Boolean) as string[];
+
+  const seen = new Set<number | string>();
+  const unique: string[] = [];
+  rawValues.forEach((value) => {
+    const parsed = parseDateValue(value);
+    const key = parsed ? parsed.getTime() : value;
+    if (key === null || key === undefined) return;
+    if (seen.has(key)) return;
+    seen.add(key);
+    unique.push(value);
+  });
+
+  return unique;
+};
+
+export const formatActivityDateValue = (
+  value: string | Date | null | undefined,
+): string | null =>
+  formatDisplayDateTime(value) ??
+  formatDisplayDate(value) ??
+  (typeof value === "string" ? value : null);
 
 export const hasTimeComponent = (
   value: string | Date | null | undefined

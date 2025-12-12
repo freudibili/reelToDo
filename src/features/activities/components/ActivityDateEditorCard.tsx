@@ -10,9 +10,12 @@ import { resolveDateAction, type DateStatusMeta } from "../utils/dateEditor";
 import {
   formatDisplayDate,
   formatDisplayDateTime,
+  formatActivityDateValue,
+  getActivityDateValues,
   getOfficialDateValue,
   parseDateValue,
 } from "../utils/activityDisplay";
+import AdditionalInfoList from "./AdditionalInfoList";
 
 type ActivityDateEditorCardProps = {
   activity: Activity;
@@ -41,6 +44,21 @@ const ActivityDateEditorCard: React.FC<ActivityDateEditorCardProps> = ({
   const officialDate = useMemo(
     () => parseDateValue(officialDateValue),
     [officialDateValue],
+  );
+  const dateValues = useMemo(
+    () => getActivityDateValues(activity),
+    [activity],
+  );
+  const formattedOfficialDates = useMemo(
+    () =>
+      dateValues
+        .map((value) => formatActivityDateValue(value))
+        .filter((value): value is string => Boolean(value)),
+    [dateValues],
+  );
+  const additionalDates = useMemo(
+    () => formattedOfficialDates.slice(1),
+    [formattedOfficialDates],
   );
   const effectiveDate = draftDate ?? officialDate;
   const baseDate = effectiveDate ?? new Date();
@@ -108,6 +126,13 @@ const ActivityDateEditorCard: React.FC<ActivityDateEditorCardProps> = ({
           />
         }
       />
+      {additionalDates.length > 0 ? (
+        <AdditionalInfoList
+          title={t("activities:details.otherDates")}
+          icon="calendar-range-outline"
+          items={additionalDates}
+        />
+      ) : null}
 
       <View style={styles.actionsRow}>
         <Pressable

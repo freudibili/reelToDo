@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useCallback } from "react";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, StyleSheet, Text, View } from "react-native";
 import { IconButton } from "react-native-paper";
 import { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import ActivityHero from "@common/components/ActivityHero";
@@ -8,11 +8,14 @@ import ActionRail, { type ActionRailItem } from "@common/components/ActionRail";
 import DateBadge from "@common/components/DateBadge";
 import {
   formatActivityLocation,
+  formatActivityDateValue,
   formatDisplayDate,
   formatDisplayDateTime,
+  formatLocationEntry,
+  getActivityDateValues,
+  getActivityLocations,
   getOfficialDateValue,
   getPrimaryDateValue,
-  isSameDateValue,
 } from "../utils/activityDisplay";
 import { categoryNeedsDate } from "../utils/activityHelper";
 import type { Activity } from "../utils/types";
@@ -30,6 +33,7 @@ import { ActivitiesService } from "../services/activitiesService";
 import type { PlaceDetails } from "@features/import/services/locationService";
 import { activityPatched } from "../store/activitiesSlice";
 import { getDateVisuals } from "../utils/dateVisuals";
+import AdditionalInfoList from "./AdditionalInfoList";
 
 interface Props {
   activity: Activity | null;
@@ -84,27 +88,42 @@ const ActivityDetailsSheet: React.FC<Props> = ({
   const officialDateLabel = formatDisplayDate(officialDateValue);
   const plannedDateLabel = formatDisplayDateTime(activity.planned_at);
   const primaryDateLabel = formatDisplayDateTime(getPrimaryDateValue(activity));
-  const officialDates = useMemo(() => {
-    const list: string[] = [];
-    if (Array.isArray(activity.dates)) {
-      list.push(
-        ...activity.dates
-          .filter((d): d is string => Boolean(d))
-          .map((d) => formatDisplayDateTime(d) ?? formatDisplayDate(d) ?? d)
-      );
-    } else if (activity.main_date) {
-      list.push(
-        formatDisplayDateTime(activity.main_date) ??
-          formatDisplayDate(activity.main_date) ??
-          activity.main_date
-      );
-    }
-    const unique = Array.from(new Set(list));
-    return unique;
-  }, [activity.dates, activity.main_date]);
+  const officialDates = useMemo(
+    () => getActivityDateValues(activity),
+    [activity],
+  );
+  const formattedOfficialDates = useMemo(
+    () =>
+      officialDates
+        .map((d) => formatActivityDateValue(d))
+        .filter((d): d is string => Boolean(d)),
+    [officialDates],
+  );
+  const additionalDates = useMemo(
+    () => formattedOfficialDates.slice(1),
+    [formattedOfficialDates],
+  );
+  const locations = useMemo(
+    () => getActivityLocations(activity),
+    [activity],
+  );
   const locationLabel =
+    formatLocationEntry(
+      locations[0],
+      activity.city ?? activity.country ?? null,
+    ) ??
     formatActivityLocation(activity) ??
     t("activities:details.locationFallback");
+  const alternateLocations = useMemo(
+    () =>
+      locations
+        .slice(1)
+        .map((loc) =>
+          formatLocationEntry(loc, activity.city ?? activity.country ?? null),
+        )
+        .filter((loc): loc is string => Boolean(loc)),
+    [activity.city, activity.country, locations],
+  );
   const needsDate = categoryNeedsDate(activity.category);
 
   const planActionLabel = plannedDateLabel
@@ -281,7 +300,7 @@ const ActivityDetailsSheet: React.FC<Props> = ({
         </View>
         <InfoRow
           icon="map-marker"
-          value={activity.address ?? t("activities:details.addressMissing")}
+          value={locationLabel ?? t("activities:details.addressMissing")}
           rightSlot={
             <LocationAssistButton
               activity={activity}
@@ -289,17 +308,31 @@ const ActivityDetailsSheet: React.FC<Props> = ({
             />
           }
         />
-        {(needsDate || officialDates.length > 0) && (
+        {alternateLocations.length > 0 ? (
+          <AdditionalInfoList
+            title={t("activities:details.otherLocations")}
+            icon="map-marker-outline"
+            items={alternateLocations}
+          />
+        ) : null}
+        {(needsDate || formattedOfficialDates.length > 0) && (
           <>
             <InfoRow
               icon="calendar"
               value={
-                officialDates.length > 0
-                  ? officialDates.join(" · ")
+                formattedOfficialDates.length > 0
+                  ? formattedOfficialDates[0]
                   : t("activities:details.dateMissing")
               }
               rightSlot={<DateAssistButton onSuggest={handleSuggestDate} />}
             />
+            {additionalDates.length > 0 ? (
+              <AdditionalInfoList
+                title={t("activities:details.otherDates")}
+                icon="calendar-range-outline"
+                items={additionalDates}
+              />
+            ) : null}
           </>
         )}
 

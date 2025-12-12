@@ -22,6 +22,8 @@
     "dateFallback": "Date à confirmer",
     "addressMissing": "Adresse non précisée",
     "dateMissing": "Date non précisée",
+    "otherLocations": "Autres lieux",
+    "otherDates": "Autres dates",
     "reportLocation": "Suggérer un meilleur lieu",
     "suggestLocationTitle": "Suggérer un meilleur lieu ?",
     "suggestLocationMessage": "Si ce lieu semble incorrect, tu peux proposer le bon pour tout le monde.",
