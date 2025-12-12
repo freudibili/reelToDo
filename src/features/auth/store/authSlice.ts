@@ -1,37 +1,15 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
-import type {
-  Session,
-  User,
-  VerifyOtpParams,
-} from "@supabase/supabase-js";
+import type { Session, User } from "@supabase/supabase-js";
 import { authService, type AuthResult } from "../services/authService";
+import type {
+  RequestStatus,
+  AuthRequestKey,
+  EmailOtpType,
+  AuthState,
+} from "../types";
 import i18next from "@common/i18n/i18n";
 
-type RequestStatus = "idle" | "pending" | "succeeded" | "failed";
-type AuthRequestKey =
-  | "signIn"
-  | "signUp"
-  | "magicLink"
-  | "verifyOtp"
-  | "passwordReset"
-  | "updatePassword"
-  | "signOut";
-
-type EmailOtpType = Extract<
-  VerifyOtpParams["type"],
-  "email" | "magiclink" | "signup" | "recovery"
->;
-
-type AuthState = {
-  session: Session | null;
-  user: User | null;
-  error: string | null;
-  pendingEmail: string | null;
-  pendingOtpType: EmailOtpType | null;
-  requiresPasswordChange: boolean;
-  sessionExpired: boolean;
-  requests: Record<AuthRequestKey, RequestStatus>;
-};
+// Auth-related types are defined in ../types
 
 const initialRequestState: Record<AuthRequestKey, RequestStatus> = {
   signIn: "idle",

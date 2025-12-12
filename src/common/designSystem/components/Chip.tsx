@@ -1,10 +1,5 @@
 import React from "react";
-import {
-  Pressable,
-  type PressableProps,
-  StyleSheet,
-  View,
-} from "react-native";
+import { Pressable, type PressableProps, StyleSheet, View } from "react-native";
 
 import { useAppTheme } from "../../theme/appTheme";
 import { radii, spacing } from "../tokens";
@@ -33,16 +28,21 @@ const Chip: React.FC<Props> = ({
 
   return (
     <Pressable
-      style={({ pressed }) => [
-        styles.container,
-        {
-          backgroundColor: palette.background,
-          borderColor: palette.borderColor,
-          opacity: disabled ? 0.5 : 1,
-        },
-        pressed && !disabled ? styles.pressed : undefined,
-        style,
-      ]}
+      style={(state) => {
+        const { pressed } = state;
+        const resolvedStyle =
+          typeof style === "function" ? style(state) : style;
+        return [
+          styles.container,
+          {
+            backgroundColor: palette.background,
+            borderColor: palette.borderColor,
+            opacity: disabled ? 0.5 : 1,
+          },
+          pressed && !disabled ? styles.pressed : undefined,
+          resolvedStyle,
+        ];
+      }}
       android_ripple={{ color: palette.ripple }}
       disabled={disabled}
       {...rest}

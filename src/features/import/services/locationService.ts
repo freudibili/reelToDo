@@ -1,5 +1,11 @@
 import { GOOGLE_MAPS_API_KEY } from "@common/types/constants";
-import type { GooglePrediction, PlaceDetails } from "../types";
+import type {
+  GooglePrediction,
+  PlaceDetails,
+  GoogleAddressComponent,
+  GoogleAutocompleteResponse,
+  GooglePlaceDetailsResponse,
+} from "../types";
 
 const AUTOCOMPLETE_URL =
   "https://maps.googleapis.com/maps/api/place/autocomplete/json";

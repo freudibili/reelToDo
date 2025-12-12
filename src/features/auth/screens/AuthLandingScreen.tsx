@@ -4,6 +4,7 @@ import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 
 import { Box, Stack } from "@common/designSystem";
+import { useAppTheme } from "@common/theme/appTheme";
 import AuthLayout from "../components/AuthLayout";
 import AuthButton from "../components/AuthButton";
 import MagicLinkButton from "../components/MagicLinkButton";
@@ -12,18 +13,38 @@ const AuthLandingScreen = () => {
   const router = useRouter();
   const { t } = useTranslation();
 
+  const { colors } = useAppTheme();
+
   return (
     <AuthLayout
       title={t("auth:landing.catchphrase")}
       subtitle={t("auth:landing.helper")}
       tone="dark"
-      backgroundColor="#040815"
+      backgroundColor={colors.background}
     >
       <Box style={styles.page}>
         <Box style={styles.backgroundLayer} pointerEvents="none">
-          <Box style={[styles.circle, styles.circleA]} />
-          <Box style={[styles.circle, styles.circleB]} />
-          <Box style={[styles.circle, styles.circleC]} />
+          <Box
+            style={[
+              styles.circle,
+              styles.circleA,
+              { backgroundColor: colors.gradientPrimaryStart },
+            ]}
+          />
+          <Box
+            style={[
+              styles.circle,
+              styles.circleB,
+              { backgroundColor: colors.info },
+            ]}
+          />
+          <Box
+            style={[
+              styles.circle,
+              styles.circleC,
+              { backgroundColor: colors.gradientPrimaryEnd, opacity: 0.08 },
+            ]}
+          />
         </Box>
 
         <Stack gap="md" style={styles.actions}>
@@ -63,7 +84,6 @@ const styles = StyleSheet.create({
     position: "absolute",
     borderRadius: 9999,
     opacity: 0.12,
-    backgroundColor: "#2563eb",
   },
   circleA: {
     width: 320,
@@ -76,14 +96,12 @@ const styles = StyleSheet.create({
     height: 240,
     bottom: -120,
     left: -60,
-    backgroundColor: "#22d3ee",
   },
   circleC: {
     width: 180,
     height: 180,
     top: 120,
     left: 40,
-    backgroundColor: "#7c3aed",
     opacity: 0.08,
   },
   actions: {

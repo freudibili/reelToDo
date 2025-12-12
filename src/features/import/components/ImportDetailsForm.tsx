@@ -23,7 +23,7 @@ import type { Activity } from "@features/activities/types";
 import { useAppDispatch } from "@core/store/hook";
 import DateSection from "./DateSection";
 import LocationSection from "./LocationSection";
-import type { PlaceDetails } from "../services/locationService";
+import type { PlaceDetails } from "../types";
 import { type ImportDraftDetails, type UpdateActivityPayload } from "../types";
 
 export type ImportDetailsFormHandle = {

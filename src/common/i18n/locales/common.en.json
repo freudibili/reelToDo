@@ -17,6 +17,10 @@
     "address": "Address",
     "link": "Link"
   },
+  "placeholders": {
+    "email": "you@example.com",
+    "password": "••••••••"
+  },
   "labels": {
     "activity": "Activity",
     "activities": "Activities",

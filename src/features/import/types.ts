@@ -3,6 +3,27 @@ export interface GooglePrediction {
   place_id: string;
 }
 
+export interface GoogleAddressComponent {
+  long_name: string;
+  short_name: string;
+  types: string[];
+}
+
+export interface GoogleAutocompleteResponse {
+  status: string;
+  predictions: GooglePrediction[];
+}
+
+export interface GooglePlaceDetailsResponse {
+  status: string;
+  result: {
+    formatted_address: string;
+    name: string;
+    geometry: { location: { lat: number; lng: number } };
+    address_components: GoogleAddressComponent[];
+  };
+}
+
 export interface PlaceDetails {
   placeId: string;
   description: string;
@@ -13,14 +34,13 @@ export interface PlaceDetails {
   latitude: number;
   longitude: number;
 }
+
 import type { ShareIntent } from "expo-share-intent";
 
 import type {
   Activity,
   ActivityProcessingStatus,
 } from "@features/activities/types";
-
-import type { PlaceDetails } from "./services/locationService";
 
 export type ParsedSharedIntent = {
   raw: string | null;
@@ -44,6 +64,6 @@ export type ImportDraftDetails = {
 };
 
 export type UpdateActivityPayload = {
-  location: PlaceDetails | null;
+  location?: PlaceDetails | null;
   dateIso?: string | null;
 };

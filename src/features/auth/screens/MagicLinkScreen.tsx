@@ -5,10 +5,7 @@ import { useFocusEffect } from "@react-navigation/native";
 
 import { InlineMessage } from "@common/designSystem";
 import { useAppDispatch, useAppSelector } from "@core/store/hook";
-import {
-  requestMagicLink,
-  clearError,
-} from "@features/auth/store/authSlice";
+import { requestMagicLink, clearError } from "@features/auth/store/authSlice";
 import {
   selectAuthError,
   selectAuthRequestStatus,
@@ -81,7 +78,7 @@ const MagicLinkScreen = () => {
         label={t("common:fields.email")}
         autoCapitalize="none"
         keyboardType="email-address"
-        placeholder="moi@email.com"
+        placeholder={t("common:placeholders.email")}
         value={email}
         onChangeText={setEmail}
       />

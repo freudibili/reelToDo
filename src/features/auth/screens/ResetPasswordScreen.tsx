@@ -4,16 +4,17 @@ import { useTranslation } from "react-i18next";
 
 import { InlineMessage } from "@common/designSystem";
 import { useAppDispatch, useAppSelector } from "@core/store/hook";
-import {
-  selectAuthError,
-  selectAuthRequestStatus,
-  selectIsAuthenticated,
-  selectRequiresPasswordChange,
-} from "@features/auth/store/authSelectors";
-import { clearError, updatePassword } from "@features/auth/store/authSlice";
+
+import { clearError, updatePassword } from "../store/authSlice";
 import AuthButton from "../components/AuthButton";
 import AuthLayout from "../components/AuthLayout";
 import AuthTextField from "../components/AuthTextField";
+import {
+  selectAuthRequestStatus,
+  selectAuthError,
+  selectIsAuthenticated,
+  selectRequiresPasswordChange,
+} from "../store/authSelectors";
 
 const ResetPasswordScreen = () => {
   const dispatch = useAppDispatch();
@@ -77,14 +78,14 @@ const ResetPasswordScreen = () => {
       ) : null}
       <AuthTextField
         label={t("auth:resetPassword.password")}
-        placeholder="••••••••"
+        placeholder={t("common:placeholders.password")}
         secureTextEntry
         value={password}
         onChangeText={setPassword}
       />
       <AuthTextField
         label={t("auth:resetPassword.confirm")}
-        placeholder="••••••••"
+        placeholder={t("common:placeholders.password")}
         secureTextEntry
         value={confirm}
         onChangeText={setConfirm}

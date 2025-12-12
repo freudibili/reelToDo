@@ -97,7 +97,7 @@ const SignUpScreen = () => {
         label={t("common:fields.email")}
         autoCapitalize="none"
         keyboardType="email-address"
-        placeholder="moi@email.com"
+        placeholder={t("common:placeholders.email")}
         value={email}
         onChangeText={setEmail}
         returnKeyType="next"
@@ -105,7 +105,7 @@ const SignUpScreen = () => {
       <AuthTextField
         label={t("common:fields.password")}
         secureTextEntry
-        placeholder="••••••••"
+        placeholder={t("common:placeholders.password")}
         value={password}
         onChangeText={setPassword}
         returnKeyType="done"

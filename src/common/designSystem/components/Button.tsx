@@ -38,7 +38,10 @@ type ButtonProps = PressableProps & {
   shadow?: ShadowLevel | false;
 };
 
-const sizeMap: Record<ButtonSize, { height: number; padding: number; gap: number; textVariant: TextVariant }> = {
+const sizeMap: Record<
+  ButtonSize,
+  { height: number; padding: number; gap: number; textVariant: TextVariant }
+> = {
   sm: { height: 40, padding: spacing.md, gap: 8, textVariant: "bodyStrong" },
   md: { height: 46, padding: spacing.lg, gap: 10, textVariant: "headline" },
   lg: { height: 52, padding: spacing.xl, gap: 12, textVariant: "headline" },
@@ -78,39 +81,47 @@ const Button: React.FC<ButtonProps> = ({
     </View>
   );
 
-  const baseShadow = shadow ? palette.shadow ?? shadow : false;
+  const baseShadow = shadow ? (palette.shadow ?? shadow) : false;
   const borderWidth = palette.borderColor ? StyleSheet.hairlineWidth : 0;
 
   return (
     <Pressable
-      style={({ pressed }) => [
-        styles.button,
-        {
-          height: config.height,
-          paddingHorizontal: config.padding,
-          backgroundColor: palette.background,
-          borderColor: palette.borderColor,
-          borderWidth,
-          borderRadius: pill ? radii.pill : radii.md,
-          opacity: disabled ? 0.55 : 1,
-        },
-        pressed && !disabled
-          ? { transform: [{ translateY: 1 }], backgroundColor: palette.pressedBackground ?? palette.background }
-          : undefined,
-        fullWidth ? styles.fullWidth : undefined,
-        baseShadow ? getShadowStyle(mode, baseShadow) : undefined,
-        style,
-      ]}
+      style={(state) => {
+        const { pressed } = state;
+        const resolvedStyle =
+          typeof style === "function" ? style(state) : style;
+        const pressedStyle =
+          pressed && !disabled
+            ? {
+                transform: [{ translateY: 1 }],
+                backgroundColor:
+                  palette.pressedBackground ?? palette.background,
+              }
+            : undefined;
+
+        return [
+          styles.button,
+          {
+            height: config.height,
+            paddingHorizontal: config.padding,
+            backgroundColor: palette.background,
+            borderColor: palette.borderColor,
+            borderWidth,
+            borderRadius: pill ? radii.pill : radii.md,
+            opacity: disabled ? 0.55 : 1,
+          },
+          pressedStyle,
+          fullWidth ? styles.fullWidth : undefined,
+          baseShadow ? getShadowStyle(mode, baseShadow) : undefined,
+          resolvedStyle,
+        ];
+      }}
       disabled={disabled || loading}
       hitSlop={8}
       android_ripple={{ color: palette.ripple }}
       {...rest}
     >
-      {loading ? (
-        <ActivityIndicator size="small" color={textColor} />
-      ) : (
-        content
-      )}
+      {loading ? <ActivityIndicator size="small" color={textColor} /> : content}
     </Pressable>
   );
 };
@@ -120,7 +131,8 @@ const getButtonPalette = (
   mode: string,
   colors: ReturnType<typeof useAppTheme>["colors"]
 ) => {
-  const overlay = mode === "dark" ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)";
+  const overlay =
+    mode === "dark" ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)";
 
   switch (variant) {
     case "secondary":
@@ -161,7 +173,7 @@ const getButtonPalette = (
         ripple: overlay,
         shadow: "md" as ShadowLevel,
       };
-  case "primary":
+    case "primary":
     default:
       return {
         background: colors.primary,

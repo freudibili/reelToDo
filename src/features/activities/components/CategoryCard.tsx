@@ -59,12 +59,7 @@ const CategoryCard: React.FC<Props> = ({
     (colors as any).surfaceVariant ?? colors.card ?? colors.surface;
 
   return (
-    <Animated.View
-      style={[
-        styles.wrapper,
-        { transform: [{ scale }] },
-      ]}
-    >
+    <Animated.View style={[styles.wrapper, { transform: [{ scale }] }]}>
       <Pressable
         onPress={handlePress}
         onPressIn={handlePressIn}
@@ -92,7 +87,7 @@ const CategoryCard: React.FC<Props> = ({
                   weight="700"
                   style={{ color: countIconColor }}
                 >
-                  {t("activities:list.spotsLabel", { count: countLabel })}
+                  {t("activities:list.spotsLabel", { count: activityCount })}
                 </Text>
               </Box>
             ) : null}

@@ -78,7 +78,7 @@ const ForgotPasswordScreen = () => {
         label={t("common:fields.email")}
         autoCapitalize="none"
         keyboardType="email-address"
-        placeholder="moi@email.com"
+        placeholder={t("common:placeholders.email")}
         value={email}
         onChangeText={setEmail}
       />

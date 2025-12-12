@@ -1,14 +1,9 @@
 import React from "react";
-import {
-  Pressable,
-  type PressableProps,
-  StyleSheet,
-  View,
-} from "react-native";
+import { Pressable, type PressableProps, StyleSheet, View } from "react-native";
 import { Icon } from "react-native-paper";
 
 import { useAppTheme } from "../../theme/appTheme";
-import { radii, type ShadowLevel } from "../tokens";
+import { radii, type ShadowLevel, getShadowStyle } from "../tokens";
 
 type IconButtonTone = "default" | "primary" | "danger" | "accent";
 type IconButtonVariant = "ghost" | "filled" | "outline" | "subtle";
@@ -48,12 +43,14 @@ const IconButton: React.FC<Props> = ({
           height: size,
           width: size,
           borderRadius: radii.lg,
-          backgroundColor: pressed ? palette.pressedBackground : palette.background,
+          backgroundColor: pressed
+            ? palette.pressedBackground
+            : palette.background,
           borderColor: palette.borderColor,
           borderWidth: palette.borderColor ? StyleSheet.hairlineWidth : 0,
         },
-        shadow ? palette.shadowStyle : undefined,
-        style,
+        shadow ? getShadowStyle(mode, shadow) : undefined,
+        typeof style === "function" ? style({ pressed }) : style,
       ]}
       android_ripple={{ color: palette.ripple }}
       {...rest}
@@ -79,12 +76,16 @@ const getPalette = (
         : tone === "accent"
           ? colors.accent
           : colors.text;
-  const overlay = mode === "dark" ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)";
+  const overlay =
+    mode === "dark" ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)";
 
   switch (variant) {
     case "filled":
       return {
-        background: tone === "danger" ? colors.danger : colors.primarySurface ?? colors.accentSurface,
+        background:
+          tone === "danger"
+            ? colors.danger
+            : (colors.primarySurface ?? colors.accentSurface),
         pressedBackground: overlay,
         borderColor: "transparent",
         tint: tone === "danger" ? colors.favoriteContrast : colors.primaryText,

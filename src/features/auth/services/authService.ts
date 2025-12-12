@@ -1,20 +1,12 @@
 import * as Linking from "expo-linking";
 import { supabase } from "@config/supabase";
-import type {
-  Session,
-  User,
-  VerifyOtpParams,
-} from "@supabase/supabase-js";
+import type { Session, User } from "@supabase/supabase-js";
+import type { EmailOtpType } from "../types";
 
 export type AuthResult = {
   session: Session | null;
   user: User | null;
 };
-
-export type EmailOtpType = Extract<
-  VerifyOtpParams["type"],
-  "email" | "magiclink" | "signup" | "recovery"
->;
 
 const toAuthResult = (data: {
   session: Session | null;

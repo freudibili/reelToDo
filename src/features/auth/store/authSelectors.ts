@@ -1,5 +1,5 @@
 import type { RootState } from "@core/store";
-import type { EmailOtpType } from "../services/authService";
+import type { EmailOtpType } from "../types";
 
 export const selectAuthSession = (state: RootState) => state.auth.session;
 export const selectAuthUser = (state: RootState) => state.auth.user;
@@ -15,8 +15,7 @@ export const selectAuthLoading = (state: RootState) =>
 export const selectIsAuthenticated = (state: RootState) =>
   Boolean(state.auth.session);
 
-export const selectPendingEmail = (state: RootState) =>
-  state.auth.pendingEmail;
+export const selectPendingEmail = (state: RootState) => state.auth.pendingEmail;
 export const selectPendingOtpType = (state: RootState): EmailOtpType | null =>
   state.auth.pendingOtpType;
 

@@ -37,6 +37,8 @@ type BoxProps = ViewProps & {
   flex?: number;
   center?: boolean;
   shadow?: ShadowLevel | boolean;
+  height?: number;
+  width?: number;
 };
 
 const Box: React.FC<BoxProps> = ({
@@ -67,6 +69,8 @@ const Box: React.FC<BoxProps> = ({
   center = false,
   shadow,
   style,
+  height,
+  width,
   ...rest
 }) => {
   const { colors, mode } = useAppTheme();
@@ -74,18 +78,19 @@ const Box: React.FC<BoxProps> = ({
     typeof value === "number"
       ? value
       : value !== undefined
-        ? spacing[value] ?? 0
+        ? (spacing[value] ?? 0)
         : undefined;
   const resolvedGap = gap !== undefined ? space(gap) : undefined;
 
   const resolvedRadius = resolveRadius(rounded);
   const baseStyle: ViewStyle = {
+    height: typeof height === "number" ? height : undefined,
+    width: typeof width === "number" ? width : undefined,
     padding: space(padding),
     paddingHorizontal: space(paddingHorizontal),
     paddingVertical: space(paddingVertical),
     paddingTop: space(paddingTop),
     paddingBottom: space(paddingBottom),
-    paddingLeft: space(paddingLeft),
     paddingRight: space(paddingRight),
     margin: space(margin),
     marginHorizontal: space(marginHorizontal),
@@ -102,7 +107,7 @@ const Box: React.FC<BoxProps> = ({
     alignItems: center ? "center" : align,
     justifyContent: center ? "center" : justify,
     borderWidth: border ? StyleSheet.hairlineWidth : undefined,
-    borderColor: border ? borderColor ?? colors.border : borderColor,
+    borderColor: border ? (borderColor ?? colors.border) : borderColor,
   };
 
   const shadowStyle =
