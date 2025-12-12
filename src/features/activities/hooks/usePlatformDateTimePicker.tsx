@@ -64,7 +64,6 @@ export const usePlatformDateTimePicker = ({
       value: mergedDate,
       mode: "time",
       is24Hour: true,
-      themeVariant,
       onChange: handleAndroidTimeChange(mergedDate),
     });
   };
@@ -74,7 +73,6 @@ export const usePlatformDateTimePicker = ({
       DateTimePickerAndroid.open({
         value,
         mode: "date",
-        themeVariant,
         onChange: handleAndroidDateChange,
       });
       return;

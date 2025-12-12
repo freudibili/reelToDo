@@ -53,6 +53,32 @@
       "delete": "Supprimer"
     }
   },
+  "editor": {
+    "changeLocation": "Modifier le lieu",
+    "saveLocation": "Enregistrer et confirmer",
+    "cancelActivity": "Annuler l'activité",
+    "locationConfirmedTitle": "Lieu",
+    "deleteConfirmTitle": "Supprimer cette activité ?",
+    "deleteConfirmBody": "Elle sera supprimée pour toi et pour les autres. Action irréversible.",
+    "deleteConfirmCta": "Supprimer",
+    "deleteConfirmCancel": "Garder"
+  },
+  "locationStatus": {
+    "needsConfirm": "Lieu détecté automatiquement. Merci de confirmer ou de choisir un meilleur endroit.",
+    "needsConfirmLabel": "À confirmer",
+    "confirmed": "Lieu confirmé. Tu peux le modifier à tout moment.",
+    "confirmedLabel": "Confirmé",
+    "missing": "Nous avons encore besoin d'un lieu pour cette activité.",
+    "missingLabel": "Lieu manquant",
+    "suggested": "Lieu proposé par quelqu'un. Tu peux le rendre officiel.",
+    "suggestedLabel": "Proposé"
+  },
+  "toasts": {
+    "locationSaved": "Lieu mis à jour",
+    "locationSaveError": "Impossible de mettre à jour le lieu",
+    "deleteSuccess": "Activité supprimée",
+    "deleteError": "Impossible de supprimer l'activité"
+  },
   "report": {
     "title": "Suggérer le bon lieu",
     "subtitle": "Aide-nous à corriger le lieu pour {{title}}.",

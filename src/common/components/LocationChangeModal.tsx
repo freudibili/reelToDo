@@ -12,7 +12,10 @@ interface LocationChangeModalProps {
   title?: string;
   subtitle?: string;
   submitting?: boolean;
-  onSelectPlace: (payload: { place: PlaceDetails; note: string | null }) => void;
+  onSelectPlace: (payload: {
+    place: PlaceDetails;
+    note: string | null;
+  }) => void;
   onClose: () => void;
 }
 
@@ -86,7 +89,9 @@ const LocationChangeModal: React.FC<LocationChangeModalProps> = ({
               styles.button,
               styles.secondaryButton,
               {
-                backgroundColor: isCancelDisabled ? colors.card : colors.mutedSurface,
+                backgroundColor: isCancelDisabled
+                  ? colors.card
+                  : colors.mutedSurface,
                 borderColor: colors.border,
               },
             ]}
@@ -130,7 +135,9 @@ const LocationChangeModal: React.FC<LocationChangeModalProps> = ({
                 styles.buttonText,
                 {
                   color:
-                    selectedPlace && !submitting ? colors.accentText : colors.secondaryText,
+                    selectedPlace && !submitting
+                      ? colors.lightGray
+                      : colors.secondaryText,
                 },
               ]}
             >

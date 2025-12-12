@@ -46,7 +46,13 @@ const ScreenHeader: React.FC<ScreenHeaderProps> = ({
             {eyebrow}
           </Text>
         ) : null}
-        <Text style={[titleStyle, { color: colors.text }]}>{title}</Text>
+        <Text
+          style={[titleStyle, { color: colors.text }]}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
+          {title}
+        </Text>
         {subtitle ? (
           <Text
             style={[
@@ -54,6 +60,8 @@ const ScreenHeader: React.FC<ScreenHeaderProps> = ({
               compact && styles.headerSubtitleCompact,
               { color: colors.secondaryText },
             ]}
+            numberOfLines={1}
+            ellipsizeMode="tail"
           >
             {subtitle}
           </Text>

@@ -20,7 +20,7 @@ const ImportHeader: React.FC<ImportHeaderProps> = ({
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={["#0ea5e9", "#6366f1"]}
+        colors={[colors.gradientPrimaryStart, colors.gradientPrimaryEnd]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.heroIcon}

@@ -9,6 +9,7 @@ import { useShareListener } from "@features/import/hooks/useShareListener";
 import AppPreferencesProvider from "@common/providers/AppPreferencesProvider";
 import "@common/i18n/i18n";
 import { useNotificationsSetup } from "@common/hooks/useNotificationsSetup";
+import { useImportCompletionListener } from "@features/import/hooks/useImportCompletionListener";
 
 const RootLayout = () => {
   useShareListener();
@@ -31,6 +32,7 @@ const RootLayout = () => {
 
 const AppBootstrap = () => {
   useNotificationsSetup();
+  useImportCompletionListener();
   return null;
 };
 

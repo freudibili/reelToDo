@@ -13,11 +13,13 @@ import { useTranslation } from "react-i18next";
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { Icon } from "react-native-paper";
+import { useAppTheme } from "@common/theme/appTheme";
 
 const ActivitiesScreen = () => {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const { t } = useTranslation();
+  const { colors } = useAppTheme();
   const userId = useAppSelector((state) => state.auth.user?.id ?? null);
   const categories = useAppSelector(activitiesSelectors.categoryCards);
   const loading = useAppSelector(activitiesSelectors.loading);
@@ -50,7 +52,7 @@ const ActivitiesScreen = () => {
       headerRight={
         <Pressable onPress={handleOpenImport} style={styles.importPressable}>
           <LinearGradient
-            colors={["#0ea5e9", "#6366f1"]}
+            colors={[colors.gradientPrimaryStart, colors.gradientPrimaryEnd]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.importBtn}

@@ -40,6 +40,9 @@ export type AppTheme = {
     plannedDateBackground: string;
     officialDate: string;
     officialDateBackground: string;
+    gradientPrimaryStart: string;
+    gradientPrimaryEnd: string;
+    info: string;
   };
 };
 
@@ -84,12 +87,17 @@ const lightPalette: AppTheme["colors"] = {
   lightGray: "#F1F3F6",
   danger: "#E26A6A",
   success: "#4CA5B8",
+  info: "#4B6CB7",
 
   // Dates (very light backgrounds, low intensity)
   plannedDate: "#4B6CB7",
   plannedDateBackground: "#E8EDFF",
   officialDate: "#4CA5B8",
   officialDateBackground: "#E3F3F6",
+
+  // Gradients
+  gradientPrimaryStart: "#0097b2",
+  gradientPrimaryEnd: "#7ed957",
 };
 
 // 🌚 DARK – desaturated, less contrasty, no neon
@@ -134,12 +142,17 @@ const darkPalette: AppTheme["colors"] = {
   lightGray: "#1A1F2B",
   danger: "#F28B82",
   success: "#4CA5B8",
+  info: "#9BB4F3",
 
   // Dates
   plannedDate: "#9BB4F3",
   plannedDateBackground: "#111B36",
   officialDate: "#7BC7D4",
   officialDateBackground: "#0E1F25",
+
+  // Gradients
+  gradientPrimaryStart: "#0097b2",
+  gradientPrimaryEnd: "#7ed957",
 };
 const buildPaperTheme = (mode: AppThemeMode): MD3Theme => {
   const base = mode === "dark" ? MD3DarkTheme : MD3LightTheme;

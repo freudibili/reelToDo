@@ -80,6 +80,7 @@
   },
   "toast": {
     "success": "Activity analyzed successfully!",
-    "failed": "We couldn't process this activity. It was removed."
+    "failed": "We couldn't process this activity. It was removed.",
+    "view": "View"
   }
 }

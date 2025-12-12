@@ -6,18 +6,19 @@ import { useTranslation } from "react-i18next";
 
 type Props = {
   onPress: () => void;
+  label?: string;
 };
 
-const SuggestionPill: React.FC<Props> = ({ onPress }) => {
+const SuggestionPill: React.FC<Props> = ({ onPress, label }) => {
   const { colors } = useAppTheme();
   const { t } = useTranslation();
-  const label = t("activities:details.suggestDateCta");
+  const resolvedLabel = label ?? t("activities:details.suggestDateCta");
 
   return (
     <Pressable style={styles.container} onPress={onPress} hitSlop={8}>
       <Icon source={"pencil"} size={14} color={colors.accent} />
       <Text style={[styles.label, { color: colors.accent }]} numberOfLines={2}>
-        {label}
+        {resolvedLabel}
       </Text>
     </Pressable>
   );

@@ -53,6 +53,32 @@
       "delete": "Delete"
     }
   },
+  "editor": {
+    "changeLocation": "Change location",
+    "saveLocation": "Save & confirm",
+    "cancelActivity": "Cancel activity",
+    "locationConfirmedTitle": "Location",
+    "deleteConfirmTitle": "Delete this activity?",
+    "deleteConfirmBody": "This removes it for you and anyone else. This action cannot be undone.",
+    "deleteConfirmCta": "Delete it",
+    "deleteConfirmCancel": "Keep it"
+  },
+  "locationStatus": {
+    "needsConfirm": "We found this automatically. Please confirm or pick a better spot.",
+    "needsConfirmLabel": "Needs confirmation",
+    "confirmed": "Location confirmed. Update it anytime.",
+    "confirmedLabel": "Confirmed",
+    "missing": "We still need a location for this activity.",
+    "missingLabel": "Missing location",
+    "suggested": "Location suggested by someone. You can make it official.",
+    "suggestedLabel": "Suggested"
+  },
+  "toasts": {
+    "locationSaved": "Location updated",
+    "locationSaveError": "Couldn't update location",
+    "deleteSuccess": "Activity deleted",
+    "deleteError": "Couldn't delete activity"
+  },
   "report": {
     "title": "Suggest a better location",
     "subtitle": "Help us fix the location for {{title}}.",

@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { View, StyleSheet, Pressable, Text } from "react-native";
+import { View, StyleSheet } from "react-native";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import type { ShareIntent } from "expo-share-intent";
 
@@ -17,38 +17,20 @@ import {
 } from "@features/import/store/importSelectors";
 import {
   analyzeSharedLink,
-  saveImportedActivityDetails,
   resetImport,
   restartImportProcessing,
 } from "@features/import/store/importSlice";
-import {
-  fetchActivities,
-  cancelActivity,
-} from "@features/activities/store/activitiesSlice";
+import { fetchActivities, cancelActivity } from "@features/activities/store/activitiesSlice";
 import { useAppDispatch, useAppSelector } from "@core/store/hook";
-import { useConfirmDialog } from "@common/hooks/useConfirmDialog";
 import Screen from "@common/components/AppScreen";
 import ImportHeader from "../components/ImportHeader";
 import ManualLinkCard from "../components/ManualLinkCard";
-import ImportResultCard from "../components/ImportResultCard";
-import type { ImportDetailsFormHandle } from "../components/ImportDetailsForm";
-import ImportFooter from "../components/ImportFooter";
 import ImportErrorState from "../components/ImportErrorState";
 import type {
   Activity,
   ActivityProcessingStatus,
 } from "@features/activities/utils/types";
-import { UpdateActivityPayload } from "../utils/types";
 import { useTranslation } from "react-i18next";
-import ActivitySummaryHeader from "@common/components/ActivitySummaryHeader";
-import ActivityHero from "@common/components/ActivityHero";
-import {
-  formatActivityLocation,
-  formatDisplayDate,
-  getOfficialDateValue,
-} from "@features/activities/utils/activityDisplay";
-import { categoryNeedsDate } from "@features/activities/utils/activityHelper";
-import { useAppTheme } from "@common/theme/appTheme";
 import { useActivityProcessingWatcher } from "../hooks/useActivityProcessingWatcher";
 import ProcessingStateCard from "../components/ProcessingStateCard";
 import { useImportNotificationPermission } from "../hooks/useImportNotificationPermission";
@@ -71,14 +53,12 @@ const ImportScreen = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const user = useAppSelector(selectAuthUser);
-  const { confirm } = useConfirmDialog();
   const { t } = useTranslation();
-  const { colors, mode } = useAppTheme();
   const requestNotificationPermission = useImportNotificationPermission(
     user?.id ?? null
   );
   const showToast = useCallback(
-    (message: string, type: "success" | "error") => {
+    (message: string, type: "success" | "error" | "info") => {
       dispatch(showToastAction({ message, type }));
     },
     [dispatch]
@@ -88,7 +68,6 @@ const ImportScreen = () => {
   const error = useAppSelector(selectImportError);
   const activity = useAppSelector(selectImportedActivity) as Activity | null;
   const activities = useAppSelector((state) => state.activities.items);
-  const knownActivityIdsRef = useRef<Set<string>>(new Set());
   const hasSharedParam = !!shared && !Array.isArray(shared);
   const showError = error && !activity;
   const sharedData = useMemo<ShareIntent | null>(() => {
@@ -128,17 +107,11 @@ const ImportScreen = () => {
     return null;
   }, [sharedData]);
   const [manualLink, setManualLink] = useState("");
-  const alreadyHadActivity = activity
-    ? knownActivityIdsRef.current.has(activity.id)
-    : false;
   const displayActivity = useMemo(() => {
     if (!activity) return null;
     const linked = activities.find((item) => item.id === activity.id);
     return linked ?? activity;
   }, [activities, activity]);
-  const displayNeedsDate = displayActivity
-    ? categoryNeedsDate(displayActivity.category)
-    : false;
   const processingStatus = (displayActivity?.processing_status ??
     "complete") as ActivityProcessingStatus;
   const isProcessing = processingStatus === "processing";
@@ -150,9 +123,10 @@ const ImportScreen = () => {
   const showManualCard = !hasSharedParam && !displayActivity && !loading;
 
   const hasAnalyzedRef = useRef(false);
-  const detailsRef = useRef<ImportDetailsFormHandle>(null);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const lastStatusRef = useRef<{ id: string; status: ActivityProcessingStatus | null } | null>(null);
+  const lastStatusRef = useRef<{
+    id: string;
+    status: ActivityProcessingStatus | null;
+  } | null>(null);
   const lastActivityIdRef = useRef<string | null>(null);
   const clearingRef = useRef(false);
   const trimmedLink = manualLink.trim();
@@ -163,9 +137,7 @@ const ImportScreen = () => {
     useCallback(() => {
       dispatch(resetImport());
       setManualLink("");
-      setHasUnsavedChanges(false);
       hasAnalyzedRef.current = false;
-      knownActivityIdsRef.current = new Set(activities.map((item) => item.id));
     }, [dispatch])
   );
 
@@ -221,12 +193,6 @@ const ImportScreen = () => {
   }, [sharedData?.text, sharedUrl, triggerAnalyze, user?.id]);
 
   useEffect(() => {
-    if (activity && processingStatus === "complete") {
-      setHasUnsavedChanges(!alreadyHadActivity);
-    }
-  }, [activity, alreadyHadActivity, processingStatus]);
-
-  useEffect(() => {
     if (activity || error) {
       hasAnalyzedRef.current = false;
     }
@@ -246,16 +212,15 @@ const ImportScreen = () => {
         showToast(t("import:toast.failed"), "error");
       } finally {
         dispatch(resetImport());
-        setHasUnsavedChanges(false);
-        lastStatusRef.current = null;
-        lastActivityIdRef.current = null;
-        setManualLink("");
-        router.replace("/import" as never);
-        clearingRef.current = false;
-      }
-    },
-    [dispatch, showToast, t, router]
-  );
+      lastStatusRef.current = null;
+      lastActivityIdRef.current = null;
+      setManualLink("");
+      router.replace("/import" as never);
+      clearingRef.current = false;
+    }
+  },
+  [dispatch, showToast, t, router]
+);
 
   const handleActivityDeleted = useCallback(() => {
     const deletedId = lastActivityIdRef.current;
@@ -264,7 +229,11 @@ const ImportScreen = () => {
     }
   }, [handleProcessingFailure]);
 
-  useActivityProcessingWatcher(displayActivity?.id ?? null, isProcessing, handleActivityDeleted);
+  useActivityProcessingWatcher(
+    displayActivity?.id ?? null,
+    isProcessing,
+    handleActivityDeleted
+  );
 
   useEffect(() => {
     if (!displayActivity) {
@@ -283,43 +252,18 @@ const ImportScreen = () => {
       void handleProcessingFailure(displayActivity.id);
     }
 
-    if (processingStatus === "complete" && prev === "processing") {
-      showToast(t("import:toast.success"), "success");
-    }
-
     lastStatusRef.current = {
       id: displayActivity.id,
       status: processingStatus,
     };
-  }, [displayActivity, handleProcessingFailure, processingStatus, showToast, t]);
-
-  const handleSaveDetails = (payload: UpdateActivityPayload) => {
-    if (!activity || isProcessing || isFailed) return;
-
-    confirm(
-      t("import:confirm.saveTitle"),
-      t("import:confirm.saveMessage"),
-      () => {
-        dispatch(
-          saveImportedActivityDetails({
-            activityId: activity.id,
-            ...payload,
-          })
-        ).finally(() => {
-          setHasUnsavedChanges(false);
-          router.replace("/");
-        });
-      },
-      {
-        cancelText: t("common:buttons.cancel"),
-        confirmText: t("common:buttons.save"),
-      }
-    );
-  };
-
-  const handleSavePress = useCallback(() => {
-    detailsRef.current?.save();
-  }, []);
+  }, [
+    displayActivity,
+    handleProcessingFailure,
+    processingStatus,
+    showToast,
+    t,
+    router,
+  ]);
 
   const handleBackPress = useCallback(() => {
     router.back();
@@ -327,62 +271,13 @@ const ImportScreen = () => {
 
   const handleGoHome = useCallback(() => {
     dispatch(resetImport());
-    setHasUnsavedChanges(false);
     router.replace("/");
   }, [dispatch, router]);
-
-  const discardActivity = async () => {
-    if (!activity) {
-      return;
-    }
-    try {
-      await dispatch(cancelActivity(activity.id)).unwrap();
-      await dispatch(fetchActivities());
-    } finally {
-      dispatch(resetImport());
-      setHasUnsavedChanges(false);
-      router.replace("/");
-    }
-  };
-
-  const handleCancelDetails = () => {
-    if (!activity) {
-      return;
-    }
-
-    if (hasUnsavedChanges) {
-      confirm(
-        t("import:confirm.discardTitle"),
-        t("import:confirm.discardMessage"),
-        () => {
-          void discardActivity();
-        },
-        {
-          cancelText: t("common:buttons.keep"),
-          confirmText: t("common:buttons.discard"),
-        }
-      );
-      return;
-    }
-
-    void discardActivity();
-  };
 
   return (
     <Screen
       scrollable
-      onBackPress={
-        alreadyHadActivity || !fromActivities ? handleGoHome : handleBackPress
-      }
-      footer={
-        activity && !alreadyHadActivity && processingStatus === "complete" ? (
-          <ImportFooter
-            disabled={!hasUnsavedChanges}
-            onCancel={handleCancelDetails}
-            onSave={handleSavePress}
-          />
-        ) : null
-      }
+      onBackPress={!fromActivities ? handleGoHome : handleBackPress}
     >
       <View style={styles.container}>
         <ImportHeader
@@ -428,81 +323,7 @@ const ImportScreen = () => {
               onSecondary={handleGoHome}
               secondaryLabel={t("import:processing.backHome")}
             />
-          ) : alreadyHadActivity ? (
-            <View
-              style={[
-                styles.alreadyHaveCard,
-                { backgroundColor: colors.card, borderColor: colors.border },
-              ]}
-            >
-              <ActivitySummaryHeader
-                title={displayActivity.title ?? t("common:labels.activity")}
-                category={displayActivity.category}
-                location={
-                  formatActivityLocation(displayActivity) ??
-                  t("import:details.locationFallback")
-                }
-                dateLabel={
-                  displayNeedsDate
-                    ? (formatDisplayDate(
-                        getOfficialDateValue(displayActivity)
-                      ) ?? t("activities:details.dateMissing"))
-                    : undefined
-                }
-                style={styles.headerBlock}
-              />
-              <ActivityHero
-                title={displayActivity.title ?? t("common:labels.activity")}
-                category={displayActivity.category}
-                location={
-                  formatActivityLocation(displayActivity) ??
-                  t("import:details.locationFallback")
-                }
-                dateLabel={
-                  displayNeedsDate
-                    ? (formatDisplayDate(
-                        getOfficialDateValue(displayActivity)
-                      ) ?? t("activities:details.dateMissing"))
-                    : undefined
-                }
-                imageUrl={displayActivity.image_url}
-                showOverlayContent={false}
-              />
-              {alreadyHadActivity ? (
-                <Text style={[styles.alreadyHaveTitle, { color: colors.text }]}>
-                  {t("import:result.alreadyOwned")}
-                </Text>
-              ) : null}
-              <Pressable
-                style={[
-                  styles.returnHomeBtn,
-                  { backgroundColor: colors.primary },
-                ]}
-                onPress={handleGoHome}
-              >
-                <Text
-                  style={[
-                    styles.returnHomeText,
-                    {
-                      color:
-                        mode === "dark" ? colors.background : colors.surface,
-                    },
-                  ]}
-                >
-                  {t("import:errorState.homeCta")}
-                </Text>
-              </Pressable>
-            </View>
-          ) : (
-            <ImportResultCard
-              activity={displayActivity ?? activity}
-              detailsRef={detailsRef}
-              onSave={handleSaveDetails}
-              onCancel={handleCancelDetails}
-              onDirtyChange={setHasUnsavedChanges}
-              userId={user?.id ?? null}
-            />
-          )
+          ) : null
         ) : null}
       </View>
     </Screen>
@@ -514,27 +335,6 @@ const styles = StyleSheet.create({
     gap: 16,
     alignItems: "stretch",
     marginTop: 16,
-  },
-  alreadyHaveCard: {
-    marginTop: 12,
-    padding: 14,
-    borderRadius: 12,
-    borderWidth: 1,
-    gap: 10,
-  },
-  alreadyHaveTitle: {},
-  returnHomeBtn: {
-    alignSelf: "flex-start",
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 10,
-  },
-  returnHomeText: {
-    fontSize: 14,
-    fontWeight: "700",
-  },
-  headerBlock: {
-    paddingHorizontal: 4,
   },
 });
 

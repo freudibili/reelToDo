@@ -63,7 +63,6 @@ const ProcessingStateCard: React.FC<Props> = ({
       ]}
     >
       <View style={styles.header}>
-        {indicator}
         <View>
           <Text style={[styles.title, { color: colors.text }]}>
             {isProcessing
@@ -77,6 +76,7 @@ const ProcessingStateCard: React.FC<Props> = ({
                 : t("import:processing.failedSubtitle"))}
           </Text>
         </View>
+        {indicator}
       </View>
 
       <Text style={[styles.hint, { color: colors.secondaryText }]}>
@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   header: {
-    flexDirection: "row",
+    flexDirection: "column",
     gap: 10,
     alignItems: "center",
   },

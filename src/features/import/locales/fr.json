@@ -80,6 +80,7 @@
   },
   "toast": {
     "success": "Activité analysée avec succès !",
-    "failed": "Analyse impossible. L'activité a été supprimée."
+    "failed": "Analyse impossible. L'activité a été supprimée.",
+    "view": "Voir"
   }
 }

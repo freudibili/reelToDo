@@ -7,5 +7,5 @@ export type ImportDraftDetails = {
 
 export type UpdateActivityPayload = {
   location: PlaceDetails | null;
-  dateIso: string | null;
+  dateIso?: string | null;
 };

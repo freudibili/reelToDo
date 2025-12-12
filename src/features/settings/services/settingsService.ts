@@ -12,6 +12,8 @@ import type {
   SettingsStateData,
 } from "../utils/types";
 
+const cachedSettingsByUser: Record<string, SettingsStateData> = {};
+
 const mapProfile = (
   profile: Pick<
     ProfileSettings,
@@ -23,6 +25,20 @@ const mapProfile = (
   email: profile.email ?? "",
   address: profile.address ?? "",
 });
+
+const ensureUserSettings = (userId: string): SettingsStateData => {
+  if (!cachedSettingsByUser[userId]) {
+    cachedSettingsByUser[userId] = {
+      profile: { ...defaultSettingsState.profile },
+      notifications: { ...defaultSettingsState.notifications },
+      preferences: { ...defaultSettingsState.preferences },
+    };
+  }
+  return cachedSettingsByUser[userId];
+};
+
+const simulateLatency = async <T,>(data: T): Promise<T> =>
+  new Promise((resolve) => setTimeout(() => resolve(data), 10));
 
 export const settingsService = {
   async fetch(userId: string, email?: string): Promise<SettingsStateData> {
@@ -65,8 +81,8 @@ export const settingsService = {
 
     return {
       profile,
-      notifications: { ...defaultSettingsState.notifications },
-      preferences: { ...defaultSettingsState.preferences },
+      notifications: { ...ensureUserSettings(userId).notifications },
+      preferences: { ...ensureUserSettings(userId).preferences },
     };
   },
 
