@@ -1,15 +1,21 @@
 import { useEffect, useMemo, useState } from "react";
 import { useAppDispatch, useAppSelector } from "@core/store/hook";
 import { ActivitiesService } from "@features/activities/services/activitiesService";
-import { activityInserted, activityUpdated } from "@features/activities/store/activitiesSlice";
-import type { Activity, ActivityProcessingStatus } from "@features/activities/utils/types";
+import {
+  activityInserted,
+  activityUpdated,
+} from "@features/activities/store/activitiesSlice";
+import type {
+  Activity,
+  ActivityProcessingStatus,
+} from "@features/activities/types";
 import { supabase } from "@config/supabase";
 
 export const useActivityDetails = (activityId: string | null) => {
   const dispatch = useAppDispatch();
   const activityFromStore = useAppSelector((state) =>
     activityId
-      ? state.activities.items.find((item) => item.id === activityId) ?? null
+      ? (state.activities.items.find((item) => item.id === activityId) ?? null)
       : null
   );
   const [fetched, setFetched] = useState<Activity | null>(null);
@@ -34,7 +40,8 @@ export const useActivityDetails = (activityId: string | null) => {
   }, [activityFromStore, activityId, dispatch]);
 
   useEffect(() => {
-    const processingStatus = (activity?.processing_status ?? "complete") as ActivityProcessingStatus;
+    const processingStatus = (activity?.processing_status ??
+      "complete") as ActivityProcessingStatus;
     if (!activityId || processingStatus !== "processing") return undefined;
 
     const channel = supabase
@@ -51,7 +58,7 @@ export const useActivityDetails = (activityId: string | null) => {
           const next = payload.new as Activity;
           dispatch(activityUpdated(next));
           setFetched(next);
-        },
+        }
       )
       .subscribe();
 

@@ -1,7 +1,7 @@
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Icon } from "react-native-paper";
-import type { Activity } from "@features/activities/utils/types";
+import type { Activity } from "@features/activities/types";
 import { useTranslation } from "react-i18next";
 import { useAppTheme } from "@common/theme/appTheme";
 import type { CalendarActivityEntry } from "../types";

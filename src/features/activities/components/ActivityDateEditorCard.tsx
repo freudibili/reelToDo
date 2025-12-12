@@ -1,11 +1,12 @@
 import React, { useMemo } from "react";
-import { View, Text, StyleSheet, Pressable } from "react-native";
+import { View, StyleSheet, Pressable } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useAppTheme } from "@common/theme/appTheme";
+import { Text } from "@common/designSystem";
 import { usePlatformDateTimePicker } from "../hooks/usePlatformDateTimePicker";
 import InfoRow from "./InfoRow";
 import SuggestionPill from "./SuggestionPill";
-import type { Activity } from "../utils/types";
+import type { Activity } from "../types";
 import { resolveDateAction, type DateStatusMeta } from "../utils/dateEditor";
 import {
   formatDisplayDate,
@@ -40,25 +41,23 @@ const ActivityDateEditorCard: React.FC<ActivityDateEditorCardProps> = ({
 }) => {
   const { colors, mode } = useAppTheme();
   const { t } = useTranslation();
+  const contrastColor = colors.favoriteContrast;
   const officialDateValue = getOfficialDateValue(activity);
   const officialDate = useMemo(
     () => parseDateValue(officialDateValue),
-    [officialDateValue],
+    [officialDateValue]
   );
-  const dateValues = useMemo(
-    () => getActivityDateValues(activity),
-    [activity],
-  );
+  const dateValues = useMemo(() => getActivityDateValues(activity), [activity]);
   const formattedOfficialDates = useMemo(
     () =>
       dateValues
         .map((value) => formatActivityDateValue(value))
         .filter((value): value is string => Boolean(value)),
-    [dateValues],
+    [dateValues]
   );
   const additionalDates = useMemo(
     () => formattedOfficialDates.slice(1),
-    [formattedOfficialDates],
+    [formattedOfficialDates]
   );
   const effectiveDate = draftDate ?? officialDate;
   const baseDate = effectiveDate ?? new Date();
@@ -73,7 +72,11 @@ const ActivityDateEditorCard: React.FC<ActivityDateEditorCardProps> = ({
   const dateLabel = useMemo(() => {
     const date = effectiveDate;
     if (!date) return t("activities:details.dateMissing");
-    return formatDisplayDateTime(date) ?? formatDisplayDate(date) ?? date.toDateString();
+    return (
+      formatDisplayDateTime(date) ??
+      formatDisplayDate(date) ??
+      date.toDateString()
+    );
   }, [effectiveDate, t]);
 
   const title = status.needsConfirmation
@@ -88,15 +91,15 @@ const ActivityDateEditorCard: React.FC<ActivityDateEditorCardProps> = ({
         : colors.accent;
   const action = useMemo(
     () => resolveDateAction({ activity, isOwner, draftDate }),
-    [activity, draftDate, isOwner],
+    [activity, draftDate, isOwner]
   );
   const primaryLabel = saving
     ? t("common:locationPicker.submitting")
     : action === "continue"
       ? t("common:buttons.continue")
       : action === "save"
-      ? t("activities:editor.saveDate")
-      : t("activities:editor.suggestDate");
+        ? t("activities:editor.saveDate")
+        : t("activities:editor.suggestDate");
 
   const canSave = action === "continue" ? true : !!effectiveDate;
 
@@ -105,13 +108,26 @@ const ActivityDateEditorCard: React.FC<ActivityDateEditorCardProps> = ({
       {isOwner ? (
         <View style={styles.headerRow}>
           <View style={styles.titleGroup}>
-            <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
-            <Text style={[styles.subtitle, { color: colors.secondaryText }]}>
+            <Text variant="title3" style={{ color: colors.text }}>
+              {title}
+            </Text>
+            <Text variant="bodySmall" tone="muted">
               {status.helper}
             </Text>
           </View>
-          <View style={[styles.statusPill, { backgroundColor: statusColor }]}>
-            <Text style={styles.statusText}>{status.label}</Text>
+          <View
+            style={[
+              styles.statusPill,
+              { backgroundColor: statusColor, shadowColor: colors.text },
+            ]}
+          >
+            <Text
+              variant="caption"
+              weight="700"
+              style={{ color: contrastColor }}
+            >
+              {status.label}
+            </Text>
           </View>
         </View>
       ) : null}
@@ -139,7 +155,8 @@ const ActivityDateEditorCard: React.FC<ActivityDateEditorCardProps> = ({
           style={[
             styles.primaryButton,
             {
-              backgroundColor: saving || !canSave ? colors.overlay : colors.primary,
+              backgroundColor:
+                saving || !canSave ? colors.overlay : colors.primary,
               borderColor: colors.primaryBorder,
             },
           ]}
@@ -147,16 +164,10 @@ const ActivityDateEditorCard: React.FC<ActivityDateEditorCardProps> = ({
           disabled={saving || !canSave}
         >
           <Text
-            style={[
-              styles.primaryText,
-              {
-                color: saving
-                  ? colors.secondaryText
-                  : mode === "dark"
-                    ? colors.text
-                    : colors.surface,
-              },
-            ]}
+            variant="bodyStrong"
+            style={{
+              color: saving ? colors.secondaryText : contrastColor,
+            }}
           >
             {primaryLabel}
           </Text>
@@ -183,28 +194,14 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 4,
   },
-  title: {
-    fontSize: 15,
-    fontWeight: "700",
-  },
-  subtitle: {
-    fontSize: 13,
-  },
   statusPill: {
     paddingHorizontal: 12,
     paddingVertical: 5,
     borderRadius: 10,
     alignSelf: "flex-start",
-    shadowColor: "#000",
     shadowOpacity: 0.08,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 6,
-  },
-  statusText: {
-    color: "#fff",
-    fontWeight: "700",
-    fontSize: 11,
-    letterSpacing: 0.2,
   },
   actionsRow: {
     flexDirection: "row",
@@ -217,10 +214,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
-  },
-  primaryText: {
-    fontSize: 14,
-    fontWeight: "800",
   },
 });
 

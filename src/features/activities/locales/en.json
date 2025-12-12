@@ -5,6 +5,7 @@
     "emptySubtitle": "Import an activity to start building your list.",
     "emptyCta": "Import an activity",
     "importFromLink": "Import link",
+    "spotsLabel": "{{count}} spots",
     "more": {
       "title": "See more",
       "hint": "All activities",

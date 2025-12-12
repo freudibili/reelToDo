@@ -1,7 +1,8 @@
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { Icon } from "react-native-paper";
 
+import { Text } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";
 
 type Props = {
@@ -21,7 +22,7 @@ const AdditionalInfoList: React.FC<Props> = ({ title, icon, items }) => {
         { borderColor: colors.border, backgroundColor: colors.card },
       ]}
     >
-      <Text style={[styles.title, { color: colors.secondaryText }]}>
+      <Text variant="eyebrow" tone="muted">
         {title}
       </Text>
       <View style={styles.items}>
@@ -31,7 +32,7 @@ const AdditionalInfoList: React.FC<Props> = ({ title, icon, items }) => {
             style={styles.itemRow}
           >
             <Icon source={icon} size={18} color={colors.secondaryText} />
-            <Text style={[styles.itemText, { color: colors.text }]} numberOfLines={2}>
+            <Text variant="body" style={{ color: colors.text }} numberOfLines={2}>
               {item}
             </Text>
           </View>
@@ -50,12 +51,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     gap: 8,
   },
-  title: {
-    fontSize: 12,
-    fontWeight: "700",
-    letterSpacing: 0.2,
-    textTransform: "uppercase",
-  },
   items: {
     gap: 6,
   },
@@ -63,9 +58,5 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-  },
-  itemText: {
-    fontSize: 14,
-    flex: 1,
   },
 });

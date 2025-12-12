@@ -1,4 +1,4 @@
-import type { Activity } from "@features/activities/utils/types";
+import type { Activity } from "@features/activities/types";
 import {
   getOfficialDateValue,
   parseDateValue,
@@ -47,11 +47,7 @@ export const buildDayGroups = (activities: Activity[]): DayGroup[] => {
       addEntry(activity, "planned", plannedValue);
     }
 
-    if (
-      officialValue &&
-      officialDate &&
-      officialKey !== plannedKey
-    ) {
+    if (officialValue && officialDate && officialKey !== plannedKey) {
       addEntry(activity, "official", officialValue);
     } else if (
       officialValue &&

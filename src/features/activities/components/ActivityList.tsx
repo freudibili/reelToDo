@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Icon } from "react-native-paper";
 
 import { Box, GradientButton, Stack, Text } from "@common/designSystem";
+import { useAppTheme } from "@common/theme/appTheme";
 import CategoryCard from "./CategoryCard";
 import type { CategoryCardItem } from "../store/activitiesSelectors";
 
@@ -19,6 +20,7 @@ const ActivityList: React.FC<Props> = ({
   onImport,
 }) => {
   const { t } = useTranslation();
+  const { colors } = useAppTheme();
 
   const noActivities = !data || data.length === 0;
 
@@ -41,7 +43,7 @@ const ActivityList: React.FC<Props> = ({
           </Stack>
           <GradientButton
             label={t("activities:list.emptyCta")}
-            icon={<Icon source="link-plus" size={18} color="#fff" />}
+            icon={<Icon source="link-plus" size={18} color={colors.favoriteContrast} />}
             onPress={onImport}
           />
         </Stack>

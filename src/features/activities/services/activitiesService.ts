@@ -1,6 +1,6 @@
 import { supabase } from "@config/supabase";
 import type { PlaceDetails } from "@features/import/services/locationService";
-import type { Activity } from "../utils/types";
+import type { Activity } from "../types";
 
 export const ActivitiesService = {
   async fetchActivities(userId?: string | null) {
@@ -122,9 +122,7 @@ export const ActivitiesService = {
     } = {
       planned_at: plannedAt,
     };
-    const hasCalendarEventId = options
-      ? "calendarEventId" in options
-      : false;
+    const hasCalendarEventId = options ? "calendarEventId" in options : false;
     if (hasCalendarEventId) {
       base.calendar_event_id = options?.calendarEventId ?? null;
     }
@@ -210,9 +208,7 @@ export const ActivitiesService = {
       source: "app",
     };
 
-    const { error } = await supabase
-      .from("date_suggestions")
-      .insert(payload);
+    const { error } = await supabase.from("date_suggestions").insert(payload);
 
     if (error) throw error;
 

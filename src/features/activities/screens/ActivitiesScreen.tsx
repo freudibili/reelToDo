@@ -56,7 +56,13 @@ const ActivitiesScreen = () => {
         noActivities ? null : (
           <GradientButton
             label={t("activities:list.importFromLink")}
-            icon={<Icon source="link-plus" size={16} color="#fff" />}
+            icon={
+              <Icon
+                source="link-plus"
+                size={16}
+                color={colors.favoriteContrast}
+              />
+            }
             onPress={handleOpenImport}
             size="sm"
           />

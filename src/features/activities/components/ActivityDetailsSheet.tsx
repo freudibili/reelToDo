@@ -1,39 +1,19 @@
-import React, { useMemo, useState, useCallback } from "react";
-import { Alert, StyleSheet, Text, View } from "react-native";
-import { IconButton } from "react-native-paper";
+import React from "react";
+import { StyleSheet, View } from "react-native";
 import { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import ActivityHero from "@common/components/ActivityHero";
 import ActivitySummaryHeader from "@common/components/ActivitySummaryHeader";
-import ActionRail, { type ActionRailItem } from "@common/components/ActionRail";
-import DateBadge from "@common/components/DateBadge";
-import {
-  formatActivityLocation,
-  formatActivityDateValue,
-  formatDisplayDate,
-  formatDisplayDateTime,
-  formatLocationEntry,
-  getActivityDateValues,
-  getActivityLocations,
-  getOfficialDateValue,
-  getPrimaryDateValue,
-} from "../utils/activityDisplay";
-import { categoryNeedsDate } from "../utils/activityHelper";
-import type { Activity } from "../utils/types";
+import ActivityDetailsActions from "./ActivityDetailsActions";
+import type { Activity } from "../types";
 import { useTranslation } from "react-i18next";
-import InfoRow from "./InfoRow";
-import { useConfirmDialog } from "@common/hooks/useConfirmDialog";
 import { useAppTheme } from "@common/theme/appTheme";
 import { usePlatformDateTimePicker } from "../hooks/usePlatformDateTimePicker";
-import LocationAssistButton from "./LocationAssistButton";
-import DateAssistButton from "./DateAssistButton";
 import DateChangeModal from "./DateChangeModal";
 import LocationChangeModal from "@common/components/LocationChangeModal";
-import { useAppDispatch, useAppSelector } from "@core/store/hook";
-import { ActivitiesService } from "../services/activitiesService";
-import type { PlaceDetails } from "@features/import/services/locationService";
-import { activityPatched } from "../store/activitiesSlice";
-import { getDateVisuals } from "../utils/dateVisuals";
-import AdditionalInfoList from "./AdditionalInfoList";
+import ActivityPlanSection from "./ActivityPlanSection";
+import ActivityOverviewSection from "./ActivityOverviewSection";
+import { useActivityDetailsViewModel } from "../hooks/useActivityDetailsViewModel";
+import { useActivitySuggestionActions } from "../hooks/useActivitySuggestionActions";
 
 interface Props {
   activity: Activity | null;
@@ -57,25 +37,20 @@ const ActivityDetailsSheet: React.FC<Props> = ({
   onChangePlannedDate,
 }) => {
   const { t } = useTranslation();
-  const { confirm } = useConfirmDialog();
   const { colors, mode } = useAppTheme();
-  const dispatch = useAppDispatch();
-  const userId = useAppSelector((state) => state.auth.user?.id ?? null);
-  const [locationModalVisible, setLocationModalVisible] = useState(false);
-  const [locationSubmitting, setLocationSubmitting] = useState(false);
-  const [dateModalVisible, setDateModalVisible] = useState(false);
-  const [dateSubmitting, setDateSubmitting] = useState(false);
   if (!activity) return null;
-  const officialDateValue = getOfficialDateValue(activity);
-  const baseDate = useMemo(
-    () =>
-      activity.planned_at
-        ? new Date(activity.planned_at)
-        : officialDateValue
-          ? new Date(officialDateValue)
-          : new Date(),
-    [activity.planned_at, officialDateValue]
-  );
+  const {
+    baseDate,
+    officialDateValue,
+    officialDateLabel,
+    plannedDateLabel,
+    primaryDateLabel,
+    formattedOfficialDates,
+    additionalDates,
+    alternateLocations,
+    locationLabel,
+    needsDate,
+  } = useActivityDetailsViewModel(activity, t);
 
   const { openPicker, pickerModal } = usePlatformDateTimePicker({
     value: baseDate,
@@ -85,174 +60,18 @@ const ActivityDetailsSheet: React.FC<Props> = ({
     textColor: colors.text,
   });
 
-  const officialDateLabel = formatDisplayDate(officialDateValue);
-  const plannedDateLabel = formatDisplayDateTime(activity.planned_at);
-  const primaryDateLabel = formatDisplayDateTime(getPrimaryDateValue(activity));
-  const officialDates = useMemo(
-    () => getActivityDateValues(activity),
-    [activity],
-  );
-  const formattedOfficialDates = useMemo(
-    () =>
-      officialDates
-        .map((d) => formatActivityDateValue(d))
-        .filter((d): d is string => Boolean(d)),
-    [officialDates],
-  );
-  const additionalDates = useMemo(
-    () => formattedOfficialDates.slice(1),
-    [formattedOfficialDates],
-  );
-  const locations = useMemo(
-    () => getActivityLocations(activity),
-    [activity],
-  );
-  const locationLabel =
-    formatLocationEntry(
-      locations[0],
-      activity.city ?? activity.country ?? null,
-    ) ??
-    formatActivityLocation(activity) ??
-    t("activities:details.locationFallback");
-  const alternateLocations = useMemo(
-    () =>
-      locations
-        .slice(1)
-        .map((loc) =>
-          formatLocationEntry(loc, activity.city ?? activity.country ?? null),
-        )
-        .filter((loc): loc is string => Boolean(loc)),
-    [activity.city, activity.country, locations],
-  );
-  const needsDate = categoryNeedsDate(activity.category);
-
-  const planActionLabel = plannedDateLabel
-    ? t("activities:planned.ctaEdit")
-    : t("activities:planned.ctaAdd");
-
-  const actions: ActionRailItem[] = [
-    {
-      key: "plan",
-      label: planActionLabel,
-      icon: plannedDateLabel ? "calendar-edit" : "calendar-plus",
-      onPress: openPicker,
-    },
-    {
-      key: "maps",
-      label: t("activities:details.actions.maps"),
-      icon: "map-marker",
-      onPress: () => onOpenMaps(activity),
-    },
-    {
-      key: "favorite",
-      label: t("activities:details.actions.favorite"),
-      icon: isFavorite ? "heart" : "heart-outline",
-      iconColor: isFavorite ? colors.favorite : undefined,
-      onPress: () => onToggleFavorite(activity),
-    },
-    {
-      key: "source",
-      label: t("activities:details.actions.source"),
-      icon: "link-variant",
-      onPress: () => onOpenSource(activity),
-      disabled: !activity.source_url,
-    },
-    {
-      key: "delete",
-      label: t("activities:details.actions.delete"),
-      icon: "delete-outline",
-      tone: "danger" as const,
-      onPress: () => onDelete(activity),
-    },
-  ];
-
-  const handleOpenLocationModal = useCallback(() => {
-    setLocationModalVisible(true);
-  }, []);
-
-  const handleCloseLocationModal = useCallback(() => {
-    setLocationModalVisible(false);
-  }, []);
-
-  const handleSubmitLocation = useCallback(
-    async (payload: { place: PlaceDetails; note: string | null }) => {
-      if (!activity) return;
-      setLocationSubmitting(true);
-      try {
-        await ActivitiesService.submitLocationSuggestion({
-          activityId: activity.id,
-          userId,
-          place: payload.place,
-          note: payload.note,
-        });
-        dispatch(
-          activityPatched({
-            id: activity.id,
-            changes: {
-              location_status: "suggested",
-              needs_location_confirmation: true,
-            },
-          })
-        );
-        Alert.alert(
-          t("activities:report.successTitle"),
-          t("activities:report.successMessage")
-        );
-        handleCloseLocationModal();
-      } catch (e) {
-        Alert.alert(
-          t("activities:report.errorTitle"),
-          t("activities:report.errorMessage")
-        );
-      } finally {
-        setLocationSubmitting(false);
-      }
-    },
-    [activity, dispatch, handleCloseLocationModal, t, userId]
-  );
-
-  const handleSuggestDate = useCallback(() => {
-    Alert.alert(
-      t("activities:details.suggestDateTitle"),
-      t("activities:details.suggestDateSubtitle"),
-      [
-        { text: t("common:buttons.cancel"), style: "cancel" },
-        {
-          text: t("activities:details.suggestDateConfirm"),
-          onPress: () => setDateModalVisible(true),
-        },
-      ],
-      { cancelable: true }
-    );
-  }, [t]);
-
-  const handleSubmitDateSuggestion = useCallback(
-    async (payload: { date: Date; note: string | null }) => {
-      if (!activity) return;
-      setDateSubmitting(true);
-      try {
-        await ActivitiesService.submitDateSuggestion({
-          activityId: activity.id,
-          userId,
-          suggestedDate: payload.date,
-          note: payload.note,
-        });
-        Alert.alert(
-          t("activities:details.suggestDateSuccessTitle"),
-          t("activities:details.suggestDateSuccessMessage")
-        );
-        setDateModalVisible(false);
-      } catch (e) {
-        Alert.alert(
-          t("activities:details.suggestDateErrorTitle"),
-          t("activities:details.suggestDateErrorMessage")
-        );
-      } finally {
-        setDateSubmitting(false);
-      }
-    },
-    [activity, t, userId]
-  );
+  const {
+    locationModalVisible,
+    locationSubmitting,
+    openLocationModal,
+    closeLocationModal,
+    submitLocationSuggestion,
+    dateModalVisible,
+    dateSubmitting,
+    promptDateSuggestion,
+    closeDateModal,
+    submitDateSuggestion,
+  } = useActivitySuggestionActions(activity);
 
   return (
     <>
@@ -274,7 +93,16 @@ const ActivityDetailsSheet: React.FC<Props> = ({
         />
 
         <View style={styles.actionsRailWrapper}>
-          <ActionRail actions={actions} />
+          <ActivityDetailsActions
+            activity={activity}
+            isFavorite={isFavorite}
+            onDelete={onDelete}
+            onToggleFavorite={onToggleFavorite}
+            onOpenMaps={onOpenMaps}
+            onOpenSource={onOpenSource}
+            onAddToCalendar={onAddToCalendar}
+            openPicker={openPicker}
+          />
         </View>
 
         {pickerModal}
@@ -287,100 +115,31 @@ const ActivityDetailsSheet: React.FC<Props> = ({
           imageUrl={activity.image_url}
           showOverlayContent={false}
         />
-        <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionHeaderText, { color: colors.text }]}>
-            {t("activities:details.overview")}
-          </Text>
-          <View
-            style={[
-              styles.sectionUnderline,
-              { backgroundColor: colors.primary },
-            ]}
-          />
-        </View>
-        <InfoRow
-          icon="map-marker"
-          value={locationLabel ?? t("activities:details.addressMissing")}
-          rightSlot={
-            <LocationAssistButton
-              activity={activity}
-              onChangeLocation={handleOpenLocationModal}
-            />
-          }
+
+        <ActivityOverviewSection
+          activity={activity}
+          locationLabel={locationLabel}
+          alternateLocations={alternateLocations}
+          formattedOfficialDates={formattedOfficialDates}
+          additionalDates={additionalDates}
+          needsDate={needsDate}
+          onOpenLocation={openLocationModal}
+          onSuggestDate={promptDateSuggestion}
         />
-        {alternateLocations.length > 0 ? (
-          <AdditionalInfoList
-            title={t("activities:details.otherLocations")}
-            icon="map-marker-outline"
-            items={alternateLocations}
-          />
-        ) : null}
-        {(needsDate || formattedOfficialDates.length > 0) && (
-          <>
-            <InfoRow
-              icon="calendar"
-              value={
-                formattedOfficialDates.length > 0
-                  ? formattedOfficialDates[0]
-                  : t("activities:details.dateMissing")
-              }
-              rightSlot={<DateAssistButton onSuggest={handleSuggestDate} />}
-            />
-            {additionalDates.length > 0 ? (
-              <AdditionalInfoList
-                title={t("activities:details.otherDates")}
-                icon="calendar-range-outline"
-                items={additionalDates}
-              />
-            ) : null}
-          </>
-        )}
 
         {plannedDateLabel ? (
-          <View style={styles.planInlineSection}>
-            <Text style={[styles.sectionHeaderText, { color: colors.text }]}>
-              {t("activities:planned.title")}
-            </Text>
-            <View style={styles.planInlineRow}>
-              <DateBadge
-                label={plannedDateLabel}
-                tone="default"
-                icon={getDateVisuals(colors, "planned").icon}
-                iconColor={getDateVisuals(colors, "planned").color}
-                iconBackgroundColor={
-                  getDateVisuals(colors, "planned").background
-                }
-                labelWeight="normal"
-              />
-              <View style={styles.planActions}>
-                <IconButton
-                  mode="contained-tonal"
-                  icon="pencil"
-                  onPress={openPicker}
-                  containerColor={colors.primary}
-                  iconColor={colors.surface}
-                  size={22}
-                  style={styles.iconButton}
-                />
-                <IconButton
-                  mode="contained-tonal"
-                  icon="trash-can-outline"
-                  onPress={() => onChangePlannedDate(activity, null)}
-                  containerColor={colors.primary}
-                  iconColor={colors.surface}
-                  size={22}
-                  style={styles.iconButton}
-                />
-              </View>
-            </View>
-          </View>
+          <ActivityPlanSection
+            plannedDateLabel={plannedDateLabel}
+            onEdit={openPicker}
+            onClear={() => onChangePlannedDate(activity, null)}
+          />
         ) : null}
       </BottomSheetScrollView>
 
       <LocationChangeModal
         visible={locationModalVisible}
-        onClose={handleCloseLocationModal}
-        onSelectPlace={handleSubmitLocation}
+        onClose={closeLocationModal}
+        onSelectPlace={submitLocationSuggestion}
         submitting={locationSubmitting}
         initialValue={undefined}
         title={t("activities:report.title")}
@@ -390,8 +149,8 @@ const ActivityDetailsSheet: React.FC<Props> = ({
       />
       <DateChangeModal
         visible={dateModalVisible}
-        onClose={() => setDateModalVisible(false)}
-        onSubmit={handleSubmitDateSuggestion}
+        onClose={closeDateModal}
+        onSubmit={submitDateSuggestion}
         submitting={dateSubmitting}
         initialValue={
           officialDateValue ? new Date(officialDateValue) : undefined
@@ -415,75 +174,6 @@ const styles = StyleSheet.create({
   },
   headerBlock: {
     paddingHorizontal: 4,
-  },
-  sectionHeader: {
-    marginTop: 4,
-    marginBottom: 2,
-  },
-  sectionHeaderText: {
-    fontSize: 14,
-    fontWeight: "700",
-  },
-  sectionUnderline: {
-    marginTop: 4,
-    height: 2,
-    width: 70,
-    borderRadius: 999,
-  },
-  planCard: {
-    marginTop: 10,
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    borderRadius: 12,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    borderWidth: 1,
-  },
-  planTextCol: {
-    flex: 1,
-    gap: 4,
-  },
-  planActions: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  planInline: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: 8,
-    paddingHorizontal: 4,
-  },
-  planInlineSection: {
-    marginTop: 10,
-    gap: 6,
-  },
-  planInlineRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 8,
-  },
-  iconButton: {
-    margin: 0,
-  },
-  subtle: {
-    fontSize: 12,
-  },
-  muted: {
-    fontSize: 12,
-  },
-  badgeRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 6,
-    marginTop: 4,
-  },
-  link: {
-    fontSize: 14,
-    fontWeight: "700",
   },
   actionsRailWrapper: {
     marginTop: 6,

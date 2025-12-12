@@ -13,7 +13,7 @@ import {
   formatDisplayDate,
   getPrimaryDateValue,
 } from "../utils/activityDisplay";
-import type { Activity, ActivityProcessingStatus } from "../utils/types";
+import type { Activity, ActivityProcessingStatus } from "../types";
 
 interface Props {
   activity: Activity;
@@ -39,6 +39,9 @@ const ActivityCard: React.FC<Props> = ({
     "complete") as ActivityProcessingStatus;
   const isProcessing = processingStatus === "processing";
   const isFailed = processingStatus === "failed";
+  const processingBackground = colors.primarySurface ?? colors.card;
+  const processingText = colors.primaryText;
+  const failureText = colors.favoriteContrast;
 
   return (
     <Pressable style={styles.card} onPress={() => onPress(activity)}>
@@ -56,10 +59,17 @@ const ActivityCard: React.FC<Props> = ({
               rounded="pill"
               paddingHorizontal={spacing.sm}
               paddingVertical={spacing.xs}
-              style={[styles.statusPill, { backgroundColor: "#0f172a99" }]}
+              style={[
+                styles.statusPill,
+                { backgroundColor: processingBackground },
+              ]}
             >
-              <ActivityIndicator color={colors.surface} size="small" />
-              <Text variant="caption" weight="700" style={{ color: colors.surface }}>
+              <ActivityIndicator color={colors.primary} size="small" />
+              <Text
+                variant="caption"
+                weight="700"
+                style={{ color: processingText }}
+              >
                 {t("activities:card.processing")}
               </Text>
             </Box>
@@ -71,8 +81,12 @@ const ActivityCard: React.FC<Props> = ({
               paddingVertical={spacing.xs}
               style={[styles.statusPill, { backgroundColor: colors.danger }]}
             >
-              <Icon source="alert" size={14} color="#fff" />
-              <Text variant="caption" weight="700" style={{ color: "#fff" }}>
+              <Icon source="alert" size={14} color={failureText} />
+              <Text
+                variant="caption"
+                weight="700"
+                style={{ color: failureText }}
+              >
                 {t("activities:card.failed")}
               </Text>
             </Box>
@@ -97,7 +111,12 @@ const ActivityCard: React.FC<Props> = ({
         {locationLabel ? (
           <Box direction="row" align="center" gap={6}>
             <Icon source="map-marker" size={14} color={colors.secondaryText} />
-            <Text variant="bodySmall" tone="muted" numberOfLines={1} ellipsizeMode="tail">
+            <Text
+              variant="bodySmall"
+              tone="muted"
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
               {locationLabel}
             </Text>
           </Box>
@@ -110,7 +129,12 @@ const ActivityCard: React.FC<Props> = ({
               size={14}
               color={colors.secondaryText}
             />
-            <Text variant="bodySmall" tone="muted" numberOfLines={1} ellipsizeMode="tail">
+            <Text
+              variant="bodySmall"
+              tone="muted"
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
               {isPlanned
                 ? t("activities:planned.timeLabel", { value: dateLabel })
                 : dateLabel}

@@ -1,5 +1,5 @@
 import { Linking } from "react-native";
-import type { Activity } from "../utils/types";
+import type { Activity } from "../types";
 
 export const openActivityInMaps = (activity: Activity): void => {
   if (activity.latitude && activity.longitude) {

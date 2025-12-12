@@ -1,6 +1,6 @@
 import { createSelector } from "@reduxjs/toolkit";
 import type { RootState } from "@core/store";
-import type { Activity } from "../utils/types";
+import type { Activity } from "../types";
 import {
   buildCategoryCards,
   categoryConstants,

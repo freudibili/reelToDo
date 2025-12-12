@@ -28,7 +28,7 @@ import {
   openActivityInMaps,
   openActivitySource,
 } from "@features/activities/services/linksService";
-import type { Activity } from "@features/activities/utils/types";
+import type { Activity } from "@features/activities/types";
 import { formatDisplayDate } from "@features/activities/utils/activityDisplay";
 import { useConfirmDialog } from "@common/hooks/useConfirmDialog";
 import MonthNavigator from "../components/MonthNavigator";

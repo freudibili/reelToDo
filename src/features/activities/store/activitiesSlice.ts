@@ -7,7 +7,7 @@ import {
   deleteCalendarEvent,
   updateCalendarEventForActivity,
 } from "@features/calendar/services/calendarService";
-import type { Activity } from "../utils/types";
+import type { Activity } from "../types";
 import type { AppDispatch, RootState } from "@core/store";
 import i18next from "@common/i18n/i18n";
 
@@ -359,9 +359,7 @@ const activitiesSlice = createSlice({
           ...state.items[idx],
           calendar_event_id: calendarEventId,
           planned_at:
-            plannedAt !== undefined
-              ? plannedAt
-              : state.items[idx].planned_at,
+            plannedAt !== undefined ? plannedAt : state.items[idx].planned_at,
         } as Activity;
       }
     });

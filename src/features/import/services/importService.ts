@@ -1,6 +1,6 @@
 import { supabase } from "@config/supabase";
 import type { ShareIntent } from "expo-share-intent";
-import type { Activity } from "@features/activities/utils/types";
+import type { Activity } from "@features/activities/types";
 import type { UpdateActivityPayload } from "../types";
 import i18next from "@common/i18n/i18n";
 
@@ -125,9 +125,7 @@ export const importService = {
 
     if (error) {
       const { message: extractedMessage } = extractFunctionError(error);
-      throw new Error(
-        extractedMessage ?? i18next.t("import:errors.analyze")
-      );
+      throw new Error(extractedMessage ?? i18next.t("import:errors.analyze"));
     }
 
     if (!data) {

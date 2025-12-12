@@ -23,7 +23,7 @@ import {
   setPlannedDate,
 } from "@features/activities/store/activitiesSlice";
 import { createActivityCalendarEvent } from "@features/calendar/store/calendarThunks";
-import type { Activity } from "@features/activities/utils/types";
+import type { Activity } from "@features/activities/types";
 import { useConfirmDialog } from "@common/hooks/useConfirmDialog";
 import Screen from "@common/components/AppScreen";
 import AppBottomSheet from "@common/components/AppBottomSheet";

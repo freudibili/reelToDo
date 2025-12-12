@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 
-import type { Activity } from "@features/activities/utils/types";
+import type { Activity } from "@features/activities/types";
 import type { ImportProcessingState } from "../types";
 
 type Params = {
@@ -28,7 +28,8 @@ export const useImportProcessingState = ({
     "complete") as ImportProcessingState["processingStatus"];
   const isProcessing = processingStatus === "processing";
   const isFailed = processingStatus === "failed";
-  const processingErrorMessage = displayActivity?.processing_error ?? error ?? null;
+  const processingErrorMessage =
+    displayActivity?.processing_error ?? error ?? null;
   const showAnalyzingCard =
     !displayActivity && !error && (loading || hasSharedParam);
   const showManualCard = !hasSharedParam && !displayActivity && !loading;

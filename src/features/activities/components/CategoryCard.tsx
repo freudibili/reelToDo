@@ -1,6 +1,7 @@
 import React, { useRef } from "react";
 import { Animated, Pressable, StyleSheet, View } from "react-native";
 import { Icon } from "react-native-paper";
+import { useTranslation } from "react-i18next";
 
 import { Box, Text } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";
@@ -51,16 +52,17 @@ const CategoryCard: React.FC<Props> = ({
       : activityCount > 9
         ? `+${activityCount}`
         : `${activityCount}`;
-  const countBackground = "rgba(255,255,255,0.85)";
-  const countIconColor = "#0f172a";
+  const { t } = useTranslation();
+  const countBackground = colors.card;
+  const countIconColor = colors.text;
   const placeholderBackground =
-    (colors as any).surfaceVariant ?? colors.card ?? "#1f2937";
+    (colors as any).surfaceVariant ?? colors.card ?? colors.surface;
 
   return (
     <Animated.View
       style={[
         styles.wrapper,
-        { transform: [{ scale }], shadowColor: "transparent" },
+        { transform: [{ scale }] },
       ]}
     >
       <Pressable
@@ -90,7 +92,7 @@ const CategoryCard: React.FC<Props> = ({
                   weight="700"
                   style={{ color: countIconColor }}
                 >
-                  {countLabel} spots
+                  {t("activities:list.spotsLabel", { count: countLabel })}
                 </Text>
               </Box>
             ) : null}
@@ -100,7 +102,7 @@ const CategoryCard: React.FC<Props> = ({
                 rounded="pill"
                 background={colors.card}
                 padding={spacing.sm}
-                style={styles.clusterBadge}
+                style={[styles.clusterBadge, { shadowColor: colors.text }]}
                 shadow="sm"
               >
                 <Icon
@@ -152,7 +154,6 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 10,
     right: 10,
-    shadowColor: "#000",
     shadowOpacity: 0.12,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 2 },

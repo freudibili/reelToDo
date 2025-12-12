@@ -19,7 +19,7 @@ import {
   formatDisplayDate,
   getOfficialDateValue,
 } from "@features/activities/utils/activityDisplay";
-import type { Activity } from "@features/activities/utils/types";
+import type { Activity } from "@features/activities/types";
 import { useAppDispatch } from "@core/store/hook";
 import DateSection from "./DateSection";
 import LocationSection from "./LocationSection";

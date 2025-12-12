@@ -2,7 +2,7 @@ import React, { useCallback } from "react";
 import { Alert } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import type { Activity } from "../utils/types";
+import type { Activity } from "../types";
 import { getLocationActionIcon } from "../utils/locationActions";
 import SuggestionPill from "./SuggestionPill";
 

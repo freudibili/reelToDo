@@ -7,14 +7,14 @@ import {
 } from "@features/activities/store/activitiesSlice";
 import { ActivitiesService } from "@features/activities/services/activitiesService";
 import { setImportActivity } from "../store/importSlice";
-import type { Activity } from "@features/activities/utils/types";
+import type { Activity } from "@features/activities/types";
 
 const POLL_INTERVAL = 4000;
 
 export const useActivityProcessingWatcher = (
   activityId: string | null | undefined,
   enabled: boolean,
-  onDeleted?: () => void,
+  onDeleted?: () => void
 ): void => {
   const dispatch = useAppDispatch();
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -36,13 +36,16 @@ export const useActivityProcessingWatcher = (
           const next = payload.new as Activity;
           dispatch(activityUpdated(next));
           dispatch(setImportActivity(next));
-          if (next.processing_status && next.processing_status !== "processing") {
+          if (
+            next.processing_status &&
+            next.processing_status !== "processing"
+          ) {
             if (pollRef.current) {
               clearInterval(pollRef.current);
               pollRef.current = null;
             }
           }
-        },
+        }
       )
       .on(
         "postgres_changes",
@@ -61,7 +64,7 @@ export const useActivityProcessingWatcher = (
             clearInterval(pollRef.current);
             pollRef.current = null;
           }
-        },
+        }
       )
       .subscribe();
 

@@ -1,6 +1,7 @@
 import React from "react";
 
 import { Box, Card, Stack, Text } from "@common/designSystem";
+import { StyleSheet } from "react-native";
 
 interface Props {
   title?: string;

@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from "react";
-import { View, Text, StyleSheet, Pressable } from "react-native";
+import { View, StyleSheet, Pressable } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useAppTheme } from "@common/theme/appTheme";
-import type { Activity } from "../utils/types";
+import { Text } from "@common/designSystem";
+import type { Activity } from "../types";
 import type { PlaceDetails } from "@features/import/services/locationService";
 import LocationChangeModal from "@common/components/LocationChangeModal";
 import {
@@ -22,7 +23,10 @@ type ActivityLocationEditorCardProps = {
   activity: Activity;
   status: LocationStatusMeta;
   draftLocation: PlaceDetails | null;
-  onChangeLocation: (payload: { place: PlaceDetails; note: string | null }) => void;
+  onChangeLocation: (payload: {
+    place: PlaceDetails;
+    note: string | null;
+  }) => void;
   onSave: () => void;
   onCancelActivity: () => void;
   saving: boolean;
@@ -41,35 +45,40 @@ const ActivityLocationEditorCard: React.FC<ActivityLocationEditorCardProps> = ({
   deleting,
   isOwner,
 }) => {
-  const { colors, mode } = useAppTheme();
+  const { colors } = useAppTheme();
   const { t } = useTranslation();
+  const contrastColor = colors.favoriteContrast;
   const [modalVisible, setModalVisible] = useState(false);
 
   const locations = useMemo(() => getActivityLocations(activity), [activity]);
   const locationLabel = useMemo(() => {
     if (draftLocation) {
-      return draftLocation.formattedAddress || draftLocation.name || draftLocation.description;
+      return (
+        draftLocation.formattedAddress ||
+        draftLocation.name ||
+        draftLocation.description
+      );
     }
     const formattedPrimary =
       formatLocationEntry(
         locations[0],
-        activity.city ?? activity.country ?? null,
+        activity.city ?? activity.country ?? null
       ) ?? formatActivityLocation(activity);
     return formattedPrimary ?? t("common:labels.locationPending");
   }, [activity, draftLocation, locations, t]);
   const action = useMemo(
     () => resolveLocationAction({ activity, isOwner, draftLocation }),
-    [activity, draftLocation, isOwner],
+    [activity, draftLocation, isOwner]
   );
   const alternateLocations = useMemo(
     () =>
       locations
         .slice(1)
         .map((loc) =>
-          formatLocationEntry(loc, activity.city ?? activity.country ?? null),
+          formatLocationEntry(loc, activity.city ?? activity.country ?? null)
         )
         .filter((loc): loc is string => Boolean(loc)),
-    [activity.city, activity.country, locations],
+    [activity.city, activity.country, locations]
   );
 
   const title = status.needsConfirmation
@@ -87,8 +96,8 @@ const ActivityLocationEditorCard: React.FC<ActivityLocationEditorCardProps> = ({
     : action === "continue"
       ? t("common:buttons.continue")
       : action === "save"
-      ? t("activities:editor.saveLocation")
-      : t("activities:editor.suggestLocation");
+        ? t("activities:editor.saveLocation")
+        : t("activities:editor.suggestLocation");
 
   const handleOpenModal = () => {
     if (saving || deleting) return;
@@ -98,7 +107,7 @@ const ActivityLocationEditorCard: React.FC<ActivityLocationEditorCardProps> = ({
   return (
     <View style={styles.container}>
       <View style={styles.sectionHeader}>
-        <Text style={[styles.sectionHeaderText, { color: colors.secondaryText }]}>
+        <Text variant="eyebrow" tone="muted">
           {t("activities:details.overview")}
         </Text>
         <View
@@ -109,13 +118,26 @@ const ActivityLocationEditorCard: React.FC<ActivityLocationEditorCardProps> = ({
       {isOwner ? (
         <View style={styles.headerRow}>
           <View style={styles.titleGroup}>
-            <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
-            <Text style={[styles.subtitle, { color: colors.secondaryText }]}>
+            <Text variant="title3" style={{ color: colors.text }}>
+              {title}
+            </Text>
+            <Text variant="bodySmall" tone="muted">
               {status.helper}
             </Text>
           </View>
-          <View style={[styles.statusPill, { backgroundColor: statusColor }]}>
-            <Text style={styles.statusText}>{status.label}</Text>
+          <View
+            style={[
+              styles.statusPill,
+              { backgroundColor: statusColor, shadowColor: colors.text },
+            ]}
+          >
+            <Text
+              variant="caption"
+              weight="700"
+              style={{ color: contrastColor }}
+            >
+              {status.label}
+            </Text>
           </View>
         </View>
       ) : null}
@@ -150,8 +172,10 @@ const ActivityLocationEditorCard: React.FC<ActivityLocationEditorCardProps> = ({
           onPress={onCancelActivity}
           disabled={saving || deleting}
         >
-          <Text style={[styles.secondaryText, { color: colors.danger }]}>
-            {deleting ? t("common:buttons.delete") + "…" : t("activities:editor.cancelActivity")}
+          <Text variant="bodyStrong" style={{ color: colors.danger }}>
+            {deleting
+              ? t("common:buttons.delete") + "…"
+              : t("activities:editor.cancelActivity")}
           </Text>
         </Pressable>
         <Pressable
@@ -166,16 +190,10 @@ const ActivityLocationEditorCard: React.FC<ActivityLocationEditorCardProps> = ({
           disabled={saving || deleting}
         >
           <Text
-            style={[
-              styles.primaryText,
-              {
-                color: saving
-                  ? colors.secondaryText
-                  : mode === "dark"
-                    ? colors.text
-                    : colors.surface,
-              },
-            ]}
+            variant="bodyStrong"
+            style={{
+              color: saving ? colors.secondaryText : contrastColor,
+            }}
           >
             {primaryLabel}
           </Text>
@@ -204,12 +222,6 @@ const styles = StyleSheet.create({
   sectionHeader: {
     marginBottom: 2,
   },
-  sectionHeaderText: {
-    fontSize: 12,
-    fontWeight: "700",
-    letterSpacing: 0.2,
-    textTransform: "uppercase",
-  },
   sectionUnderline: {
     marginTop: 4,
     height: 2,
@@ -226,28 +238,14 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 4,
   },
-  title: {
-    fontSize: 15,
-    fontWeight: "700",
-  },
-  subtitle: {
-    fontSize: 13,
-  },
   statusPill: {
     paddingHorizontal: 12,
     paddingVertical: 5,
     borderRadius: 10,
     alignSelf: "flex-start",
-    shadowColor: "#000",
     shadowOpacity: 0.08,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 6,
-  },
-  statusText: {
-    color: "#fff",
-    fontWeight: "700",
-    fontSize: 11,
-    letterSpacing: 0.2,
   },
   actionsRow: {
     flexDirection: "row",
@@ -261,10 +259,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  primaryText: {
-    fontSize: 14,
-    fontWeight: "800",
-  },
   secondaryButton: {
     flex: 1,
     paddingVertical: 12,
@@ -272,10 +266,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
-  },
-  secondaryText: {
-    fontSize: 14,
-    fontWeight: "700",
   },
 });
 

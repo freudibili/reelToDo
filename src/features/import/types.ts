@@ -3,7 +3,7 @@ import type { ShareIntent } from "expo-share-intent";
 import type {
   Activity,
   ActivityProcessingStatus,
-} from "@features/activities/utils/types";
+} from "@features/activities/types";
 
 import type { PlaceDetails } from "./services/locationService";
 

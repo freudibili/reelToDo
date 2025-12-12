@@ -10,8 +10,10 @@ import {
   formatDisplayDate,
   getOfficialDateValue,
 } from "@features/activities/utils/activityDisplay";
-import ImportDetailsForm, { type ImportDetailsFormHandle } from "./ImportDetailsForm";
-import type { Activity } from "@features/activities/utils/types";
+import ImportDetailsForm, {
+  type ImportDetailsFormHandle,
+} from "./ImportDetailsForm";
+import type { Activity } from "@features/activities/types";
 import type { UpdateActivityPayload } from "../types";
 
 type ImportResultCardProps = {

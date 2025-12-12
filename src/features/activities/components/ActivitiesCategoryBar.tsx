@@ -1,5 +1,7 @@
 import React from "react";
-import { View, Text, Pressable, StyleSheet, ScrollView } from "react-native";
+import { View, Pressable, StyleSheet, ScrollView } from "react-native";
+import { useAppTheme } from "@common/theme/appTheme";
+import { Text } from "@common/designSystem";
 import { formatCategoryName } from "../utils/categorySummary";
 
 interface Props {
@@ -13,8 +15,10 @@ const ActivitiesCategoryBar: React.FC<Props> = ({
   selected,
   onSelect,
 }) => {
+  const { colors } = useAppTheme();
+
   return (
-    <View style={styles.wrapper}>
+    <View style={[styles.wrapper, { backgroundColor: colors.surface }]}>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         {categories.map((cat) => {
           const active = selected === cat;
@@ -22,9 +26,20 @@ const ActivitiesCategoryBar: React.FC<Props> = ({
             <Pressable
               key={cat}
               onPress={() => onSelect(cat)}
-              style={[styles.chip, active && styles.chipActive]}
+              style={[
+                styles.chip,
+                {
+                  backgroundColor: active ? colors.primary : colors.overlay,
+                  borderColor: active ? colors.primaryBorder : colors.border,
+                },
+              ]}
             >
-              <Text style={active ? styles.textActive : styles.text}>
+              <Text
+                variant="bodyStrong"
+                style={{
+                  color: active ? colors.favoriteContrast : colors.text,
+                }}
+              >
                 {formatCategoryName(cat)}
               </Text>
             </Pressable>
@@ -42,23 +57,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     paddingHorizontal: 12,
     paddingVertical: 8,
-    backgroundColor: "#fff",
     zIndex: 10,
   },
   chip: {
     paddingHorizontal: 14,
     paddingVertical: 6,
     borderRadius: 999,
-    backgroundColor: "#f1f1f1",
     marginRight: 8,
-  },
-  chipActive: {
-    backgroundColor: "#000",
-  },
-  text: {
-    color: "#000",
-  },
-  textActive: {
-    color: "#fff",
+    borderWidth: StyleSheet.hairlineWidth,
   },
 });

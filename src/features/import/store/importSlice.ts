@@ -1,4 +1,8 @@
-import { createAsyncThunk, createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import {
+  createAsyncThunk,
+  createSlice,
+  type PayloadAction,
+} from "@reduxjs/toolkit";
 import type { ShareIntent } from "expo-share-intent";
 import {
   importService,
@@ -6,7 +10,7 @@ import {
   markActivityLocationConfirmed,
   updateImportedActivityDetails,
 } from "../services/importService";
-import type { Activity } from "@features/activities/utils/types";
+import type { Activity } from "@features/activities/types";
 import {
   activityInserted,
   activityUpdated,
@@ -166,8 +170,7 @@ const importSlice = createSlice({
       })
       .addCase(analyzeSharedLink.rejected, (state, action) => {
         state.loading = false;
-        state.error =
-          action.payload ?? i18next.t("import:errors.analyze");
+        state.error = action.payload ?? i18next.t("import:errors.analyze");
       })
       .addCase(restartImportProcessing.pending, (state) => {
         state.loading = true;
@@ -187,8 +190,7 @@ const importSlice = createSlice({
         state.error = null;
       })
       .addCase(confirmImportedLocation.rejected, (state, action) => {
-        state.error =
-          action.payload || i18next.t("import:errors.location");
+        state.error = action.payload || i18next.t("import:errors.location");
       })
       .addCase(confirmImportedDate.fulfilled, (state, action) => {
         state.importedActivity = action.payload;
@@ -204,8 +206,7 @@ const importSlice = createSlice({
         state.error = null;
       })
       .addCase(saveImportedActivityDetails.rejected, (state, action) => {
-        state.error =
-          action.payload || i18next.t("import:errors.saveDetails");
+        state.error = action.payload || i18next.t("import:errors.saveDetails");
       })
       .addCase(activityUpdated, (state, action) => {
         if (state.activity?.id === action.payload.id) {

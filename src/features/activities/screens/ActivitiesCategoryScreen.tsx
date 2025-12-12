@@ -23,7 +23,7 @@ import {
   openActivitySource,
 } from "../services/linksService";
 import { formatCategoryName } from "../utils/categorySummary";
-import type { Activity } from "../utils/types";
+import type { Activity } from "../types";
 
 const ActivitiesCategoryScreen = () => {
   const { category: categoryParam } = useLocalSearchParams<{

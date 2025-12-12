@@ -8,7 +8,7 @@ import { setImportActivity } from "@features/import/store/importSlice";
 import { activityUpdated } from "@features/activities/store/activitiesSlice";
 import { ActivitiesService } from "@features/activities/services/activitiesService";
 import { supabase } from "@config/supabase";
-import type { ActivityProcessingStatus } from "@features/activities/utils/types";
+import type { ActivityProcessingStatus } from "@features/activities/types";
 
 const POLL_INTERVAL = 4000;
 
@@ -17,22 +17,28 @@ export const useImportCompletionListener = () => {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const { t } = useTranslation();
-  const lastStatusRef = useRef<{ id: string; status: ActivityProcessingStatus | null } | null>(
-    null,
-  );
+  const lastStatusRef = useRef<{
+    id: string;
+    status: ActivityProcessingStatus | null;
+  } | null>(null);
   const pathname = usePathname();
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   useEffect(() => {
     const activityId = activity?.id;
-    const status = (activity?.processing_status ?? "complete") as ActivityProcessingStatus | null;
+    const status = (activity?.processing_status ??
+      "complete") as ActivityProcessingStatus | null;
 
-    const handleStatusChange = (nextStatus: ActivityProcessingStatus | "deleted") => {
+    const handleStatusChange = (
+      nextStatus: ActivityProcessingStatus | "deleted"
+    ) => {
       if (!activityId) return;
 
       const prev =
-        lastStatusRef.current?.id === activityId ? lastStatusRef.current.status : null;
+        lastStatusRef.current?.id === activityId
+          ? lastStatusRef.current.status
+          : null;
       const onImportScreen = pathname?.includes("/import");
 
       if (nextStatus === "complete" && prev !== "complete") {
@@ -46,7 +52,7 @@ export const useImportCompletionListener = () => {
             message: t("import:toast.success"),
             type: "success",
             action,
-          }),
+          })
         );
 
         if (onImportScreen) {
@@ -72,13 +78,16 @@ export const useImportCompletionListener = () => {
               message: t("import:toast.failed"),
               type: "error",
               action,
-            }),
+            })
           );
         }
         dispatch(setImportActivity(null));
       }
 
-      lastStatusRef.current = { id: activityId, status: nextStatus as ActivityProcessingStatus };
+      lastStatusRef.current = {
+        id: activityId,
+        status: nextStatus as ActivityProcessingStatus,
+      };
     };
 
     if (!activityId || status !== "processing") {
@@ -109,13 +118,14 @@ export const useImportCompletionListener = () => {
         },
         (payload) => {
           const next = payload.new as any;
-          const nextStatus = (next.processing_status ?? "complete") as ActivityProcessingStatus;
+          const nextStatus = (next.processing_status ??
+            "complete") as ActivityProcessingStatus;
           dispatch(activityUpdated(next));
           dispatch(setImportActivity(next));
           if (nextStatus !== "processing") {
             handleStatusChange(nextStatus);
           }
-        },
+        }
       )
       .on(
         "postgres_changes",
@@ -125,7 +135,7 @@ export const useImportCompletionListener = () => {
           table: "activities",
           filter: `id=eq.${activityId}`,
         },
-        () => handleStatusChange("deleted"),
+        () => handleStatusChange("deleted")
       )
       .subscribe();
 
@@ -135,7 +145,8 @@ export const useImportCompletionListener = () => {
       try {
         const latest = await ActivitiesService.fetchActivityById(activityId);
         if (latest) {
-          const nextStatus = (latest.processing_status ?? "complete") as ActivityProcessingStatus;
+          const nextStatus = (latest.processing_status ??
+            "complete") as ActivityProcessingStatus;
           dispatch(activityUpdated(latest));
           dispatch(setImportActivity(latest));
           if (nextStatus !== "processing") {
@@ -162,7 +173,14 @@ export const useImportCompletionListener = () => {
         channelRef.current = null;
       }
     };
-  }, [activity?.id, activity?.processing_status, dispatch, pathname, router, t]);
+  }, [
+    activity?.id,
+    activity?.processing_status,
+    dispatch,
+    pathname,
+    router,
+    t,
+  ]);
 
   useEffect(() => {
     if (!activity) {

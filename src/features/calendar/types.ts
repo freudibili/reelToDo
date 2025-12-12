@@ -1,4 +1,4 @@
-import type { Activity } from "@features/activities/utils/types";
+import type { Activity } from "@features/activities/types";
 
 export type CalendarActivityEntry = {
   activity: Activity;

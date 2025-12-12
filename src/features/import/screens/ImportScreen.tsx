@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { StyleSheet, View } from "react-native";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import type { ShareIntent } from "expo-share-intent";
@@ -7,11 +13,14 @@ import { useTranslation } from "react-i18next";
 import { showToast as showToastAction } from "@common/store/appSlice";
 import { Stack } from "@common/designSystem";
 import Screen from "@common/components/AppScreen";
-import { cancelActivity, fetchActivities } from "@features/activities/store/activitiesSlice";
+import {
+  cancelActivity,
+  fetchActivities,
+} from "@features/activities/store/activitiesSlice";
 import type {
   Activity,
   ActivityProcessingStatus,
-} from "@features/activities/utils/types";
+} from "@features/activities/types";
 import { selectAuthUser } from "@features/auth/store/authSelectors";
 import ImportErrorState from "../components/ImportErrorState";
 import ImportHeader from "../components/ImportHeader";
@@ -212,11 +221,7 @@ const ImportScreen = () => {
       id: displayActivity.id,
       status: processingStatus,
     };
-  }, [
-    displayActivity,
-    handleProcessingFailure,
-    processingStatus,
-  ]);
+  }, [displayActivity, handleProcessingFailure, processingStatus]);
 
   const handleBackPress = useCallback(() => {
     router.back();

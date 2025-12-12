@@ -1,6 +1,6 @@
 import type { TFunction } from "i18next";
 import type { AppTheme } from "@common/theme/appTheme";
-import type { Activity } from "@features/activities/utils/types";
+import type { Activity } from "@features/activities/types";
 import {
   formatActivityLocation,
   formatDisplayDateTime,
@@ -51,9 +51,7 @@ export const buildDayActivityViews = (
         : null;
 
     const plannedLabel =
-      !isPlanned &&
-      plannedValue &&
-      !isSameDateValue(plannedValue, dateValue)
+      !isPlanned && plannedValue && !isSameDateValue(plannedValue, dateValue)
         ? t("activities:planned.timeLabel", {
             value:
               formatDisplayDateTime(plannedValue) ??

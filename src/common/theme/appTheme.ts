@@ -47,113 +47,114 @@ export type AppTheme = {
 };
 
 const lightPalette: AppTheme["colors"] = {
-  // Base surfaces
-  background: "#F5F7FB",
+  // Gradient anchors
+  gradientPrimaryStart: "#0097B2",
+  gradientPrimaryEnd: "#7ED957",
+
+  // Base surfaces (slightly tinted with teal)
+  background: "#F4FBFC",
   surface: "#FFFFFF",
-  card: "#EDF1F8",
-  mutedSurface: "#E4E8F2",
-  border: "#D2D8E5",
+  card: "#EAF6F8",
+  mutedSurface: "#DFF1F4",
+  border: "#C6E3E8",
 
-  // Accent (kept in sync with primary for now)
-  accent: "#4B6CB7",
-  accentStrong: "#3F5BA1",
-  accentSurface: "#E8EDFF",
-  accentBorder: "#C7D2F5",
-  accentText: "#111827",
+  // Primary (midpoint teal-green)
+  primary: "#2FB59A",
+  primaryStrong: "#239B83",
+  primarySurface: "#E3F7F2",
+  primaryBorder: "#BDE9DE",
+  primaryText: "#0F172A",
 
-  // Primary brand (soft indigo)
-  primary: "#4B6CB7",
-  primaryStrong: "#3F5BA1",
-  primarySurface: "#E8EDFF",
-  primaryBorder: "#C7D2F5",
-  primaryText: "#111827",
+  // Accent (cooler → closer to gradient start)
+  accent: "#1FA3B8",
+  accentStrong: "#17879A",
+  accentSurface: "#E1F4F7",
+  accentBorder: "#B9E4EC",
+  accentText: "#0F172A",
 
-  // Secondary (muted teal)
-  secondary: "#4CA5B8",
-  secondarySurface: "#E3F3F6",
-  secondaryBorder: "#BEDFE6",
+  // Secondary (greener → closer to gradient end)
+  secondary: "#6BCF7E",
+  secondarySurface: "#EAF8EE",
+  secondaryBorder: "#CDEFD7",
 
   // Specials
-  favorite: "#D55A5A", // softer than pure red
+  favorite: "#E35D5D",
   favoriteContrast: "#FFFFFF",
 
   // Text
-  text: "#111827",
-  mutedText: "#4B5563",
-  secondaryText: "#9CA3AF",
+  text: "#0F172A",
+  mutedText: "#475569",
+  secondaryText: "#94A3B8",
 
   // Other
   overlay: "rgba(15,23,42,0.04)",
-  lightGray: "#F1F3F6",
-  danger: "#E26A6A",
-  success: "#4CA5B8",
-  info: "#4B6CB7",
+  lightGray: "#F1F5F9",
+  danger: "#E35D5D",
+  success: "#6BCF7E",
+  info: "#0097B2",
 
-  // Dates (very light backgrounds, low intensity)
-  plannedDate: "#4B6CB7",
-  plannedDateBackground: "#E8EDFF",
-  officialDate: "#4CA5B8",
-  officialDateBackground: "#E3F3F6",
-
-  // Gradients
-  gradientPrimaryStart: "#0097b2",
-  gradientPrimaryEnd: "#7ed957",
+  // Dates
+  plannedDate: "#2FB59A",
+  plannedDateBackground: "#E3F7F2",
+  officialDate: "#6BCF7E",
+  officialDateBackground: "#EAF8EE",
 };
 
-// 🌚 DARK – desaturated, less contrasty, no neon
+// 🌚 DARK – deep teal base, no neon, calm green accents
 const darkPalette: AppTheme["colors"] = {
-  // Base surfaces
-  background: "#050814",
-  surface: "#090F1E",
-  card: "#0D1424",
-  mutedSurface: "#11182A",
-  border: "#222B3F",
+  // Gradient anchors (same brand, darker context)
+  gradientPrimaryStart: "#0097B2",
+  gradientPrimaryEnd: "#7ED957",
 
-  // Accent (same family as primary)
-  accent: "#9BB4F3",
-  accentStrong: "#7F99E0",
-  accentSurface: "rgba(155,180,243,0.18)",
-  accentBorder: "rgba(155,180,243,0.45)",
-  accentText: "#E9EDFF",
+  // Base surfaces (deep teal-blue)
+  background: "#040D12",
+  surface: "#07171E",
+  card: "#0A1E26",
+  mutedSurface: "#0E2630",
+  border: "#1E3A44",
 
-  // Primary brand (soft, dusty blue)
-  primary: "#9BB4F3",
-  primaryStrong: "#7F99E0",
-  primarySurface: "rgba(155,180,243,0.18)",
-  primaryBorder: "rgba(155,180,243,0.45)",
-  primaryText: "#E9EDFF",
+  // Primary (desaturated midpoint)
+  primary: "#63C8B3",
+  primaryStrong: "#4FB19E",
+  primarySurface: "rgba(99,200,179,0.18)",
+  primaryBorder: "rgba(99,200,179,0.45)",
+  primaryText: "#E6FFFA",
 
-  // Secondary (muted aqua)
-  secondary: "#7BC7D4",
-  secondarySurface: "rgba(123,199,212,0.18)",
-  secondaryBorder: "rgba(123,199,212,0.45)",
+  // Accent (cool teal)
+  accent: "#4FBAD1",
+  accentStrong: "#3CA2B7",
+  accentSurface: "rgba(79,186,209,0.18)",
+  accentBorder: "rgba(79,186,209,0.45)",
+  accentText: "#E6FFFA",
+
+  // Secondary (soft green)
+  secondary: "#8ADFA0",
+  secondarySurface: "rgba(138,223,160,0.18)",
+  secondaryBorder: "rgba(138,223,160,0.45)",
 
   // Specials
-  favorite: "#F4A6A6", // soft coral
+  favorite: "#F19A9A",
   favoriteContrast: "#FFFFFF",
 
   // Text
-  text: "#E5E7EB",
-  mutedText: "#CBD5E1",
-  secondaryText: "#9CA3AF",
+  text: "#E5F4F7",
+  mutedText: "#B6DDE3",
+  secondaryText: "#89AEB6",
 
   // Other
-  overlay: "rgba(255,255,255,0.06)", // very subtle
-  lightGray: "#1A1F2B",
-  danger: "#F28B82",
-  success: "#4CA5B8",
-  info: "#9BB4F3",
+  overlay: "rgba(255,255,255,0.06)",
+  lightGray: "#122C35",
+  danger: "#F19A9A",
+  success: "#8ADFA0",
+  info: "#4FBAD1",
 
   // Dates
-  plannedDate: "#9BB4F3",
-  plannedDateBackground: "#111B36",
-  officialDate: "#7BC7D4",
-  officialDateBackground: "#0E1F25",
-
-  // Gradients
-  gradientPrimaryStart: "#0097b2",
-  gradientPrimaryEnd: "#7ed957",
+  plannedDate: "#63C8B3",
+  plannedDateBackground: "#0E2A33",
+  officialDate: "#8ADFA0",
+  officialDateBackground: "#102E1C",
 };
+
 const buildPaperTheme = (mode: AppThemeMode): MD3Theme => {
   const base = mode === "dark" ? MD3DarkTheme : MD3LightTheme;
   const palette = mode === "dark" ? darkPalette : lightPalette;

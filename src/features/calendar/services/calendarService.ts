@@ -1,6 +1,6 @@
 import * as Calendar from "expo-calendar";
 import { supabase } from "@config/supabase";
-import type { Activity } from "@features/activities/utils/types";
+import type { Activity } from "@features/activities/types";
 import { getOfficialDateValue } from "@features/activities/utils/activityDisplay";
 
 type ActivityDateInput = {
@@ -130,9 +130,7 @@ export const createCalendarEventForActivity = async (
       activity_date_id: activityDate?.id ?? null,
       is_favorite: true,
       calendar_event_id: eventId,
-      planned_at: plannedAtIso
-        ? new Date(plannedAtIso).toISOString()
-        : null,
+      planned_at: plannedAtIso ? new Date(plannedAtIso).toISOString() : null,
     },
     {
       onConflict: "user_id,activity_id,activity_date_id",

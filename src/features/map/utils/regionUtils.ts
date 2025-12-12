@@ -1,5 +1,5 @@
 import type { Region } from "react-native-maps";
-import type { Activity } from "@features/activities/utils/types";
+import type { Activity } from "@features/activities/types";
 
 export const DEFAULT_REGION: Region = {
   latitude: 47.3769,
