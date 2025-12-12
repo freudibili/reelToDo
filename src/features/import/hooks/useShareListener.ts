@@ -1,6 +1,6 @@
-import { useEffect, useRef } from "react";
 import { router } from "expo-router";
 import { useShareIntent } from "expo-share-intent";
+import { useEffect, useRef } from "react";
 
 export const useShareListener = () => {
   const { hasShareIntent, shareIntent, resetShareIntent } = useShareIntent();

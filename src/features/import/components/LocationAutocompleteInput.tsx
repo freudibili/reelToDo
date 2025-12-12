@@ -1,18 +1,20 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Pressable,
   ScrollView,
   StyleSheet,
 } from "react-native";
+
+import { Card, Input, Stack, Text } from "@common/designSystem";
+import { useAppTheme } from "@common/theme/appTheme";
+
 import {
   fetchPlaceSuggestions,
   fetchPlaceDetails,
 } from "../services/locationService";
 import type { GooglePrediction, PlaceDetails } from "../types";
-import { useTranslation } from "react-i18next";
-import { useAppTheme } from "@common/theme/appTheme";
-import { Card, Input, Stack, Text } from "@common/designSystem";
 import { debounce } from "../utils/debounce";
 
 type LocationAutocompleteInputProps = {

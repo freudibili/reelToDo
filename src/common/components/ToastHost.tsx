@@ -1,11 +1,12 @@
+import { useRouter } from "expo-router";
 import React from "react";
 import { StyleSheet } from "react-native";
 import { Snackbar } from "react-native-paper";
-import { useAppSelector, useAppDispatch } from "@core/store/hook";
-import { hideToast, selectToast } from "@common/store/appSlice";
+
 import { Text } from "@common/designSystem";
+import { hideToast, selectToast } from "@common/store/appSlice";
 import { useAppTheme } from "@common/theme/appTheme";
-import { useRouter } from "expo-router";
+import { useAppSelector, useAppDispatch } from "@core/store/hook";
 
 const ToastHost = () => {
   const dispatch = useAppDispatch();

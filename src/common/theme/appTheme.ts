@@ -1,6 +1,6 @@
 import React from "react";
-import { MD3DarkTheme, MD3LightTheme, type MD3Theme } from "react-native-paper";
 import type { StatusBarStyle } from "react-native";
+import { MD3DarkTheme, MD3LightTheme, type MD3Theme } from "react-native-paper";
 
 export type AppThemeMode = "light" | "dark";
 

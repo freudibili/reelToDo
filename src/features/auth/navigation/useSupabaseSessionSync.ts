@@ -1,13 +1,14 @@
-import { useEffect, useRef } from "react";
 import * as Linking from "expo-linking";
+import { useEffect, useRef } from "react";
 import { useDispatch } from "react-redux";
+
 import { supabase } from "@config/supabase";
+import type { AppDispatch } from "@core/store";
 import {
   setPasswordResetRequired,
   setPendingEmail,
   setSession,
 } from "@features/auth/store/authSlice";
-import type { AppDispatch } from "@core/store";
 
 const extractSessionFromUrl = (url: string) => {
   const [, hash] = url.split("#");

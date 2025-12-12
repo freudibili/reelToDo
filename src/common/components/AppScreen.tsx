@@ -1,3 +1,4 @@
+import { BottomTabBarHeightContext } from "@react-navigation/bottom-tabs";
 import React from "react";
 import {
   ActivityIndicator,
@@ -8,13 +9,14 @@ import {
   StyleSheet,
   View,
 } from "react-native";
-import { BottomTabBarHeightContext } from "@react-navigation/bottom-tabs";
 import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
-import ScreenHeader, { type ScreenHeaderProps } from "./ScreenHeader";
+
 import { useAppTheme } from "@common/theme/appTheme";
+
+import ScreenHeader, { type ScreenHeaderProps } from "./ScreenHeader";
 
 interface AppScreenProps {
   children: React.ReactNode;

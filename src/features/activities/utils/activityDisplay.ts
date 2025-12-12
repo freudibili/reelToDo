@@ -1,5 +1,6 @@
-import type { Activity, MediaAnalyzerLocation } from "./types";
 import i18next from "@common/i18n/i18n";
+
+import type { Activity, MediaAnalyzerLocation } from "./types";
 
 export const formatDisplayDate = (
   date: string | Date | null | undefined

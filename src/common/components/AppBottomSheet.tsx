@@ -1,16 +1,17 @@
+import BottomSheet, {
+  BottomSheetView,
+  BottomSheetScrollView,
+} from "@gorhom/bottom-sheet";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import {
   View,
   StyleSheet,
   ViewStyle,
   Platform,
 } from "react-native";
-import BottomSheet, {
-  BottomSheetView,
-  BottomSheetScrollView,
-} from "@gorhom/bottom-sheet";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useTranslation } from "react-i18next";
+
 import { IconButton } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";
 

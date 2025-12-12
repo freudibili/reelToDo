@@ -1,12 +1,13 @@
-import React from "react";
 import { useRouter } from "expo-router";
+import React from "react";
 import { useTranslation } from "react-i18next";
 
-import { Stack } from "@common/designSystem";
 import AppScreen, { ScreenHeader } from "@common/components/AppScreen";
+import { Stack } from "@common/designSystem";
 import { useAppDispatch, useAppSelector } from "@core/store/hook";
-import SettingsSection from "../components/SettingsSection";
+
 import OptionPill from "../components/OptionPill";
+import SettingsSection from "../components/SettingsSection";
 import { settingsSelectors } from "../store/settingsSelectors";
 import {
   savePreferences,

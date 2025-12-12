@@ -91,6 +91,7 @@ const Box: React.FC<BoxProps> = ({
     paddingVertical: space(paddingVertical),
     paddingTop: space(paddingTop),
     paddingBottom: space(paddingBottom),
+    paddingLeft: space(paddingLeft),
     paddingRight: space(paddingRight),
     margin: space(margin),
     marginHorizontal: space(marginHorizontal),

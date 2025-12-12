@@ -1,3 +1,7 @@
+import DateTimePicker, {
+  DateTimePickerAndroid,
+  type DateTimePickerEvent,
+} from "@react-native-community/datetimepicker";
 import React, { useState } from "react";
 import {
   Modal,
@@ -6,10 +10,7 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
-import DateTimePicker, {
-  DateTimePickerAndroid,
-  type DateTimePickerEvent,
-} from "@react-native-community/datetimepicker";
+
 import type { AppThemeMode } from "@common/theme/appTheme";
 
 type UsePlatformDateTimePickerProps = {

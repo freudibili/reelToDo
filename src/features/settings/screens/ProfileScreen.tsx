@@ -1,16 +1,17 @@
-import React, { useEffect, useState } from "react";
-import { StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { StyleSheet } from "react-native";
 
-import { Box, Button, Stack, Text } from "@common/designSystem";
 import AppScreen, { ScreenHeader } from "@common/components/AppScreen";
-import { useAppDispatch, useAppSelector } from "@core/store/hook";
+import { Box, Button, Stack, Text } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";
+import { useAppDispatch, useAppSelector } from "@core/store/hook";
 import LocationAutocompleteInput from "@features/import/components/LocationAutocompleteInput";
+
+import ProfileTextField from "../components/ProfileTextField";
 import { settingsSelectors } from "../store/settingsSelectors";
 import { saveProfile } from "../store/settingsSlice";
-import ProfileTextField from "../components/ProfileTextField";
 
 const ProfileScreen = () => {
   const dispatch = useAppDispatch();

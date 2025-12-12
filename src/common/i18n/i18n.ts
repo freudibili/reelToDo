@@ -1,17 +1,18 @@
+import * as Localization from "expo-localization";
 import i18next from "i18next";
 import { initReactI18next } from "react-i18next";
-import * as Localization from "expo-localization";
 
-import commonEn from "./locales/common.en.json";
-import commonFr from "./locales/common.fr.json";
-import authEn from "@features/auth/locales/en.json";
-import authFr from "@features/auth/locales/fr.json";
 import activitiesEn from "@features/activities/locales/en.json";
 import activitiesFr from "@features/activities/locales/fr.json";
+import authEn from "@features/auth/locales/en.json";
+import authFr from "@features/auth/locales/fr.json";
 import importEn from "@features/import/locales/en.json";
 import importFr from "@features/import/locales/fr.json";
 import settingsEn from "@features/settings/locales/en.json";
 import settingsFr from "@features/settings/locales/fr.json";
+
+import commonEn from "./locales/common.en.json";
+import commonFr from "./locales/common.fr.json";
 
 const detectSystemLanguage = () => {
   const locales = Localization.getLocales();

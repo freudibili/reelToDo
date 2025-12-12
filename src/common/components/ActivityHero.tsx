@@ -1,11 +1,12 @@
 import React from "react";
-import { Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
+import { Pressable, StyleSheet, View } from "react-native";
 import { Icon } from "react-native-paper";
 
 import { Stack, Text } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";
 import { formatCategoryName } from "@features/activities/utils/categorySummary";
+
 import AppImage from "./AppImage";
 
 interface ActivityHeroProps {

@@ -1,10 +1,12 @@
 import type { TFunction } from "i18next";
+
 import { updateImportedActivityDetails } from "@features/import/services/importService";
-import { categoryNeedsDate } from "./activityHelper";
+
 import {
   getOfficialDateValue,
   isSameDateValue,
 } from "./activityDisplay";
+import { categoryNeedsDate } from "./activityHelper";
 import type { Activity } from "./types";
 
 export type DateStatusTone = "warning" | "success" | "info";

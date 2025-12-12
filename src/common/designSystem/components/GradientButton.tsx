@@ -1,9 +1,9 @@
+import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import { ActivityIndicator, Pressable, StyleSheet, View, ViewStyle } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 
-import { useAppTheme } from "../../theme/appTheme";
 import Text from "./Text";
+import { useAppTheme } from "../../theme/appTheme";
 import { radii, spacing } from "../tokens";
 
 type Props = {

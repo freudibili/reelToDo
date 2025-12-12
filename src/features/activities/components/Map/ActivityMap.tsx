@@ -1,8 +1,10 @@
 import React, { forwardRef, useImperativeHandle, useRef, useMemo } from "react";
-import MapView, { Marker, Region } from "react-native-maps";
-import { StyleSheet } from "react-native";
-import type { Activity } from "../../utils/types";
 import { useTranslation } from "react-i18next";
+import { StyleSheet } from "react-native";
+import MapView, { Marker, Region } from "react-native-maps";
+
+import type { Activity } from "../../utils/types";
+
 
 interface Props {
   activities: Activity[];

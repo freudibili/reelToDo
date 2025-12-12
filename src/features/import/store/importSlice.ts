@@ -4,20 +4,23 @@ import {
   type PayloadAction,
 } from "@reduxjs/toolkit";
 import type { ShareIntent } from "expo-share-intent";
+
+import i18next from "@common/i18n/i18n";
+import { AppDispatch, RootState } from "@core/store";
+import {
+  activityInserted,
+  activityUpdated,
+} from "@features/activities/store/activitiesSlice";
+import type { Activity } from "@features/activities/types";
+
 import {
   importService,
   markActivityDateConfirmed,
   markActivityLocationConfirmed,
   updateImportedActivityDetails,
 } from "../services/importService";
-import type { Activity } from "@features/activities/types";
-import {
-  activityInserted,
-  activityUpdated,
-} from "@features/activities/store/activitiesSlice";
-import { AppDispatch, RootState } from "@core/store";
 import type { UpdateActivityPayload } from "../types";
-import i18next from "@common/i18n/i18n";
+
 
 export interface ImportState {
   loading: boolean;

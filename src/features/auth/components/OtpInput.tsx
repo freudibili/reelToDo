@@ -7,8 +7,8 @@ import {
 } from "react-native";
 
 import { Stack } from "@common/designSystem";
-import { useAppTheme } from "@common/theme/appTheme";
 import { radii, spacing } from "@common/designSystem/tokens";
+import { useAppTheme } from "@common/theme/appTheme";
 
 type Props = {
   value: string;

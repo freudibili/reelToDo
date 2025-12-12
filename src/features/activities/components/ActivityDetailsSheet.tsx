@@ -1,19 +1,21 @@
-import React from "react";
-import { StyleSheet, View } from "react-native";
 import { BottomSheetScrollView } from "@gorhom/bottom-sheet";
+import React from "react";
+import { useTranslation } from "react-i18next";
+import { StyleSheet, View } from "react-native";
+
 import ActivityHero from "@common/components/ActivityHero";
 import ActivitySummaryHeader from "@common/components/ActivitySummaryHeader";
-import ActivityDetailsActions from "./ActivityDetailsActions";
-import type { Activity } from "../types";
-import { useTranslation } from "react-i18next";
-import { useAppTheme } from "@common/theme/appTheme";
-import { usePlatformDateTimePicker } from "../hooks/usePlatformDateTimePicker";
-import DateChangeModal from "./DateChangeModal";
 import LocationChangeModal from "@common/components/LocationChangeModal";
-import ActivityPlanSection from "./ActivityPlanSection";
+import { useAppTheme } from "@common/theme/appTheme";
+
+import ActivityDetailsActions from "./ActivityDetailsActions";
 import ActivityOverviewSection from "./ActivityOverviewSection";
+import ActivityPlanSection from "./ActivityPlanSection";
+import DateChangeModal from "./DateChangeModal";
 import { useActivityDetailsViewModel } from "../hooks/useActivityDetailsViewModel";
 import { useActivitySuggestionActions } from "../hooks/useActivitySuggestionActions";
+import { usePlatformDateTimePicker } from "../hooks/usePlatformDateTimePicker";
+import type { Activity } from "../types";
 
 interface Props {
   activity: Activity | null;
@@ -38,9 +40,26 @@ const ActivityDetailsSheet: React.FC<Props> = ({
 }) => {
   const { t } = useTranslation();
   const { colors, mode } = useAppTheme();
+
+  const viewModel = useActivityDetailsViewModel(activity, t);
+
+  const { openPicker, pickerModal } = usePlatformDateTimePicker({
+    value: viewModel.baseDate,
+    onChange: (date) => {
+      if (activity) {
+        onChangePlannedDate(activity, date);
+      }
+    },
+    cardColor: colors.card,
+    themeMode: mode,
+    textColor: colors.text,
+  });
+
+  const suggestionActions = useActivitySuggestionActions(activity);
+
   if (!activity) return null;
+
   const {
-    baseDate,
     officialDateValue,
     officialDateLabel,
     plannedDateLabel,
@@ -50,15 +69,7 @@ const ActivityDetailsSheet: React.FC<Props> = ({
     alternateLocations,
     locationLabel,
     needsDate,
-  } = useActivityDetailsViewModel(activity, t);
-
-  const { openPicker, pickerModal } = usePlatformDateTimePicker({
-    value: baseDate,
-    onChange: (date) => onChangePlannedDate(activity, date),
-    cardColor: colors.card,
-    themeMode: mode,
-    textColor: colors.text,
-  });
+  } = viewModel;
 
   const {
     locationModalVisible,
@@ -71,7 +82,7 @@ const ActivityDetailsSheet: React.FC<Props> = ({
     promptDateSuggestion,
     closeDateModal,
     submitDateSuggestion,
-  } = useActivitySuggestionActions(activity);
+  } = suggestionActions;
 
   return (
     <>

@@ -1,9 +1,11 @@
-import React from "react";
 import { useRouter } from "expo-router";
+import React from "react";
 import { useTranslation } from "react-i18next";
+
 import AppScreen, { ScreenHeader } from "@common/components/AppScreen";
-import SettingsSection from "../components/SettingsSection";
+
 import SettingsListItem from "../components/SettingsListItem";
+import SettingsSection from "../components/SettingsSection";
 
 const NotificationsScreen = () => {
   const router = useRouter();

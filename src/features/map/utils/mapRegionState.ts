@@ -1,11 +1,12 @@
+import type { TFunction } from "i18next";
 import { useEffect, useState } from "react";
 import { Alert } from "react-native";
 import type { Region } from "react-native-maps";
-import type { TFunction } from "i18next";
 
 import type { Activity } from "@features/activities/types";
-import { requestUserRegion } from "../services/locationService";
+
 import { buildInitialRegion } from "./regionUtils";
+import { requestUserRegion } from "../services/locationService";
 
 type MapRegionState = {
   userRegion: Region | null;
@@ -48,7 +49,7 @@ export const useMapRegionState = ({
 
         setUserRegion(regionFromLocation ?? finalRegion);
         setInitialRegion(finalRegion);
-      } catch (error) {
+      } catch {
         if (!isMounted) return;
 
         const fallbackRegion = buildInitialRegion({

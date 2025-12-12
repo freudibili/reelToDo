@@ -1,7 +1,7 @@
-import React, { useEffect, useRef } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
 import { router, usePathname } from "expo-router";
 import { useShareIntent } from "expo-share-intent";
+import React, { useEffect, useRef } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import Screen from "@common/components/AppScreen";
 import { useAppTheme } from "@common/theme/appTheme";

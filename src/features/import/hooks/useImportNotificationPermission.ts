@@ -1,5 +1,6 @@
-import { useCallback, useRef } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useCallback, useRef } from "react";
+
 import {
   registerForPushNotifications,
   savePushToken,

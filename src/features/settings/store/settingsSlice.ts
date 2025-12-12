@@ -1,7 +1,9 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import type { User } from "@supabase/supabase-js";
+
 import type { RootState } from "@core/store";
 import { signOut, setSession } from "@features/auth/store/authSlice";
+
 import { settingsService } from "../services/settingsService";
 import {
   defaultNotifications,

@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
+import { StyleSheet } from "react-native";
 
 import { Box, Button, Input, Stack, Text } from "@common/designSystem";
-import { useAppTheme } from "@common/theme/appTheme";
 import LocationAutocompleteInput from "@features/import/components/LocationAutocompleteInput";
 import type { PlaceDetails } from "@features/import/types";
+
 import AppModal from "./AppModal";
 
 interface LocationChangeModalProps {
@@ -31,7 +31,6 @@ const LocationChangeModal: React.FC<LocationChangeModalProps> = ({
   onClose,
 }) => {
   const { t } = useTranslation();
-  const { colors } = useAppTheme();
   const [selectedPlace, setSelectedPlace] = useState<PlaceDetails | null>(null);
   const [note, setNote] = useState("");
   const isConfirmDisabled = !selectedPlace || submitting;

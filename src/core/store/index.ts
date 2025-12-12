@@ -1,3 +1,4 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { configureStore } from "@reduxjs/toolkit";
 import {
   persistStore,
@@ -9,7 +10,7 @@ import {
   PURGE,
   REGISTER,
 } from "redux-persist";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import rootReducer from "./rootReducer";
 import rootSaga from "./rootSaga";
 

@@ -1,5 +1,8 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import type { Session, User } from "@supabase/supabase-js";
+
+import i18next from "@common/i18n/i18n";
+
 import { authService, type AuthResult } from "../services/authService";
 import type {
   RequestStatus,
@@ -7,7 +10,6 @@ import type {
   EmailOtpType,
   AuthState,
 } from "../types";
-import i18next from "@common/i18n/i18n";
 
 // Auth-related types are defined in ../types
 

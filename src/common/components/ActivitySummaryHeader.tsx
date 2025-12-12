@@ -1,11 +1,12 @@
 import React from "react";
-import { StyleSheet, View, ViewStyle } from "react-native";
 import { useTranslation } from "react-i18next";
+import { StyleSheet, View, ViewStyle } from "react-native";
 
 import { Stack, Text } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";
 import { formatCategoryName } from "@features/activities/utils/categorySummary";
 import { getDateVisuals } from "@features/activities/utils/dateVisuals";
+
 import DateBadge from "./DateBadge";
 
 interface ActivitySummaryHeaderProps {

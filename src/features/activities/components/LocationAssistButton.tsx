@@ -1,9 +1,8 @@
 import React, { useCallback } from "react";
-import { Alert } from "react-native";
 import { useTranslation } from "react-i18next";
+import { Alert } from "react-native";
 
 import type { Activity } from "../types";
-import { getLocationActionIcon } from "../utils/locationActions";
 import SuggestionPill from "./SuggestionPill";
 
 type Props = {
@@ -16,7 +15,6 @@ const LocationAssistButton: React.FC<Props> = ({
   onChangeLocation,
 }) => {
   const { t } = useTranslation();
-  const icon = getLocationActionIcon(activity);
 
   const triggerChangeModal = useCallback(() => {
     if (onChangeLocation) {

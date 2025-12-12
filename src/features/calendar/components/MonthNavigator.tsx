@@ -1,6 +1,6 @@
 import React from "react";
-import { StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
+import { StyleSheet } from "react-native";
 
 import { Box, IconButton, Stack, Text, spacing } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";

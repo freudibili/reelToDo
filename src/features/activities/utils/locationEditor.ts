@@ -1,8 +1,10 @@
 import type { TFunction } from "i18next";
+
 import { updateImportedActivityDetails } from "@features/import/services/importService";
-import { ActivitiesService } from "../services/activitiesService";
-import type { Activity } from "./types";
 import type { PlaceDetails } from "@features/import/types";
+
+import type { Activity } from "./types";
+import { ActivitiesService } from "../services/activitiesService";
 
 export type LocationStatusTone = "warning" | "success" | "info";
 

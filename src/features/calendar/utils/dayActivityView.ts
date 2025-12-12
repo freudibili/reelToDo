@@ -1,4 +1,5 @@
 import type { TFunction } from "i18next";
+
 import type { AppTheme } from "@common/theme/appTheme";
 import type { Activity } from "@features/activities/types";
 import {
@@ -6,10 +7,10 @@ import {
   formatDisplayDateTime,
   formatDisplayTime,
   getOfficialDateValue,
-  hasTimeComponent,
   isSameDateValue,
 } from "@features/activities/utils/activityDisplay";
 import { getDateVisuals } from "@features/activities/utils/dateVisuals";
+
 import type { CalendarActivityEntry } from "../types";
 
 export type DayActivityViewModel = {

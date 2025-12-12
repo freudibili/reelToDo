@@ -1,8 +1,9 @@
-import React from "react";
 import { Tabs } from "expo-router";
-import { Icon } from "react-native-paper";
+import React from "react";
 import { useTranslation } from "react-i18next";
+import { Icon } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
 import { useAppTheme } from "@common/theme/appTheme";
 
 const TabsLayout = () => {

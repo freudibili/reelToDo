@@ -1,21 +1,22 @@
-import React, { useEffect, useMemo } from "react";
-import { StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
+import React, { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { StyleSheet } from "react-native";
 
-import { Card } from "@common/designSystem";
 import AppScreen, { ScreenHeader } from "@common/components/AppScreen";
+import { Card } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";
 import { useAppDispatch, useAppSelector } from "@core/store/hook";
 import { selectAuthUser } from "@features/auth/store/authSelectors";
+import { signOut } from "@features/auth/store/authSlice";
+import { settingsSelectors } from "@features/settings/store/settingsSelectors";
 import {
   loadSettings,
   hydrateProfileFromUser,
 } from "@features/settings/store/settingsSlice";
-import { settingsSelectors } from "@features/settings/store/settingsSelectors";
-import { signOut } from "@features/auth/store/authSlice";
-import SettingsSection from "../components/SettingsSection";
+
 import SettingsListItem from "../components/SettingsListItem";
+import SettingsSection from "../components/SettingsSection";
 import UserSettingsHeader from "../components/UserSettingsHeader";
 import {
   deriveProfileAddress,

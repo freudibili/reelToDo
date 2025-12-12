@@ -1,21 +1,21 @@
-import React, { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { InlineMessage } from "@common/designSystem";
 import { useAppDispatch, useAppSelector } from "@core/store/hook";
 
-import { clearError, updatePassword } from "../store/authSlice";
 import AuthButton from "../components/AuthButton";
 import AuthLayout from "../components/AuthLayout";
 import AuthTextField from "../components/AuthTextField";
-import { getPasswordUpdateErrorKey } from "../utils/validation";
 import {
   selectAuthRequestStatus,
   selectAuthError,
   selectIsAuthenticated,
   selectRequiresPasswordChange,
 } from "../store/authSelectors";
+import { clearError, updatePassword } from "../store/authSlice";
+import { getPasswordUpdateErrorKey } from "../utils/validation";
 
 const ResetPasswordScreen = () => {
   const dispatch = useAppDispatch();

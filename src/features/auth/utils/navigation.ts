@@ -1,5 +1,5 @@
-import { useCallback, useEffect } from "react";
 import type { Router } from "expo-router";
+import { useCallback, useEffect } from "react";
 
 export const useAuthBackNavigation = (router: Router) =>
   useCallback(() => {

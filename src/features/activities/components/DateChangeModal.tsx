@@ -1,13 +1,14 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
+import { StyleSheet } from "react-native";
 import { Icon } from "react-native-paper";
 
-import { Box, Button, Input, Stack, Text } from "@common/designSystem";
 import AppModal from "@common/components/AppModal";
+import { Box, Button, Input, Stack, Text } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";
-import { formatDisplayDateTime } from "../utils/activityDisplay";
+
 import { usePlatformDateTimePicker } from "../hooks/usePlatformDateTimePicker";
+import { formatDisplayDateTime } from "../utils/activityDisplay";
 
 type Props = {
   visible: boolean;

@@ -1,6 +1,8 @@
-import * as Linking from "expo-linking";
-import { supabase } from "@config/supabase";
 import type { Session, User } from "@supabase/supabase-js";
+import * as Linking from "expo-linking";
+
+import { supabase } from "@config/supabase";
+
 import type { EmailOtpType } from "../types";
 
 export type AuthResult = {

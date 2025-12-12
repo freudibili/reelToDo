@@ -4,6 +4,7 @@ import { Icon } from "react-native-paper";
 
 import { Box, Stack, Text, spacing } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";
+
 import type { DayActivityViewModel } from "../utils/dayActivityView";
 
 type Props = {

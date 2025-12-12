@@ -1,8 +1,8 @@
 import i18next from "i18next";
 
-import type { Activity } from "./types";
 import { haversineDistanceKm } from "./distance";
 import { getRecentActivities } from "./recentActivities";
+import type { Activity } from "./types";
 
 export interface CategoryCardItem {
   id: string;

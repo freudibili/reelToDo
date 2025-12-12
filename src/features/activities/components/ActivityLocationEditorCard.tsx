@@ -1,11 +1,16 @@
 import React, { useMemo, useState } from "react";
-import { View, StyleSheet, Pressable } from "react-native";
 import { useTranslation } from "react-i18next";
-import { useAppTheme } from "@common/theme/appTheme";
-import { Text } from "@common/designSystem";
-import type { Activity } from "../types";
-import type { PlaceDetails } from "@features/import/types";
+import { View, StyleSheet, Pressable } from "react-native";
+
 import LocationChangeModal from "@common/components/LocationChangeModal";
+import { Text } from "@common/designSystem";
+import { useAppTheme } from "@common/theme/appTheme";
+import type { PlaceDetails } from "@features/import/types";
+
+import type { Activity } from "../types";
+import AdditionalInfoList from "./AdditionalInfoList";
+import InfoRow from "./InfoRow";
+import SuggestionPill from "./SuggestionPill";
 import {
   formatActivityLocation,
   formatLocationEntry,
@@ -15,9 +20,6 @@ import {
   resolveLocationAction,
   type LocationStatusMeta,
 } from "../utils/locationEditor";
-import InfoRow from "./InfoRow";
-import SuggestionPill from "./SuggestionPill";
-import AdditionalInfoList from "./AdditionalInfoList";
 
 type ActivityLocationEditorCardProps = {
   activity: Activity;

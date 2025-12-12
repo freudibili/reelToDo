@@ -1,8 +1,8 @@
 import React from "react";
 import { ActivityIndicator } from "react-native";
 
-import { Box } from "@common/designSystem";
 import AppScreen from "@common/components/AppScreen";
+import { Box } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";
 
 const AuthLoadingScreen = () => {

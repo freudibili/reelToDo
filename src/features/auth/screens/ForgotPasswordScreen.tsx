@@ -1,22 +1,23 @@
-import React, { useCallback, useState } from "react";
-import { useRouter } from "expo-router";
-import { useTranslation } from "react-i18next";
 import { useFocusEffect } from "@react-navigation/native";
+import { useRouter } from "expo-router";
+import React, { useCallback, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { InlineMessage } from "@common/designSystem";
 import { useAppDispatch, useAppSelector } from "@core/store/hook";
 import {
-  requestPasswordReset,
-  clearError,
-} from "@features/auth/store/authSlice";
-import {
   selectAuthError,
   selectAuthRequestStatus,
 } from "@features/auth/store/authSelectors";
-import { useAuthBackNavigation } from "../utils/navigation";
+import {
+  requestPasswordReset,
+  clearError,
+} from "@features/auth/store/authSlice";
+
 import AuthButton from "../components/AuthButton";
 import AuthLayout from "../components/AuthLayout";
 import AuthTextField from "../components/AuthTextField";
+import { useAuthBackNavigation } from "../utils/navigation";
 
 const ForgotPasswordScreen = () => {
   const dispatch = useAppDispatch();

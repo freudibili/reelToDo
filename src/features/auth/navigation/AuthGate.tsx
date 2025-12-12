@@ -1,12 +1,14 @@
-import React, { useEffect, useState } from "react";
 import { Stack, useRouter, useSegments } from "expo-router";
-import { useSelector } from "react-redux";
+import React, { useEffect, useState } from "react";
 import { View, ActivityIndicator } from "react-native";
+import { useSelector } from "react-redux";
+
 import {
   selectIsAuthenticated,
   selectRequiresPasswordChange,
   selectSessionExpired,
 } from "@features/auth/store/authSelectors";
+
 import useSupabaseSessionSync from "./useSupabaseSessionSync";
 
 const AuthGate = () => {

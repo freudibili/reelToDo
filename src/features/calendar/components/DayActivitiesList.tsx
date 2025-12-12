@@ -1,6 +1,6 @@
 import React from "react";
-import { StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
+import { StyleSheet } from "react-native";
 
 import {
   Badge,
@@ -11,9 +11,10 @@ import {
 } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";
 import type { Activity } from "@features/activities/types";
+
 import type { CalendarActivityEntry } from "../types";
-import { buildDayActivityViews } from "../utils/dayActivityView";
 import DayActivityItem from "./DayActivityItem";
+import { buildDayActivityViews } from "../utils/dayActivityView";
 
 interface Props {
   dateLabel: string;

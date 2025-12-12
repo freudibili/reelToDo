@@ -1,7 +1,9 @@
 import React from "react";
-import ActionRail, { type ActionRailItem } from "@common/components/ActionRail";
 import { useTranslation } from "react-i18next";
+
+import ActionRail, { type ActionRailItem } from "@common/components/ActionRail";
 import { useAppTheme } from "@common/theme/appTheme";
+
 import type { Activity } from "../types";
 import { getPlanActionLabel } from "../utils/actionHelpers";
 
@@ -57,6 +59,12 @@ const ActivityDetailsActions: React.FC<Props> = ({
       icon: "link-variant",
       onPress: () => onOpenSource(activity),
       disabled: !activity.source_url,
+    },
+    {
+      key: "calendar",
+      label: t("activities:details.actions.calendar"),
+      icon: "calendar-plus",
+      onPress: () => onAddToCalendar(activity),
     },
     {
       key: "delete",

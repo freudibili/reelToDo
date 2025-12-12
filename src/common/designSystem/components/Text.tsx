@@ -42,7 +42,7 @@ const Text = React.forwardRef<RNText, Props>(
     },
     ref
   ) => {
-    const { colors, mode } = useAppTheme();
+    const { colors } = useAppTheme();
 
     const colorMap: Record<TextTone, string> = {
       default: colors.text,

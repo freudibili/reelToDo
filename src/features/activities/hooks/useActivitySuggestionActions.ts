@@ -1,11 +1,13 @@
 import { useCallback, useState } from "react";
-import { Alert } from "react-native";
 import { useTranslation } from "react-i18next";
+import { Alert } from "react-native";
+
 import { useAppDispatch, useAppSelector } from "@core/store/hook";
+import type { PlaceDetails } from "@features/import/types";
+
 import { ActivitiesService } from "../services/activitiesService";
 import { activityPatched } from "../store/activitiesSlice";
 import type { Activity } from "../types";
-import type { PlaceDetails } from "@features/import/types";
 
 type DateSuggestionPayload = { date: Date; note: string | null };
 type LocationSuggestionPayload = { place: PlaceDetails; note: string | null };
@@ -52,7 +54,7 @@ export const useActivitySuggestionActions = (activity: Activity | null) => {
           t("activities:report.successMessage")
         );
         closeLocationModal();
-      } catch (e) {
+      } catch {
         Alert.alert(
           t("activities:report.errorTitle"),
           t("activities:report.errorMessage")
@@ -99,7 +101,7 @@ export const useActivitySuggestionActions = (activity: Activity | null) => {
           t("activities:details.suggestDateSuccessMessage")
         );
         setDateModalVisible(false);
-      } catch (e) {
+      } catch {
         Alert.alert(
           t("activities:details.suggestDateErrorTitle"),
           t("activities:details.suggestDateErrorMessage")

@@ -1,4 +1,5 @@
 import { createSelector } from "@reduxjs/toolkit";
+
 import type { RootState } from "@core/store";
 
 const selectSlice = (state: RootState) => state.settings;

@@ -1,7 +1,7 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet } from "react-native";
 import { Avatar, Icon } from "react-native-paper";
-import { useTranslation } from "react-i18next";
 
 import { Box, Card, Stack, Text } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";

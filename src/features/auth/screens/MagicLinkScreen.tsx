@@ -1,19 +1,20 @@
-import React, { useCallback, useState } from "react";
-import { useRouter, useLocalSearchParams } from "expo-router";
-import { useTranslation } from "react-i18next";
 import { useFocusEffect } from "@react-navigation/native";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import React, { useCallback, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { InlineMessage } from "@common/designSystem";
 import { useAppDispatch, useAppSelector } from "@core/store/hook";
-import { requestMagicLink, clearError } from "@features/auth/store/authSlice";
 import {
   selectAuthError,
   selectAuthRequestStatus,
 } from "@features/auth/store/authSelectors";
-import { useAuthBackNavigation } from "../utils/navigation";
+import { requestMagicLink, clearError } from "@features/auth/store/authSlice";
+
 import AuthLayout from "../components/AuthLayout";
 import AuthTextField from "../components/AuthTextField";
 import MagicLinkButton from "../components/MagicLinkButton";
+import { useAuthBackNavigation } from "../utils/navigation";
 
 const MagicLinkScreen = () => {
   const { email: emailParam } = useLocalSearchParams<{ email?: string }>();

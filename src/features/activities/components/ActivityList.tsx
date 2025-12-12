@@ -1,10 +1,11 @@
 import React from "react";
-import { StyleSheet, ScrollView, View } from "react-native";
 import { useTranslation } from "react-i18next";
+import { StyleSheet, ScrollView, View } from "react-native";
 import { Icon } from "react-native-paper";
 
 import { Box, GradientButton, Stack, Text } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";
+
 import CategoryCard from "./CategoryCard";
 import type { CategoryCardItem } from "../store/activitiesSelectors";
 

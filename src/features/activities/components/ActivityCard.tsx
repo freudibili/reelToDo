@@ -1,19 +1,20 @@
 import React from "react";
-import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
-import { Icon } from "react-native-paper";
 import { useTranslation } from "react-i18next";
+import { ActivityIndicator, Pressable, StyleSheet } from "react-native";
+import { Icon } from "react-native-paper";
 
+import AppImage from "@common/components/AppImage";
 import { Box, Text } from "@common/designSystem";
 import { radii, spacing } from "@common/designSystem/tokens";
 import { useAppTheme } from "@common/theme/appTheme";
-import AppImage from "@common/components/AppImage";
+
 import FavoriteHeart from "./FavoriteHeart";
+import type { Activity, ActivityProcessingStatus } from "../types";
 import {
   formatActivityLocation,
   formatDisplayDate,
   getPrimaryDateValue,
 } from "../utils/activityDisplay";
-import type { Activity, ActivityProcessingStatus } from "../types";
 
 interface Props {
   activity: Activity;

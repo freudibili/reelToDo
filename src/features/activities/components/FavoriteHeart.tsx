@@ -1,6 +1,7 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { Icon } from "react-native-paper";
+
 import { useAppTheme } from "@common/theme/appTheme";
 
 interface FavoriteHeartProps {

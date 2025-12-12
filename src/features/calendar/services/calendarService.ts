@@ -1,4 +1,5 @@
 import * as Calendar from "expo-calendar";
+
 import { supabase } from "@config/supabase";
 import type { Activity } from "@features/activities/types";
 import { getOfficialDateValue } from "@features/activities/utils/activityDisplay";

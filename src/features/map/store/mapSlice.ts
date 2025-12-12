@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+
 import type { MapState } from "../types";
 
 const initialState: MapState = {

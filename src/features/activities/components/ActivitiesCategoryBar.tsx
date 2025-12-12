@@ -1,7 +1,9 @@
 import React from "react";
 import { View, Pressable, StyleSheet, ScrollView } from "react-native";
-import { useAppTheme } from "@common/theme/appTheme";
+
 import { Text } from "@common/designSystem";
+import { useAppTheme } from "@common/theme/appTheme";
+
 import { formatCategoryName } from "../utils/categorySummary";
 
 interface Props {

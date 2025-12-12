@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+
+import { supabase } from "@config/supabase";
 import { useAppDispatch, useAppSelector } from "@core/store/hook";
 import { ActivitiesService } from "@features/activities/services/activitiesService";
 import {
@@ -9,7 +11,6 @@ import type {
   Activity,
   ActivityProcessingStatus,
 } from "@features/activities/types";
-import { supabase } from "@config/supabase";
 
 export const useActivityDetails = (activityId: string | null) => {
   const dispatch = useAppDispatch();

@@ -1,10 +1,10 @@
-import React, { useEffect, useRef, useState } from "react";
-import { StyleSheet } from "react-native";
 import DateTimePicker, {
   type DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
-import { Icon } from "react-native-paper";
+import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { StyleSheet } from "react-native";
+import { Icon } from "react-native-paper";
 
 import { Button, Card, Stack, Text } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";

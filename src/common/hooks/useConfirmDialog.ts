@@ -1,5 +1,5 @@
-import { Alert, Platform } from "react-native";
 import { useTranslation } from "react-i18next";
+import { Alert, Platform } from "react-native";
 
 export const useConfirmDialog = () => {
   const { t } = useTranslation();

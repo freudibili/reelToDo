@@ -1,6 +1,6 @@
 import React from "react";
-import { StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
+import { StyleSheet } from "react-native";
 
 import { Button, Stack } from "@common/designSystem";
 

@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import {
   Modal,
   StyleSheet,
@@ -6,7 +7,6 @@ import {
   View,
   ViewStyle,
 } from "react-native";
-import { useTranslation } from "react-i18next";
 
 import { IconButton, Text } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";

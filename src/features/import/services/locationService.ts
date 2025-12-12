@@ -1,4 +1,5 @@
 import { GOOGLE_MAPS_API_KEY } from "@common/types/constants";
+
 import type {
   GooglePrediction,
   PlaceDetails,

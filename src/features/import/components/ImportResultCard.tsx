@@ -1,19 +1,20 @@
 import React from "react";
-import { Icon } from "react-native-paper";
 import { useTranslation } from "react-i18next";
+import { Icon } from "react-native-paper";
 
 import { Card, Stack, Text } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";
-import { categoryNeedsDate } from "@features/activities/utils/activityHelper";
+import type { Activity } from "@features/activities/types";
 import {
   formatActivityLocation,
   formatDisplayDate,
   getOfficialDateValue,
 } from "@features/activities/utils/activityDisplay";
+import { categoryNeedsDate } from "@features/activities/utils/activityHelper";
+
 import ImportDetailsForm, {
   type ImportDetailsFormHandle,
 } from "./ImportDetailsForm";
-import type { Activity } from "@features/activities/types";
 import type { UpdateActivityPayload } from "../types";
 
 type ImportResultCardProps = {

@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+
 import type { RootState } from "@core/store";
 
 export type AppToastType = "info" | "success" | "error";

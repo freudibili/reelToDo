@@ -1,12 +1,14 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
+
 import { Text } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";
-import { useTranslation } from "react-i18next";
-import InfoRow from "./InfoRow";
+
 import AdditionalInfoList from "./AdditionalInfoList";
-import LocationAssistButton from "./LocationAssistButton";
 import DateAssistButton from "./DateAssistButton";
+import InfoRow from "./InfoRow";
+import LocationAssistButton from "./LocationAssistButton";
 import type { Activity } from "../types";
 
 type Props = {

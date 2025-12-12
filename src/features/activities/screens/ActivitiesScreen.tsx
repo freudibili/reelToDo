@@ -1,13 +1,13 @@
-import React, { useEffect, useCallback } from "react";
-import { StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
+import React, { useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Icon } from "react-native-paper";
 
-import { GradientButton } from "@common/designSystem";
 import Screen from "@common/components/AppScreen";
+import { GradientButton } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";
 import { useAppDispatch, useAppSelector } from "@core/store/hook";
+
 import ActivityList from "../components/ActivityList";
 import { activitiesSelectors } from "../store/activitiesSelectors";
 import {

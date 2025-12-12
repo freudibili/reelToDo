@@ -1,12 +1,13 @@
-import { useEffect, useRef } from "react";
 import * as Notifications from "expo-notifications";
 import { useRouter } from "expo-router";
-import { useAppSelector } from "@core/store/hook";
-import { selectAuthUser } from "@features/auth/store/authSelectors";
+import { useEffect, useRef } from "react";
+
 import {
   registerForPushNotifications,
   savePushToken,
 } from "@common/services/pushNotifications";
+import { useAppSelector } from "@core/store/hook";
+import { selectAuthUser } from "@features/auth/store/authSelectors";
 
 export const useNotificationsSetup = () => {
   const user = useAppSelector(selectAuthUser);

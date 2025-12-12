@@ -1,5 +1,6 @@
 import { supabase } from "@config/supabase";
 import type { PlaceDetails } from "@features/import/types";
+
 import type { Activity } from "../types";
 
 export const ActivitiesService = {

@@ -1,8 +1,8 @@
-import React from "react";
-import { ActivityIndicator, Platform, StyleSheet } from "react-native";
 import LottieView from "lottie-react-native";
-import { Icon } from "react-native-paper";
+import React from "react";
 import { useTranslation } from "react-i18next";
+import { ActivityIndicator, Platform, StyleSheet } from "react-native";
+import { Icon } from "react-native-paper";
 
 import { Button, Card, Stack, Text } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";

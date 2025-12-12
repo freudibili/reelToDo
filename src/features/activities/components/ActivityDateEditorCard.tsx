@@ -1,13 +1,15 @@
 import React, { useMemo } from "react";
-import { View, StyleSheet, Pressable } from "react-native";
 import { useTranslation } from "react-i18next";
-import { useAppTheme } from "@common/theme/appTheme";
+import { View, StyleSheet, Pressable } from "react-native";
+
 import { Text } from "@common/designSystem";
-import { usePlatformDateTimePicker } from "../hooks/usePlatformDateTimePicker";
+import { useAppTheme } from "@common/theme/appTheme";
+
+import AdditionalInfoList from "./AdditionalInfoList";
 import InfoRow from "./InfoRow";
 import SuggestionPill from "./SuggestionPill";
+import { usePlatformDateTimePicker } from "../hooks/usePlatformDateTimePicker";
 import type { Activity } from "../types";
-import { resolveDateAction, type DateStatusMeta } from "../utils/dateEditor";
 import {
   formatDisplayDate,
   formatDisplayDateTime,
@@ -16,7 +18,7 @@ import {
   getOfficialDateValue,
   parseDateValue,
 } from "../utils/activityDisplay";
-import AdditionalInfoList from "./AdditionalInfoList";
+import { resolveDateAction, type DateStatusMeta } from "../utils/dateEditor";
 
 type ActivityDateEditorCardProps = {
   activity: Activity;

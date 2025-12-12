@@ -1,7 +1,8 @@
 import React from "react";
-import { useAppTheme } from "@common/theme/appTheme";
 import { Icon } from "react-native-paper";
+
 import GradientButton from "@common/designSystem/components/GradientButton";
+import { useAppTheme } from "@common/theme/appTheme";
 
 type MagicLinkButtonProps = {
   label: string;

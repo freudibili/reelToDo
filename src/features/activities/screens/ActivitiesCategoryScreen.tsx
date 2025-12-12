@@ -1,29 +1,30 @@
-import React, { useCallback, useMemo, useRef, useState } from "react";
-import { StyleSheet, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { StyleSheet, View } from "react-native";
 
-import { Stack, Text } from "@common/designSystem";
 import AppBottomSheet from "@common/components/AppBottomSheet";
 import Screen from "@common/components/AppScreen";
+import { Stack, Text } from "@common/designSystem";
 import { useConfirmDialog } from "@common/hooks/useConfirmDialog";
 import { useAppDispatch, useAppSelector } from "@core/store/hook";
 import { createActivityCalendarEvent } from "@features/calendar/store/calendarThunks";
+
 import ActivityCard from "../components/ActivityCard";
 import ActivityDetailsSheet from "../components/ActivityDetailsSheet";
+import {
+  openActivityInMaps,
+  openActivitySource,
+} from "../services/linksService";
+import { activitiesSelectors } from "../store/activitiesSelectors";
 import {
   addFavorite,
   removeFavorite,
   deleteActivity,
   setPlannedDate,
 } from "../store/activitiesSlice";
-import { activitiesSelectors } from "../store/activitiesSelectors";
-import {
-  openActivityInMaps,
-  openActivitySource,
-} from "../services/linksService";
-import { formatCategoryName } from "../utils/categorySummary";
 import type { Activity } from "../types";
+import { formatCategoryName } from "../utils/categorySummary";
 
 const ActivitiesCategoryScreen = () => {
   const { category: categoryParam } = useLocalSearchParams<{

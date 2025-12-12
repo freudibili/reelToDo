@@ -1,26 +1,27 @@
-import React, { useCallback, useState } from "react";
-import { StyleSheet } from "react-native";
-import { useRouter } from "expo-router";
-import { useTranslation } from "react-i18next";
 import { useFocusEffect } from "@react-navigation/native";
+import { useRouter } from "expo-router";
+import React, { useCallback, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { StyleSheet } from "react-native";
 import { Icon } from "react-native-paper";
 
 import { Divider, InlineMessage, Stack, Text } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";
 import { useAppDispatch, useAppSelector } from "@core/store/hook";
-import { clearError, signInWithPassword } from "@features/auth/store/authSlice";
 import {
   selectAuthError,
   selectAuthRequestStatus,
   selectIsAuthenticated,
 } from "@features/auth/store/authSelectors";
+import { clearError, signInWithPassword } from "@features/auth/store/authSlice";
+
+import AuthButton from "../components/AuthButton";
+import AuthLayout from "../components/AuthLayout";
+import AuthTextField from "../components/AuthTextField";
 import {
   useAuthBackNavigation,
   useRedirectIfAuthenticated,
 } from "../utils/navigation";
-import AuthButton from "../components/AuthButton";
-import AuthLayout from "../components/AuthLayout";
-import AuthTextField from "../components/AuthTextField";
 
 const SignInScreen = () => {
   const dispatch = useAppDispatch();

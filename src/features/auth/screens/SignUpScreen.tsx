@@ -1,8 +1,8 @@
-import React, { useCallback, useState } from "react";
-import { StyleSheet } from "react-native";
-import { useRouter } from "expo-router";
-import { useTranslation } from "react-i18next";
 import { useFocusEffect } from "@react-navigation/native";
+import { useRouter } from "expo-router";
+import React, { useCallback, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { StyleSheet } from "react-native";
 import { Icon } from "react-native-paper";
 
 import { Divider, InlineMessage, Stack, Text } from "@common/designSystem";
@@ -13,14 +13,15 @@ import {
   selectAuthRequestStatus,
   selectIsAuthenticated,
 } from "@features/auth/store/authSelectors";
+
+import AuthButton from "../components/AuthButton";
+import AuthLayout from "../components/AuthLayout";
+import AuthTextField from "../components/AuthTextField";
 import { clearError, signUpWithPassword } from "../store/authSlice";
 import {
   useAuthBackNavigation,
   useRedirectIfAuthenticated,
 } from "../utils/navigation";
-import AuthButton from "../components/AuthButton";
-import AuthLayout from "../components/AuthLayout";
-import AuthTextField from "../components/AuthTextField";
 
 const SignUpScreen = () => {
   const dispatch = useAppDispatch();

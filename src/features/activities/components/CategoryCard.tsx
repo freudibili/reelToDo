@@ -1,12 +1,13 @@
 import React, { useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { Animated, Pressable, StyleSheet, View } from "react-native";
 import { Icon } from "react-native-paper";
-import { useTranslation } from "react-i18next";
 
-import { Box, Text } from "@common/designSystem";
-import { useAppTheme } from "@common/theme/appTheme";
-import { radii, spacing } from "@common/designSystem/tokens";
 import AppImage from "@common/components/AppImage";
+import { Box, Text } from "@common/designSystem";
+import { radii, spacing } from "@common/designSystem/tokens";
+import { useAppTheme } from "@common/theme/appTheme";
+
 import { formatCategoryName } from "../utils/categorySummary";
 import type { CategoryCardItem } from "../utils/categorySummary";
 
@@ -46,12 +47,6 @@ const CategoryCard: React.FC<Props> = ({
   };
 
   const displayName = formatCategoryName(name);
-  const countLabel =
-    activityCount > 99
-      ? "99+"
-      : activityCount > 9
-        ? `+${activityCount}`
-        : `${activityCount}`;
   const { t } = useTranslation();
   const countBackground = colors.card;
   const countIconColor = colors.text;

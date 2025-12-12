@@ -1,10 +1,12 @@
 import React, { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { View, Text, StyleSheet, FlatList, Pressable } from "react-native";
 import type { Region, LatLng } from "react-native-maps";
-import type { Activity } from "../../utils/types";
-import { useTranslation } from "react-i18next";
+
 import { useAppTheme } from "@common/theme/appTheme";
+
 import { haversineDistanceKm } from "../../utils/distance";
+import type { Activity } from "../../utils/types";
 
 interface Props {
   activities: Activity[];

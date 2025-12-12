@@ -1,6 +1,7 @@
 import React from "react";
-import { ScrollView } from "react-native-gesture-handler";
 import { StyleSheet, ViewStyle } from "react-native";
+import { ScrollView } from "react-native-gesture-handler";
+
 import ActionPill from "./ActionPill";
 
 export interface ActionRailItem {

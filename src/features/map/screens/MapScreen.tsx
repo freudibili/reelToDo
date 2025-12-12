@@ -1,39 +1,42 @@
-import React, { useRef, useState, useCallback, useMemo } from "react";
-import { StyleSheet } from "react-native";
 import type BottomSheet from "@gorhom/bottom-sheet";
+import React, { useRef, useState, useCallback, useMemo } from "react";
+import { useTranslation } from "react-i18next";
+import { StyleSheet } from "react-native";
+
+import AppBottomSheet from "@common/components/AppBottomSheet";
+import Screen from "@common/components/AppScreen";
+import { Box, IconButton } from "@common/designSystem";
+import { useConfirmDialog } from "@common/hooks/useConfirmDialog";
+import { useAppTheme } from "@common/theme/appTheme";
 import { useAppSelector, useAppDispatch } from "@core/store/hook";
-import { activitiesSelectors } from "@features/activities/store/activitiesSelectors";
-import { selectAuthUser } from "@features/auth/store/authSelectors";
+import ActivityDetailsSheet from "@features/activities/components/ActivityDetailsSheet";
 import ActivitiesMap, {
   ActivitiesMapHandle,
 } from "@features/activities/components/Map/ActivityMap";
 import NearbyActivitiesSheet from "@features/activities/components/Map/NearbyActivitiesSheet";
-import ActivityDetailsSheet from "@features/activities/components/ActivityDetailsSheet";
+import {
+  openActivityInMaps,
+  openActivitySource,
+} from "@features/activities/services/linksService";
+import { activitiesSelectors } from "@features/activities/store/activitiesSelectors";
 import {
   deleteActivity,
   addFavorite,
   removeFavorite,
   setPlannedDate,
 } from "@features/activities/store/activitiesSlice";
-import { createActivityCalendarEvent } from "@features/calendar/store/calendarThunks";
 import type { Activity } from "@features/activities/types";
-import { useConfirmDialog } from "@common/hooks/useConfirmDialog";
-import Screen from "@common/components/AppScreen";
-import AppBottomSheet from "@common/components/AppBottomSheet";
-import { Box, IconButton } from "@common/designSystem";
-import { useTranslation } from "react-i18next";
+import { formatCategoryName } from "@features/activities/utils/categorySummary";
+import { selectAuthUser } from "@features/auth/store/authSelectors";
+import { createActivityCalendarEvent } from "@features/calendar/store/calendarThunks";
 import { mapSelectors } from "@features/map/store/mapSelectors";
 import { mapActions } from "@features/map/store/mapSlice";
-import {
-  openActivityInMaps,
-  openActivitySource,
-} from "@features/activities/services/linksService";
-import { formatCategoryName } from "@features/activities/utils/categorySummary";
-import { settingsSelectors } from "@features/settings/store/settingsSelectors";
-import { getActivityCategories, getFallbackAddress } from "@features/map/utils/regionUtils";
 import { useMapRegionState } from "@features/map/utils/mapRegionState";
+import { getActivityCategories, getFallbackAddress } from "@features/map/utils/regionUtils";
+import { settingsSelectors } from "@features/settings/store/settingsSelectors";
+
 import MapHeader from "../components/MapHeader";
-import { useAppTheme } from "@common/theme/appTheme";
+
 
 const MapScreen: React.FC = () => {
   const dispatch = useAppDispatch();

@@ -6,7 +6,6 @@ import {
   getShadowStyle,
   radii,
   resolveRadius,
-  resolveSpace,
   type RadiusValue,
   type ShadowLevel,
   type SpacingValue,

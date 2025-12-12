@@ -1,4 +1,5 @@
 import { Linking } from "react-native";
+
 import type { Activity } from "../types";
 
 export const openActivityInMaps = (activity: Activity): void => {

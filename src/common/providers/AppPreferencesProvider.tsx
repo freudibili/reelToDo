@@ -1,3 +1,4 @@
+import * as Localization from "expo-localization";
 import React from "react";
 import {
   StatusBar,
@@ -7,16 +8,16 @@ import {
   type TextStyle,
 } from "react-native";
 import { PaperProvider } from "react-native-paper";
-import * as Localization from "expo-localization";
+
+import ToastHost from "@common/components/ToastHost";
 import i18next from "@common/i18n/i18n";
-import { useAppSelector } from "@core/store/hook";
-import { settingsSelectors } from "@features/settings/store/settingsSelectors";
 import {
   AppThemeContext,
   createAppTheme,
   type AppThemeMode,
 } from "@common/theme/appTheme";
-import ToastHost from "@common/components/ToastHost";
+import { useAppSelector } from "@core/store/hook";
+import { settingsSelectors } from "@features/settings/store/settingsSelectors";
 
 type Props = {
   children: React.ReactNode;

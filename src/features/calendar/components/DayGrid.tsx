@@ -11,6 +11,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Box, Text, spacing } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";
 import { getDateVisuals } from "@features/activities/utils/dateVisuals";
+
 import { CalendarDay } from "../utils/dates";
 
 interface Props {

@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 
 import type { Activity } from "@features/activities/types";
+
 import type { ImportProcessingState } from "../types";
 
 type Params = {

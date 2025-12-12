@@ -1,4 +1,5 @@
 import type { Region } from "react-native-maps";
+
 import type { Activity } from "@features/activities/types";
 
 export const DEFAULT_REGION: Region = {

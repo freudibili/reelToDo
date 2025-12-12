@@ -4,27 +4,27 @@ import React, {
   useImperativeHandle,
   useState,
 } from "react";
-import { Alert, StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
+import { Alert, StyleSheet } from "react-native";
 
-import { Box, Stack, Text } from "@common/designSystem";
 import ActivityHero from "@common/components/ActivityHero";
 import ActivitySummaryHeader from "@common/components/ActivitySummaryHeader";
+import { Box, Stack, Text } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";
+import { useAppDispatch } from "@core/store/hook";
 import { ActivitiesService } from "@features/activities/services/activitiesService";
 import { activityPatched } from "@features/activities/store/activitiesSlice";
-import { categoryNeedsDate } from "@features/activities/utils/activityHelper";
+import type { Activity } from "@features/activities/types";
 import {
   formatActivityLocation,
   formatDisplayDate,
   getOfficialDateValue,
 } from "@features/activities/utils/activityDisplay";
-import type { Activity } from "@features/activities/types";
-import { useAppDispatch } from "@core/store/hook";
+import { categoryNeedsDate } from "@features/activities/utils/activityHelper";
+
 import DateSection from "./DateSection";
 import LocationSection from "./LocationSection";
-import type { PlaceDetails } from "../types";
-import { type ImportDraftDetails, type UpdateActivityPayload } from "../types";
+import type { PlaceDetails , type ImportDraftDetails, type UpdateActivityPayload } from "../types";
 
 export type ImportDetailsFormHandle = {
   save: () => void;

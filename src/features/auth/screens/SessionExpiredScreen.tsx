@@ -1,11 +1,12 @@
-import React from "react";
 import { useRouter } from "expo-router";
+import React from "react";
 import { useTranslation } from "react-i18next";
 
 import { Text } from "@common/designSystem";
-import AuthLayout from "../components/AuthLayout";
-import AuthButton from "../components/AuthButton";
 import { useAppDispatch } from "@core/store/hook";
+
+import AuthButton from "../components/AuthButton";
+import AuthLayout from "../components/AuthLayout";
 import { acknowledgeSessionExpiry } from "../store/authSlice";
 
 const SessionExpiredScreen = () => {

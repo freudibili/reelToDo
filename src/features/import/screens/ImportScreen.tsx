@@ -1,3 +1,5 @@
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import type { ShareIntent } from "expo-share-intent";
 import React, {
   useCallback,
   useEffect,
@@ -5,14 +7,13 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { StyleSheet, View } from "react-native";
-import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
-import type { ShareIntent } from "expo-share-intent";
 import { useTranslation } from "react-i18next";
+import { StyleSheet } from "react-native";
 
-import { showToast as showToastAction } from "@common/store/appSlice";
-import { Stack } from "@common/designSystem";
 import Screen from "@common/components/AppScreen";
+import { Stack } from "@common/designSystem";
+import { showToast as showToastAction } from "@common/store/appSlice";
+import { useAppDispatch, useAppSelector } from "@core/store/hook";
 import {
   cancelActivity,
   fetchActivities,
@@ -22,6 +23,7 @@ import type {
   ActivityProcessingStatus,
 } from "@features/activities/types";
 import { selectAuthUser } from "@features/auth/store/authSelectors";
+
 import ImportErrorState from "../components/ImportErrorState";
 import ImportHeader from "../components/ImportHeader";
 import ManualLinkCard from "../components/ManualLinkCard";
@@ -30,16 +32,15 @@ import { useActivityProcessingWatcher } from "../hooks/useActivityProcessingWatc
 import { useImportNotificationPermission } from "../hooks/useImportNotificationPermission";
 import { useImportProcessingState } from "../hooks/useImportProcessingState";
 import {
-  analyzeSharedLink,
-  resetImport,
-  restartImportProcessing,
-} from "../store/importSlice";
-import {
   selectImportError,
   selectImportLoading,
   selectImportedActivity,
 } from "../store/importSelectors";
-import { useAppDispatch, useAppSelector } from "@core/store/hook";
+import {
+  analyzeSharedLink,
+  resetImport,
+  restartImportProcessing,
+} from "../store/importSlice";
 import { parseSharedIntent, isValidHttpUrl } from "../utils/sharedIntent";
 
 const ImportScreen = () => {

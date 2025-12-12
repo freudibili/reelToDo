@@ -1,13 +1,16 @@
 import { useEffect, useRef } from "react";
+
 import { supabase } from "@config/supabase";
 import { useAppDispatch } from "@core/store/hook";
+import { ActivitiesService } from "@features/activities/services/activitiesService";
 import {
   activityDeleted,
   activityUpdated,
 } from "@features/activities/store/activitiesSlice";
-import { ActivitiesService } from "@features/activities/services/activitiesService";
-import { setImportActivity } from "../store/importSlice";
 import type { Activity } from "@features/activities/types";
+
+import { setImportActivity } from "../store/importSlice";
+
 
 const POLL_INTERVAL = 4000;
 

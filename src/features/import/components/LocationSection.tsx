@@ -1,11 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { StyleSheet } from "react-native";
 import { Icon } from "react-native-paper";
-import { useTranslation } from "react-i18next";
 
+import LocationChangeModal from "@common/components/LocationChangeModal";
 import { Button, Card, Stack, Text } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";
-import LocationChangeModal from "@common/components/LocationChangeModal";
+
 import type { PlaceDetails } from "../types";
 
 type LocationSectionProps = {

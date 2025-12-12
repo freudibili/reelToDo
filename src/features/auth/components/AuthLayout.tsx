@@ -1,8 +1,9 @@
 import React from "react";
 import { StyleSheet } from "react-native";
+
 import AppScreen from "@common/components/AppScreen";
-import { useAppTheme } from "@common/theme/appTheme";
 import { Box, Card, Stack, Text } from "@common/designSystem";
+import { useAppTheme } from "@common/theme/appTheme";
 
 type AuthLayoutProps = {
   title: string;

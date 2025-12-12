@@ -1,14 +1,15 @@
-import { useEffect, useRef } from "react";
 import { usePathname, useRouter } from "expo-router";
+import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { useAppDispatch, useAppSelector } from "@core/store/hook";
-import { selectImportedActivity } from "@features/import/store/importSelectors";
+
 import { showToast as showToastAction } from "@common/store/appSlice";
-import { setImportActivity } from "@features/import/store/importSlice";
-import { activityUpdated } from "@features/activities/store/activitiesSlice";
-import { ActivitiesService } from "@features/activities/services/activitiesService";
 import { supabase } from "@config/supabase";
+import { useAppDispatch, useAppSelector } from "@core/store/hook";
+import { ActivitiesService } from "@features/activities/services/activitiesService";
+import { activityUpdated } from "@features/activities/store/activitiesSlice";
 import type { ActivityProcessingStatus } from "@features/activities/types";
+import { selectImportedActivity } from "@features/import/store/importSelectors";
+import { setImportActivity } from "@features/import/store/importSlice";
 
 const POLL_INTERVAL = 4000;
 

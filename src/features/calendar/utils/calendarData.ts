@@ -3,6 +3,7 @@ import {
   getOfficialDateValue,
   parseDateValue,
 } from "@features/activities/utils/activityDisplay";
+
 import { toDayKey, type CalendarDay } from "./dates";
 import type { CalendarActivityEntry, DayGroup } from "../types";
 

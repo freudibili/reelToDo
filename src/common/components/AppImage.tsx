@@ -6,6 +6,7 @@ import {
   View,
   ViewStyle,
 } from "react-native";
+
 import { useAppTheme } from "@common/theme/appTheme";
 
 const FALLBACK_IMAGE = require("../../../assets/images/activityFallback.png");

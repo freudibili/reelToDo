@@ -1,12 +1,13 @@
-import React from "react";
-import { StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
+import React from "react";
 import { useTranslation } from "react-i18next";
+import { StyleSheet } from "react-native";
 
 import { Box, Stack } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";
-import AuthLayout from "../components/AuthLayout";
+
 import AuthButton from "../components/AuthButton";
+import AuthLayout from "../components/AuthLayout";
 import MagicLinkButton from "../components/MagicLinkButton";
 
 const AuthLandingScreen = () => {

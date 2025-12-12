@@ -1,4 +1,7 @@
+import type { TFunction } from "i18next";
 import { useMemo } from "react";
+
+import type { Activity } from "../types";
 import {
   formatActivityDateValue,
   formatActivityLocation,
@@ -11,8 +14,6 @@ import {
   getPrimaryDateValue,
 } from "../utils/activityDisplay";
 import { categoryNeedsDate } from "../utils/activityHelper";
-import type { Activity } from "../types";
-import type { TFunction } from "i18next";
 
 export type ActivityDetailsViewModel = {
   baseDate: Date;

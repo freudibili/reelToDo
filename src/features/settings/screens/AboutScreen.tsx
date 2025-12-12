@@ -1,14 +1,15 @@
-import React from "react";
-import { StyleSheet } from "react-native";
 import Constants from "expo-constants";
 import { useRouter } from "expo-router";
+import React from "react";
 import { useTranslation } from "react-i18next";
+import { StyleSheet } from "react-native";
 
-import { Card, Text } from "@common/designSystem";
 import AppScreen, { ScreenHeader } from "@common/components/AppScreen";
+import { Card, Text } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";
-import SettingsSection from "../components/SettingsSection";
+
 import SettingsListItem from "../components/SettingsListItem";
+import SettingsSection from "../components/SettingsSection";
 
 const AboutScreen = () => {
   const router = useRouter();

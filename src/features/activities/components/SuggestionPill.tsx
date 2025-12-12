@@ -1,8 +1,9 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, Text } from "react-native";
 import { Icon } from "react-native-paper";
+
 import { useAppTheme } from "@common/theme/appTheme";
-import { useTranslation } from "react-i18next";
 
 type Props = {
   onPress: () => void;

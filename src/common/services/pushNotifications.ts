@@ -1,7 +1,8 @@
+import Constants from "expo-constants";
 import * as Notifications from "expo-notifications";
 import type { NotificationBehavior } from "expo-notifications";
-import Constants from "expo-constants";
 import { Platform } from "react-native";
+
 import { supabase } from "@config/supabase";
 
 const defaultNotificationBehavior: NotificationBehavior = {

@@ -6,14 +6,17 @@ import React, {
   useState,
 } from "react";
 import { useTranslation } from "react-i18next";
-import Screen from "@common/components/AppScreen";
+
 import AppBottomSheet from "@common/components/AppBottomSheet";
-import ActivityDetailsSheet from "@features/activities/components/ActivityDetailsSheet";
+import Screen from "@common/components/AppScreen";
+import { useConfirmDialog } from "@common/hooks/useConfirmDialog";
 import { useAppDispatch, useAppSelector } from "@core/store/hook";
+import ActivityDetailsSheet from "@features/activities/components/ActivityDetailsSheet";
+import {
+  openActivityInMaps,
+  openActivitySource,
+} from "@features/activities/services/linksService";
 import { activitiesSelectors } from "@features/activities/store/activitiesSelectors";
-import { calendarSelectors } from "@features/calendar/store/calendarSelectors";
-import { calendarActions } from "@features/calendar/store/calendarSlice";
-import { toDayKey } from "@features/calendar/utils/dates";
 import {
   addFavorite,
   deleteActivity,
@@ -23,18 +26,16 @@ import {
   startActivitiesListener,
   stopActivitiesListener,
 } from "@features/activities/store/activitiesSlice";
-import { createActivityCalendarEvent } from "@features/calendar/store/calendarThunks";
-import {
-  openActivityInMaps,
-  openActivitySource,
-} from "@features/activities/services/linksService";
 import type { Activity } from "@features/activities/types";
 import { formatDisplayDate } from "@features/activities/utils/activityDisplay";
-import { useConfirmDialog } from "@common/hooks/useConfirmDialog";
-import MonthNavigator from "../components/MonthNavigator";
-import DayGrid from "../components/DayGrid";
+import { calendarSelectors } from "@features/calendar/store/calendarSelectors";
+import { calendarActions } from "@features/calendar/store/calendarSlice";
+import { createActivityCalendarEvent } from "@features/calendar/store/calendarThunks";
+import { toDayKey } from "@features/calendar/utils/dates";
+
 import DayActivitiesList from "../components/DayActivitiesList";
-import type { DayGroup } from "../types";
+import DayGrid from "../components/DayGrid";
+import MonthNavigator from "../components/MonthNavigator";
 import { buildDayGroups, buildMonthDays } from "../utils/calendarData";
 
 const CalendarScreen = () => {

@@ -1,15 +1,18 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import type { RealtimeChannel } from "@supabase/supabase-js";
+
+import i18next from "@common/i18n/i18n";
 import { supabase } from "@config/supabase";
-import { ActivitiesService } from "../services/activitiesService";
-import { createActivityCalendarEvent } from "@features/calendar/store/calendarThunks";
+import type { AppDispatch, RootState } from "@core/store";
 import {
   deleteCalendarEvent,
   updateCalendarEventForActivity,
 } from "@features/calendar/services/calendarService";
+import { createActivityCalendarEvent } from "@features/calendar/store/calendarThunks";
+
+import { ActivitiesService } from "../services/activitiesService";
 import type { Activity } from "../types";
-import type { AppDispatch, RootState } from "@core/store";
-import i18next from "@common/i18n/i18n";
+
 
 interface ActivitiesState {
   items: Activity[];

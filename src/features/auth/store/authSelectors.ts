@@ -1,4 +1,5 @@
 import type { RootState } from "@core/store";
+
 import type { EmailOtpType } from "../types";
 
 export const selectAuthSession = (state: RootState) => state.auth.session;

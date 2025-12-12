@@ -1,9 +1,16 @@
-import React, { useEffect, useMemo, useState, useCallback } from "react";
-import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import Screen from "@common/components/AppScreen";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
+import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
+
 import ActivityHero from "@common/components/ActivityHero";
 import ActivitySummaryHeader from "@common/components/ActivitySummaryHeader";
+import Screen from "@common/components/AppScreen";
+import { showToast as showToastAction } from "@common/store/appSlice";
+import { useAppTheme } from "@common/theme/appTheme";
+import { useAppDispatch, useAppSelector } from "@core/store/hook";
+import DateChangeModal from "@features/activities/components/DateChangeModal";
+import { useActivityDetails } from "@features/activities/hooks/useActivityDetails";
 import {
   formatActivityLocation,
   formatDisplayDate,
@@ -11,21 +18,23 @@ import {
   parseDateValue,
 } from "@features/activities/utils/activityDisplay";
 import { categoryNeedsDate } from "@features/activities/utils/activityHelper";
-import { useTranslation } from "react-i18next";
-import { useAppTheme } from "@common/theme/appTheme";
-import { useActivityDetails } from "@features/activities/hooks/useActivityDetails";
 import ProcessingStateCard from "@features/import/components/ProcessingStateCard";
-import DateChangeModal from "@features/activities/components/DateChangeModal";
-import { useAppDispatch, useAppSelector } from "@core/store/hook";
-import { showToast as showToastAction } from "@common/store/appSlice";
+import type { PlaceDetails } from "@features/import/types";
+
+import ActivityDateEditorCard from "../components/ActivityDateEditorCard";
+import ActivityLocationEditorCard from "../components/ActivityLocationEditorCard";
+import { ActivitiesService } from "../services/activitiesService";
 import {
   activityUpdated,
   cancelActivity,
   deleteActivity,
 } from "../store/activitiesSlice";
-import type { PlaceDetails } from "@features/import/types";
-import ActivityLocationEditorCard from "../components/ActivityLocationEditorCard";
-import ActivityDateEditorCard from "../components/ActivityDateEditorCard";
+import {
+  hasDateChanged,
+  resolveDateStatus,
+  saveActivityDate,
+  resolveDateAction,
+} from "../utils/dateEditor";
 import {
   derivePlaceFromActivity,
   resolveLocationStatus,
@@ -33,13 +42,6 @@ import {
   saveActivityLocation,
   resolveLocationAction,
 } from "../utils/locationEditor";
-import {
-  hasDateChanged,
-  resolveDateStatus,
-  saveActivityDate,
-  resolveDateAction,
-} from "../utils/dateEditor";
-import { ActivitiesService } from "../services/activitiesService";
 
 const ActivityScreen = () => {
   const { id } = useLocalSearchParams();
@@ -295,6 +297,7 @@ const ActivityScreen = () => {
     exitScreen,
     isOwner,
     locationStatus?.needsConfirmation,
+    locationNote,
     showToast,
     t,
     userId,
