@@ -34,6 +34,7 @@ export type AppTheme = {
     secondaryText: string;
     overlay: string;
     danger: string;
+    dangerSurface: string;
     success: string;
     lightGray: string;
     plannedDate: string;
@@ -90,6 +91,7 @@ const lightPalette: AppTheme["colors"] = {
   overlay: "rgba(15,23,42,0.04)",
   lightGray: "#F1F5F9",
   danger: "#E35D5D",
+  dangerSurface: "rgba(227,93,93,0.12)",
   success: "#6BCF7E",
   info: "#0097B2",
 
@@ -145,6 +147,7 @@ const darkPalette: AppTheme["colors"] = {
   overlay: "rgba(255,255,255,0.06)",
   lightGray: "#122C35",
   danger: "#F19A9A",
+  dangerSurface: "rgba(241,154,154,0.16)",
   success: "#8ADFA0",
   info: "#4FBAD1",
 

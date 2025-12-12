@@ -1,3 +1,5 @@
+import i18next from "i18next";
+
 import type { Activity } from "./types";
 import { haversineDistanceKm } from "./distance";
 import { getRecentActivities } from "./recentActivities";
@@ -160,7 +162,7 @@ export const buildCategoryCards = (
 };
 
 export const formatCategoryName = (raw: string) => {
-  if (!raw) return "Other";
+  if (!raw) return i18next.t("activities:category.other", "Other");
   const base = raw.replace(/[-_]/g, " ").trim();
   return base.charAt(0).toUpperCase() + base.slice(1);
 };

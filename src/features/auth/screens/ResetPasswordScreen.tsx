@@ -9,6 +9,7 @@ import { clearError, updatePassword } from "../store/authSlice";
 import AuthButton from "../components/AuthButton";
 import AuthLayout from "../components/AuthLayout";
 import AuthTextField from "../components/AuthTextField";
+import { getPasswordUpdateErrorKey } from "../utils/validation";
 import {
   selectAuthRequestStatus,
   selectAuthError,
@@ -38,12 +39,9 @@ const ResetPasswordScreen = () => {
   }, [requiresPasswordChange, isAuthenticated, router]);
 
   const onSubmit = async () => {
-    if (password.length < 8) {
-      setLocalError(t("auth:resetPassword.minLength"));
-      return;
-    }
-    if (password !== confirm) {
-      setLocalError(t("auth:resetPassword.mismatch"));
+    const validationErrorKey = getPasswordUpdateErrorKey(password, confirm);
+    if (validationErrorKey) {
+      setLocalError(t(validationErrorKey));
       return;
     }
     setLocalError(null);

@@ -119,17 +119,21 @@
     "subtitle_one": "{{count}} activité",
     "subtitle_other": "{{count}} activités",
     "empty": "Aucune activité pour cette catégorie.",
-    "fallbackTitle": "Activités"
+    "fallbackTitle": "Activités",
+    "other": "Autre"
   },
   "map": {
     "title": "Carte",
     "permissionDeniedTitle": "Permission refusée",
     "permissionDeniedMessage": "Impossible d'accéder à votre position.",
     "all": "Toutes",
-    "nearby": "À proximité"
+    "nearby": "À proximité",
+    "openList": "Ouvrir la liste à proximité"
   },
   "calendar": {
     "title": "Calendrier",
+    "previousMonth": "Mois précédent",
+    "nextMonth": "Mois suivant",
     "today": "Aujourd'hui",
     "allDay": "Toute la journée",
     "count": "{{count}} sorties",

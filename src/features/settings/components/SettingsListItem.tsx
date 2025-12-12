@@ -32,7 +32,7 @@ const SettingsListItem: React.FC<Props> = ({
   const { colors } = useAppTheme();
   const titleStyle = tone === "danger" ? { color: colors.danger } : undefined;
   const iconColor = tone === "danger" ? colors.danger : colors.primary;
-  const iconBg = tone === "danger" ? "rgba(248,113,113,0.12)" : colors.overlay;
+  const iconBg = tone === "danger" ? colors.dangerSurface : colors.overlay;
 
   const content = (
     <Stack direction="row" align="center" gap="md" style={styles.item}>

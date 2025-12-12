@@ -17,6 +17,11 @@ import { signOut } from "@features/auth/store/authSlice";
 import SettingsSection from "../components/SettingsSection";
 import SettingsListItem from "../components/SettingsListItem";
 import UserSettingsHeader from "../components/UserSettingsHeader";
+import {
+  deriveProfileAddress,
+  deriveProfileEmail,
+  deriveProfileName,
+} from "../utils/profile";
 
 const SettingsScreen = () => {
   const router = useRouter();
@@ -36,33 +41,30 @@ const SettingsScreen = () => {
     }
   }, [dispatch, initialized, user]);
 
-  const displayName = useMemo(() => {
-    const metadata = user?.user_metadata as {
-      first_name?: string;
-      last_name?: string;
-      full_name?: string;
-    };
-    const derivedProfileName = [profile.firstName, profile.lastName]
-      .filter(Boolean)
-      .join(" ");
-    if (derivedProfileName) return derivedProfileName;
-    const metadataName = [metadata?.first_name, metadata?.last_name]
-      .filter(Boolean)
-      .join(" ");
-    if (metadataName) return metadataName;
-    if (metadata?.full_name) return metadata.full_name;
-    return user?.email || t("settings:placeholders.guest");
-  }, [profile.firstName, profile.lastName, t, user?.email, user?.user_metadata]);
+  const displayName = useMemo(
+    () =>
+      deriveProfileName(
+        profile,
+        user,
+        t("settings:placeholders.guest")
+      ),
+    [profile, t, user]
+  );
 
   const address = useMemo(
     () =>
-      profile.address ||
-      (user?.user_metadata as { address?: string })?.address ||
-      t("settings:placeholders.address"),
-    [profile.address, t, user?.user_metadata]
+      deriveProfileAddress(
+        profile,
+        user,
+        t("settings:placeholders.address")
+      ),
+    [profile, t, user]
   );
 
-  const email = profile.email || user?.email;
+  const email = useMemo(
+    () => deriveProfileEmail(profile, user),
+    [profile, user]
+  );
 
   const goTo = (path: string) => router.push(path as never);
 

@@ -10,6 +10,7 @@ import {
   selectAuthError,
   selectAuthRequestStatus,
 } from "@features/auth/store/authSelectors";
+import { useAuthBackNavigation } from "../utils/navigation";
 import AuthLayout from "../components/AuthLayout";
 import AuthTextField from "../components/AuthTextField";
 import MagicLinkButton from "../components/MagicLinkButton";
@@ -24,6 +25,7 @@ const MagicLinkScreen = () => {
 
   const error = useAppSelector(selectAuthError);
   const status = useAppSelector(selectAuthRequestStatus("magicLink"));
+  const handleBack = useAuthBackNavigation(router);
 
   useFocusEffect(
     useCallback(() => {
@@ -31,14 +33,6 @@ const MagicLinkScreen = () => {
       setLinkSent(false);
     }, [dispatch])
   );
-
-  const handleBack = useCallback(() => {
-    if (router.canGoBack()) {
-      router.back();
-    } else {
-      router.replace("/auth");
-    }
-  }, [router]);
 
   const onSubmit = async () => {
     if (!email) return;

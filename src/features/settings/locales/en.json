@@ -91,6 +91,11 @@
     "issueDesc": "Spotted a bug or incorrect activity? Tell us.",
     "feedback": "Share feedback",
     "feedbackDesc": "Help shape what we build next.",
+    "subjects": {
+      "chat": "ReelToDo Support",
+      "issue": "Issue Report",
+      "feedback": "Feedback"
+    },
     "errorTitle": "Unable to open mail",
     "error": "You can email hello@reeltodo.com from your mail app."
   },

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
 import { StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
@@ -14,6 +14,10 @@ import {
   selectIsAuthenticated,
 } from "@features/auth/store/authSelectors";
 import { clearError, signUpWithPassword } from "../store/authSlice";
+import {
+  useAuthBackNavigation,
+  useRedirectIfAuthenticated,
+} from "../utils/navigation";
 import AuthButton from "../components/AuthButton";
 import AuthLayout from "../components/AuthLayout";
 import AuthTextField from "../components/AuthTextField";
@@ -30,6 +34,9 @@ const SignUpScreen = () => {
   const error = useAppSelector(selectAuthError);
   const passwordStatus = useAppSelector(selectAuthRequestStatus("signUp"));
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
+  const handleBack = useAuthBackNavigation(router);
+
+  useRedirectIfAuthenticated(isAuthenticated, router);
 
   useFocusEffect(
     useCallback(() => {
@@ -37,20 +44,6 @@ const SignUpScreen = () => {
       setVerificationSent(false);
     }, [dispatch])
   );
-
-  const handleBack = useCallback(() => {
-    if (router.canGoBack()) {
-      router.back();
-    } else {
-      router.replace("/auth");
-    }
-  }, [router]);
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      router.replace("/");
-    }
-  }, [isAuthenticated, router]);
 
   const onSubmitPassword = async () => {
     if (!email || !password) return;

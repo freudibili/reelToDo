@@ -47,7 +47,12 @@ export const buildDayActivityViews = (
       isPlanned &&
       officialDateValue &&
       !isSameDateValue(officialDateValue, dateValue)
-        ? formatDisplayDateTime(officialDateValue)
+        ? t("activities:planned.officialLabel", {
+            value:
+              formatDisplayDateTime(officialDateValue) ??
+              formatDisplayTime(officialDateValue) ??
+              t("activities:calendar.allDay"),
+          })
         : null;
 
     const plannedLabel =

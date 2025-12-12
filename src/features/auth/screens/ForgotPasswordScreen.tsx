@@ -13,6 +13,7 @@ import {
   selectAuthError,
   selectAuthRequestStatus,
 } from "@features/auth/store/authSelectors";
+import { useAuthBackNavigation } from "../utils/navigation";
 import AuthButton from "../components/AuthButton";
 import AuthLayout from "../components/AuthLayout";
 import AuthTextField from "../components/AuthTextField";
@@ -26,20 +27,13 @@ const ForgotPasswordScreen = () => {
 
   const error = useAppSelector(selectAuthError);
   const status = useAppSelector(selectAuthRequestStatus("passwordReset"));
+  const handleBack = useAuthBackNavigation(router);
 
   useFocusEffect(
     useCallback(() => {
       dispatch(clearError());
     }, [dispatch])
   );
-
-  const handleBack = useCallback(() => {
-    if (router.canGoBack()) {
-      router.back();
-    } else {
-      router.replace("/auth");
-    }
-  }, [router]);
 
   const onSubmit = async () => {
     if (!email) return;

@@ -91,6 +91,11 @@
     "issueDesc": "Un bug ou une activité incorrecte ? Expliquez-nous.",
     "feedback": "Partager un avis",
     "feedbackDesc": "Aidez-nous à prioriser les prochaines évolutions.",
+    "subjects": {
+      "chat": "Support ReelToDo",
+      "issue": "Signalement d'incident",
+      "feedback": "Retour utilisateur"
+    },
     "errorTitle": "Impossible d'ouvrir l'email",
     "error": "Vous pouvez écrire à hello@reeltodo.com depuis votre messagerie."
   },

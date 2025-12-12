@@ -1,12 +1,5 @@
-import React, {
-  useEffect,
-  useRef,
-  useState,
-  useCallback,
-  useMemo,
-} from "react";
-import { View, StyleSheet, Alert, Pressable, Text } from "react-native";
-import type { Region } from "react-native-maps";
+import React, { useRef, useState, useCallback, useMemo } from "react";
+import { StyleSheet } from "react-native";
 import type BottomSheet from "@gorhom/bottom-sheet";
 import { useAppSelector, useAppDispatch } from "@core/store/hook";
 import { activitiesSelectors } from "@features/activities/store/activitiesSelectors";
@@ -27,29 +20,26 @@ import type { Activity } from "@features/activities/types";
 import { useConfirmDialog } from "@common/hooks/useConfirmDialog";
 import Screen from "@common/components/AppScreen";
 import AppBottomSheet from "@common/components/AppBottomSheet";
+import { Box, IconButton } from "@common/designSystem";
 import { useTranslation } from "react-i18next";
 import { mapSelectors } from "@features/map/store/mapSelectors";
 import { mapActions } from "@features/map/store/mapSlice";
-import { requestUserRegion } from "@features/map/services/locationService";
 import {
   openActivityInMaps,
   openActivitySource,
 } from "@features/activities/services/linksService";
-import { useAppTheme } from "@common/theme/appTheme";
 import { formatCategoryName } from "@features/activities/utils/categorySummary";
 import { settingsSelectors } from "@features/settings/store/settingsSelectors";
-import {
-  buildInitialRegion,
-  getActivityCategories,
-  getFallbackAddress,
-} from "@features/map/utils/regionUtils";
+import { getActivityCategories, getFallbackAddress } from "@features/map/utils/regionUtils";
+import { useMapRegionState } from "@features/map/utils/mapRegionState";
 import MapHeader from "../components/MapHeader";
+import { useAppTheme } from "@common/theme/appTheme";
 
 const MapScreen: React.FC = () => {
   const dispatch = useAppDispatch();
   const { confirm } = useConfirmDialog();
   const { t } = useTranslation();
-  const { colors, mode: themeMode } = useAppTheme();
+  const { colors } = useAppTheme();
 
   const profile = useAppSelector(settingsSelectors.profile);
   const user = useAppSelector(selectAuthUser);
@@ -59,8 +49,20 @@ const MapScreen: React.FC = () => {
   const favoriteIds = useAppSelector(activitiesSelectors.favoriteIds);
   const selectedCategory = useAppSelector(mapSelectors.selectedCategory);
 
-  const [userRegion, setUserRegion] = useState<Region | null>(null);
-  const [initialRegion, setInitialRegion] = useState<Region | null>(null);
+  const fallbackAddress = useMemo(
+    () =>
+      getFallbackAddress(
+        profile.address,
+        (user?.user_metadata as { address?: string } | undefined)?.address
+      ),
+    [profile.address, user?.user_metadata]
+  );
+
+  const { userRegion, initialRegion, ready: regionReady } = useMapRegionState({
+    activities,
+    fallbackAddress,
+    t,
+  });
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const selectedSelector = useMemo(
@@ -72,15 +74,6 @@ const MapScreen: React.FC = () => {
     selectedSelector ? selectedSelector(state) : null
   );
 
-  const fallbackAddress = useMemo(
-    () =>
-      getFallbackAddress(
-        profile.address,
-        (user?.user_metadata as { address?: string } | undefined)?.address
-      ),
-    [profile.address, user?.user_metadata]
-  );
-
   const [sheetMode, setSheetMode] = useState<"list" | "details">("list");
   const [sheetIndex, setSheetIndex] = useState(-1);
   const sheetRef = useRef<BottomSheet | null>(null);
@@ -90,42 +83,6 @@ const MapScreen: React.FC = () => {
     () => (sheetMode === "list" ? ["25%", "60%"] : ["25%", "60%", "90%"]),
     [sheetMode]
   );
-
-  useEffect(() => {
-    const load = async () => {
-      const regionFromLocation = await requestUserRegion(fallbackAddress);
-
-      if (!regionFromLocation) {
-        Alert.alert(
-          t("activities:map.permissionDeniedTitle"),
-          t("activities:map.permissionDeniedMessage")
-        );
-      }
-
-      const finalRegion = buildInitialRegion({
-        userRegion: regionFromLocation,
-        activities,
-      });
-
-      setUserRegion(regionFromLocation ?? finalRegion);
-      setInitialRegion(finalRegion);
-    };
-
-    load().catch(() => {
-      const fallbackRegion = buildInitialRegion({
-        userRegion: null,
-        activities,
-      });
-
-      setUserRegion(fallbackRegion);
-      setInitialRegion(fallbackRegion);
-
-      Alert.alert(
-        t("activities:map.permissionDeniedTitle"),
-        t("activities:map.permissionDeniedMessage")
-      );
-    });
-  }, [fallbackAddress, activities, t]);
 
   const handleCloseSheet = useCallback(() => {
     sheetRef.current?.close?.();
@@ -240,27 +197,20 @@ const MapScreen: React.FC = () => {
     [activities]
   );
 
-  const isLoading = !initialized || loading || !initialRegion;
+  const isLoading = !initialized || loading || !regionReady || !initialRegion;
 
   return (
     <Screen noPadding loading={isLoading}>
       <MapHeader
         title={t("activities:map.title")}
         allLabel={t("activities:map.all")}
-        colors={{
-          border: colors.border,
-          text: colors.text,
-          overlay: colors.overlay,
-          primary: colors.primary,
-          contrastText: colors.primaryText,
-        }}
         categories={categories}
         selectedCategory={selectedCategory}
         onChangeCategory={handleCategoryChange}
         renderCategoryLabel={formatCategoryName}
       />
 
-      <View style={styles.mapContainer}>
+      <Box style={styles.mapContainer}>
         {initialRegion && (
           <ActivitiesMap
             ref={mapRef}
@@ -271,18 +221,19 @@ const MapScreen: React.FC = () => {
           />
         )}
 
-        <Pressable
-          style={[
-            styles.fab,
-            { backgroundColor: colors.primary, shadowColor: colors.primary },
-          ]}
-          onPress={handleShowNearby}
-        >
-          <Text style={[styles.fabText, { color: colors.primaryText }]}>
-            ☰
-          </Text>
-        </Pressable>
-      </View>
+        <Box style={styles.fabContainer}>
+          <IconButton
+            icon="format-list-bulleted"
+            tone="primary"
+            variant="filled"
+            size={54}
+            shadow="lg"
+            onPress={handleShowNearby}
+            accessibilityLabel={t("activities:map.openList")}
+            style={{ backgroundColor: colors.primary, borderColor: colors.primary }}
+          />
+        </Box>
+      </Box>
 
       <AppBottomSheet
         ref={sheetRef}
@@ -321,19 +272,10 @@ const styles = StyleSheet.create({
   mapContainer: {
     flex: 1,
   },
-  fab: {
+  fabContainer: {
     position: "absolute",
     right: 16,
     bottom: 16,
-    width: 48,
-    height: 48,
-    borderRadius: 999,
-    elevation: 4,
     zIndex: 20,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  fabText: {
-    fontSize: 20,
   },
 });

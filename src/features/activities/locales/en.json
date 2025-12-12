@@ -119,17 +119,21 @@
     "subtitle_one": "{{count}} activity",
     "subtitle_other": "{{count}} activities",
     "empty": "No activities for this category.",
-    "fallbackTitle": "Activities"
+    "fallbackTitle": "Activities",
+    "other": "Other"
   },
   "map": {
     "title": "Map",
     "permissionDeniedTitle": "Permission denied",
     "permissionDeniedMessage": "Unable to access your location.",
     "all": "All",
-    "nearby": "Nearby"
+    "nearby": "Nearby",
+    "openList": "Open nearby list"
   },
   "calendar": {
     "title": "Calendar",
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month",
     "today": "Today",
     "allDay": "All day",
     "count": "{{count}} plans",
