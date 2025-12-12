@@ -1,48 +1,5 @@
 import { GOOGLE_MAPS_API_KEY } from "@common/types/constants";
-
-export interface GooglePrediction {
-  description: string;
-  place_id: string;
-}
-
-interface GoogleAutocompleteResponse {
-  status: string;
-  predictions: GooglePrediction[];
-}
-
-interface GoogleAddressComponent {
-  long_name: string;
-  short_name: string;
-  types: string[];
-}
-
-interface GooglePlaceDetailsResult {
-  name: string;
-  formatted_address: string;
-  geometry: {
-    location: {
-      lat: number;
-      lng: number;
-    };
-  };
-  address_components: GoogleAddressComponent[];
-}
-
-interface GooglePlaceDetailsResponse {
-  status: string;
-  result: GooglePlaceDetailsResult;
-}
-
-export interface PlaceDetails {
-  placeId: string;
-  description: string;
-  formattedAddress: string;
-  name: string;
-  city: string | null;
-  country: string | null;
-  latitude: number;
-  longitude: number;
-}
+import type { GooglePrediction, PlaceDetails } from "../types";
 
 const AUTOCOMPLETE_URL =
   "https://maps.googleapis.com/maps/api/place/autocomplete/json";

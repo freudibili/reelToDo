@@ -252,6 +252,7 @@ const MapScreen: React.FC = () => {
           text: colors.text,
           overlay: colors.overlay,
           primary: colors.primary,
+          contrastText: colors.primaryText,
         }}
         categories={categories}
         selectedCategory={selectedCategory}
@@ -277,12 +278,7 @@ const MapScreen: React.FC = () => {
           ]}
           onPress={handleShowNearby}
         >
-          <Text
-            style={[
-              styles.fabText,
-              { color: themeMode === "dark" ? colors.background : "#fff" },
-            ]}
-          >
+          <Text style={[styles.fabText, { color: colors.primaryText }]}>
             ☰
           </Text>
         </Pressable>

@@ -1,3 +1,18 @@
+export interface GooglePrediction {
+  description: string;
+  place_id: string;
+}
+
+export interface PlaceDetails {
+  placeId: string;
+  description: string;
+  formattedAddress: string;
+  name: string;
+  city: string | null;
+  country: string | null;
+  latitude: number;
+  longitude: number;
+}
 import type { ShareIntent } from "expo-share-intent";
 
 import type {

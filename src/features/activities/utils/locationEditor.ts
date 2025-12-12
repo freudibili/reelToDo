@@ -2,7 +2,7 @@ import type { TFunction } from "i18next";
 import { updateImportedActivityDetails } from "@features/import/services/importService";
 import { ActivitiesService } from "../services/activitiesService";
 import type { Activity } from "./types";
-import type { PlaceDetails } from "@features/import/services/locationService";
+import type { PlaceDetails } from "@features/import/types";
 
 export type LocationStatusTone = "warning" | "success" | "info";
 
@@ -22,7 +22,7 @@ const unconfirmedStatuses: Array<Activity["location_status"]> = [
 
 export const resolveLocationStatus = (
   activity: Activity,
-  t: TFunction<"translation">,
+  t: TFunction<"translation">
 ): LocationStatusMeta => {
   const status = activity.location_status ?? null;
   const needsConfirmation =
@@ -64,7 +64,9 @@ export const resolveLocationStatus = (
   };
 };
 
-export const derivePlaceFromActivity = (activity: Activity): PlaceDetails | null => {
+export const derivePlaceFromActivity = (
+  activity: Activity
+): PlaceDetails | null => {
   if (activity.latitude === null || activity.longitude === null) return null;
 
   return {
@@ -89,14 +91,19 @@ const nearlyEqual = (a: number | null, b: number | null, epsilon = 0.00001) => {
   return Math.abs(a - b) < epsilon;
 };
 
-export const hasLocationChanged = (activity: Activity, next: PlaceDetails): boolean => {
+export const hasLocationChanged = (
+  activity: Activity,
+  next: PlaceDetails
+): boolean => {
   const sameLatLng =
-    nearlyEqual(activity.latitude, next.latitude) && nearlyEqual(activity.longitude, next.longitude);
+    nearlyEqual(activity.latitude, next.latitude) &&
+    nearlyEqual(activity.longitude, next.longitude);
   const sameAddress =
     (activity.address ?? "").trim().toLowerCase() ===
     (next.formattedAddress ?? "").trim().toLowerCase();
   const sameName =
-    (activity.location_name ?? "").trim().toLowerCase() === (next.name ?? "").trim().toLowerCase();
+    (activity.location_name ?? "").trim().toLowerCase() ===
+    (next.name ?? "").trim().toLowerCase();
 
   // If coords exist, trust them; otherwise fall back to string comparison.
   if (activity.latitude !== null && activity.longitude !== null) {
@@ -128,14 +135,17 @@ export const resolveLocationAction = (params: {
 
 export const saveActivityLocation = async (
   activityId: string,
-  place: PlaceDetails,
+  place: PlaceDetails
 ) => {
   return updateImportedActivityDetails(activityId, {
     location: place,
   });
 };
 
-export const deleteActivityCompletely = async (activityId: string, userId: string) => {
+export const deleteActivityCompletely = async (
+  activityId: string,
+  userId: string
+) => {
   await ActivitiesService.deleteActivity(userId, activityId);
   return activityId;
 };

@@ -5,7 +5,7 @@ import { useAppDispatch, useAppSelector } from "@core/store/hook";
 import { ActivitiesService } from "../services/activitiesService";
 import { activityPatched } from "../store/activitiesSlice";
 import type { Activity } from "../types";
-import type { PlaceDetails } from "@features/import/services/locationService";
+import type { PlaceDetails } from "@features/import/types";
 
 type DateSuggestionPayload = { date: Date; note: string | null };
 type LocationSuggestionPayload = { place: PlaceDetails; note: string | null };

@@ -8,12 +8,12 @@ import {
 import {
   fetchPlaceSuggestions,
   fetchPlaceDetails,
-  type GooglePrediction,
-  type PlaceDetails,
 } from "../services/locationService";
+import type { GooglePrediction, PlaceDetails } from "../types";
 import { useTranslation } from "react-i18next";
 import { useAppTheme } from "@common/theme/appTheme";
 import { Card, Input, Stack, Text } from "@common/designSystem";
+import { debounce } from "../utils/debounce";
 
 type LocationAutocompleteInputProps = {
   initialValue?: string;
@@ -22,14 +22,6 @@ type LocationAutocompleteInputProps = {
   placeholder?: string;
   onChangeText?: (text: string) => void;
   style?: React.ComponentProps<typeof Stack>["style"];
-};
-
-const debounce = <T extends (...args: any[]) => void>(fn: T, delay: number) => {
-  let timeout: ReturnType<typeof setTimeout>;
-  return (...args: Parameters<T>) => {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => fn(...args), delay);
-  };
 };
 
 const LocationAutocompleteInput: React.FC<LocationAutocompleteInputProps> = ({
@@ -69,26 +61,23 @@ const LocationAutocompleteInput: React.FC<LocationAutocompleteInputProps> = ({
     }
   }, [initialValue, value]);
 
-  const fetchSuggestions = useCallback(
-    async (search: string) => {
-      const trimmed = search.trim();
-      if (!trimmed) {
-        setSuggestions([]);
-        return;
-      }
+  const fetchSuggestions = useCallback(async (search: string) => {
+    const trimmed = search.trim();
+    if (!trimmed) {
+      setSuggestions([]);
+      return;
+    }
 
-      try {
-        setLoading(true);
-        const results = await fetchPlaceSuggestions(trimmed);
-        setSuggestions(results);
-      } catch {
-        setSuggestions([]);
-      } finally {
-        setLoading(false);
-      }
-    },
-    []
-  );
+    try {
+      setLoading(true);
+      const results = await fetchPlaceSuggestions(trimmed);
+      setSuggestions(results);
+    } catch {
+      setSuggestions([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   const debouncedFetchSuggestions = useMemo(
     () => debounce(fetchSuggestions, 300),
@@ -106,7 +95,12 @@ const LocationAutocompleteInput: React.FC<LocationAutocompleteInputProps> = ({
     }
 
     debouncedFetchSuggestions(inputValue);
-  }, [debouncedFetchSuggestions, hasConfirmedSelection, hasInteracted, inputValue]);
+  }, [
+    debouncedFetchSuggestions,
+    hasConfirmedSelection,
+    hasInteracted,
+    inputValue,
+  ]);
 
   const handleChangeText = (text: string) => {
     setInputValue(text);

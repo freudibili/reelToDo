@@ -9,6 +9,7 @@ interface MapHeaderProps {
     text: string;
     overlay: string;
     primary: string;
+    contrastText?: string;
   };
   categories: string[];
   selectedCategory: string | null;
@@ -54,7 +55,7 @@ const MapHeader: React.FC<MapHeaderProps> = ({
             style={[
               styles.chipText,
               { color: colors.text },
-              isAllSelected && { color: "#fff" },
+              isAllSelected && { color: colors.contrastText ?? colors.text },
             ]}
           >
             {allLabel}
@@ -84,7 +85,7 @@ const MapHeader: React.FC<MapHeaderProps> = ({
                 style={[
                   styles.chipText,
                   { color: colors.text },
-                  isSelected && { color: "#fff" },
+                  isSelected && { color: colors.contrastText ?? colors.text },
                 ]}
               >
                 {renderCategoryLabel(category)}

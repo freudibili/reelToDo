@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Box, Button, Input, Stack, Text } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";
 import LocationAutocompleteInput from "@features/import/components/LocationAutocompleteInput";
-import type { PlaceDetails } from "@features/import/services/locationService";
+import type { PlaceDetails } from "@features/import/types";
 import AppModal from "./AppModal";
 
 interface LocationChangeModalProps {

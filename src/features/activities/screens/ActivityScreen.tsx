@@ -18,8 +18,12 @@ import ProcessingStateCard from "@features/import/components/ProcessingStateCard
 import DateChangeModal from "@features/activities/components/DateChangeModal";
 import { useAppDispatch, useAppSelector } from "@core/store/hook";
 import { showToast as showToastAction } from "@common/store/appSlice";
-import { activityUpdated, cancelActivity, deleteActivity } from "../store/activitiesSlice";
-import type { PlaceDetails } from "@features/import/services/locationService";
+import {
+  activityUpdated,
+  cancelActivity,
+  deleteActivity,
+} from "../store/activitiesSlice";
+import type { PlaceDetails } from "@features/import/types";
 import ActivityLocationEditorCard from "../components/ActivityLocationEditorCard";
 import ActivityDateEditorCard from "../components/ActivityDateEditorCard";
 import {
@@ -67,7 +71,7 @@ const ActivityScreen = () => {
   const officialDateValue = activity ? getOfficialDateValue(activity) : null;
   const officialDate = useMemo(
     () => parseDateValue(officialDateValue),
-    [officialDateValue],
+    [officialDateValue]
   );
   const isOwner = activity?.user_id
     ? userId
@@ -76,7 +80,11 @@ const ActivityScreen = () => {
     : true;
   const locationLabel = useMemo(() => {
     if (draftLocation) {
-      return draftLocation.formattedAddress || draftLocation.name || draftLocation.description;
+      return (
+        draftLocation.formattedAddress ||
+        draftLocation.name ||
+        draftLocation.description
+      );
     }
     if (activity && formatActivityLocation(activity)) {
       return formatActivityLocation(activity);
@@ -85,17 +93,17 @@ const ActivityScreen = () => {
   }, [activity, draftLocation, t]);
   const dateStatus = useMemo(
     () => (activity ? resolveDateStatus(activity, t) : null),
-    [activity, t],
+    [activity, t]
   );
   const showDate = activity && (displayNeedsDate || !!dateStatus);
   const dateLabel =
     showDate && activity
-      ? formatDisplayDate(draftDate ?? officialDate ?? officialDateValue) ??
-        t("activities:details.dateMissing")
+      ? (formatDisplayDate(draftDate ?? officialDate ?? officialDateValue) ??
+        t("activities:details.dateMissing"))
       : null;
   const locationStatus = useMemo(
     () => (activity ? resolveLocationStatus(activity, t) : null),
-    [activity, t],
+    [activity, t]
   );
 
   const headerTitle = activity?.title ?? t("common:labels.activity");
@@ -111,7 +119,7 @@ const ActivityScreen = () => {
     (message: string, type: "success" | "error" | "info" = "info") => {
       dispatch(showToastAction({ message, type }));
     },
-    [dispatch],
+    [dispatch]
   );
 
   const exitScreen = useCallback(() => {
@@ -122,10 +130,13 @@ const ActivityScreen = () => {
     }
   }, [router]);
 
-  const handleLocationSelected = useCallback((payload: { place: PlaceDetails; note: string | null }) => {
-    setDraftLocation(payload.place);
-    setLocationNote(payload.note);
-  }, []);
+  const handleLocationSelected = useCallback(
+    (payload: { place: PlaceDetails; note: string | null }) => {
+      setDraftLocation(payload.place);
+      setLocationNote(payload.note);
+    },
+    []
+  );
 
   const handleDateSelected = useCallback((date: Date, note?: string | null) => {
     setDraftDate(date);
@@ -207,7 +218,11 @@ const ActivityScreen = () => {
 
   const handleSaveLocation = useCallback(async () => {
     if (!activity?.id) return;
-    const locationAction = resolveLocationAction({ activity, isOwner, draftLocation });
+    const locationAction = resolveLocationAction({
+      activity,
+      isOwner,
+      draftLocation,
+    });
     if (locationAction === "continue") {
       exitScreen();
       return;
@@ -307,7 +322,16 @@ const ActivityScreen = () => {
       .finally(() => {
         setDeletingActivity(false);
       });
-  }, [activity?.id, activity?.user_id, dispatch, router, showToast, t, userId, deletingActivity]);
+  }, [
+    activity?.id,
+    activity?.user_id,
+    dispatch,
+    router,
+    showToast,
+    t,
+    userId,
+    deletingActivity,
+  ]);
 
   return (
     <Screen
@@ -332,9 +356,7 @@ const ActivityScreen = () => {
 
       {activity ? (
         <View style={styles.content}>
-          {isProcessing ? (
-            <ProcessingStateCard mode="processing" />
-          ) : null}
+          {isProcessing ? <ProcessingStateCard mode="processing" /> : null}
 
           {isFailed ? (
             <ProcessingStateCard
@@ -379,7 +401,9 @@ const ActivityScreen = () => {
               status={dateStatus}
               draftDate={draftDate}
               onChangeDate={handleDateSelected}
-              onRequestChange={!isOwner ? () => setDateModalVisible(true) : undefined}
+              onRequestChange={
+                !isOwner ? () => setDateModalVisible(true) : undefined
+              }
               onSave={handleSaveDate}
               saving={savingDate}
               isOwner={isOwner}

@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { Button, Card, Stack, Text } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";
 import LocationChangeModal from "@common/components/LocationChangeModal";
-import type { PlaceDetails } from "../services/locationService";
+import type { PlaceDetails } from "../types";
 
 type LocationSectionProps = {
   infoValue: string;
@@ -16,7 +16,10 @@ type LocationSectionProps = {
   onChange: (place: PlaceDetails) => void;
   editRequest?: number;
   mode?: "edit" | "suggest";
-  onSuggest?: (payload: { place: PlaceDetails; note: string | null }) => Promise<void> | void;
+  onSuggest?: (payload: {
+    place: PlaceDetails;
+    note: string | null;
+  }) => Promise<void> | void;
   submitting?: boolean;
   activityTitle?: string;
 };

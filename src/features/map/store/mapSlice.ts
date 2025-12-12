@@ -1,9 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-
-interface MapState {
-  selectedCategory: string | null;
-  lastFocusedActivityId: string | null;
-}
+import type { MapState } from "../types";
 
 const initialState: MapState = {
   selectedCategory: null,

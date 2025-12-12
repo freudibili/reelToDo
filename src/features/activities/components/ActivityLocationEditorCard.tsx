@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useAppTheme } from "@common/theme/appTheme";
 import { Text } from "@common/designSystem";
 import type { Activity } from "../types";
-import type { PlaceDetails } from "@features/import/services/locationService";
+import type { PlaceDetails } from "@features/import/types";
 import LocationChangeModal from "@common/components/LocationChangeModal";
 import {
   formatActivityLocation,
