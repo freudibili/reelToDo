@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { StyleSheet, Text, View, Pressable, TextInput } from "react-native";
+import { StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
+
+import { Box, Button, Input, Stack, Text } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";
 import LocationAutocompleteInput from "@features/import/components/LocationAutocompleteInput";
 import type { PlaceDetails } from "@features/import/services/locationService";
@@ -52,7 +54,7 @@ const LocationChangeModal: React.FC<LocationChangeModalProps> = ({
       title={resolvedTitle}
       subtitle={resolvedSubtitle}
     >
-      <View style={styles.content}>
+      <Stack gap="lg" style={styles.content}>
         <LocationAutocompleteInput
           initialValue={initialValue}
           onSelectPlace={(place) => {
@@ -61,65 +63,34 @@ const LocationChangeModal: React.FC<LocationChangeModalProps> = ({
           placeholder={t("common:locationPicker.placeholder")}
         />
 
-        <View style={styles.noteGroup}>
-          <Text style={[styles.label, { color: colors.text }]}>
+        <Box style={styles.noteGroup} gap={6}>
+          <Text variant="headline" weight="700">
             {t("activities:report.noteLabel")}
           </Text>
-          <TextInput
-            style={[
-              styles.noteInput,
-              {
-                backgroundColor: colors.surface,
-                color: colors.text,
-                borderColor: colors.border,
-              },
-            ]}
+          <Input
             placeholder={t("activities:report.notePlaceholder")}
-            placeholderTextColor={colors.secondaryText}
             value={note}
             onChangeText={setNote}
             multiline
             numberOfLines={3}
           />
-        </View>
+        </Box>
 
-        <View style={styles.actions}>
-          <Pressable
-            style={[
-              styles.button,
-              styles.secondaryButton,
-              {
-                backgroundColor: isCancelDisabled
-                  ? colors.card
-                  : colors.mutedSurface,
-                borderColor: colors.border,
-              },
-            ]}
+        <Box direction="row" gap={10}>
+          <Button
+            label={t("common:buttons.cancel")}
+            variant="secondary"
             onPress={onClose}
             disabled={isCancelDisabled}
-          >
-            <Text
-              style={[
-                styles.buttonText,
-                {
-                  color: isCancelDisabled ? colors.secondaryText : colors.text,
-                },
-              ]}
-            >
-              {t("common:buttons.cancel")}
-            </Text>
-          </Pressable>
-          <Pressable
-            style={[
-              styles.button,
-              styles.primaryButton,
-              {
-                backgroundColor:
-                  selectedPlace && !submitting ? colors.accent : colors.overlay,
-                borderColor: isConfirmDisabled ? colors.border : colors.accent,
-              },
-            ]}
-            disabled={isConfirmDisabled}
+            style={{ flex: 1 }}
+          />
+          <Button
+            label={
+              submitting
+                ? t("common:locationPicker.submitting")
+                : t("common:locationPicker.confirm")
+            }
+            variant="primary"
             onPress={() => {
               if (selectedPlace) {
                 const trimmedNote = note.trim();
@@ -129,25 +100,11 @@ const LocationChangeModal: React.FC<LocationChangeModalProps> = ({
                 });
               }
             }}
-          >
-            <Text
-              style={[
-                styles.buttonText,
-                {
-                  color:
-                    selectedPlace && !submitting
-                      ? colors.lightGray
-                      : colors.secondaryText,
-                },
-              ]}
-            >
-              {submitting
-                ? t("common:locationPicker.submitting")
-                : t("common:locationPicker.confirm")}
-            </Text>
-          </Pressable>
-        </View>
-      </View>
+            disabled={isConfirmDisabled}
+            style={{ flex: 1 }}
+          />
+        </Box>
+      </Stack>
     </AppModal>
   );
 };
@@ -158,39 +115,7 @@ const styles = StyleSheet.create({
   content: {
     gap: 14,
   },
-  actions: {
-    flexDirection: "row",
-    gap: 10,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: "700",
-  },
   noteGroup: {
     gap: 6,
-  },
-  noteInput: {
-    borderRadius: 12,
-    borderWidth: 1,
-    paddingVertical: 10,
-    paddingHorizontal: 10,
-    textAlignVertical: "top",
-  },
-  button: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  secondaryButton: {
-    borderWidth: 1,
-  },
-  primaryButton: {
-    borderWidth: 1,
-  },
-  buttonText: {
-    fontSize: 14,
-    fontWeight: "700",
   },
 });

@@ -1,6 +1,6 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
-import { useAppTheme } from "@common/theme/appTheme";
+
+import { Box, Card, Stack, Text } from "@common/designSystem";
 
 interface Props {
   title?: string;
@@ -8,43 +8,23 @@ interface Props {
 }
 
 const SettingsSection: React.FC<Props> = ({ title, children }) => {
-  const { colors } = useAppTheme();
-
   return (
-    <View style={styles.section}>
+    <Stack gap="xs" style={styles.section}>
       {title ? (
-        <Text style={[styles.title, { color: colors.secondaryText }]}>
+        <Text variant="eyebrow" tone="muted">
           {title}
         </Text>
       ) : null}
-      <View
-        style={[
-          styles.card,
-          { backgroundColor: colors.card, borderColor: colors.border },
-        ]}
-      >
-        {children}
-      </View>
-    </View>
+      <Card variant="outlined" padding="lg" radius="lg">
+        <Box gap={8}>{children}</Box>
+      </Card>
+    </Stack>
   );
 };
 
 const styles = StyleSheet.create({
   section: {
     marginBottom: 18,
-  },
-  title: {
-    fontSize: 13,
-    fontWeight: "600",
-    marginBottom: 8,
-    textTransform: "uppercase",
-    letterSpacing: 0.4,
-  },
-  card: {
-    borderRadius: 16,
-    borderWidth: 1,
-    gap: 2,
-    overflow: "hidden",
   },
 });
 

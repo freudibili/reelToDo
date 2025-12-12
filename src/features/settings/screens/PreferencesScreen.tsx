@@ -1,11 +1,12 @@
 import React from "react";
-import { View, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
+
+import { Stack } from "@common/designSystem";
 import AppScreen, { ScreenHeader } from "@common/components/AppScreen";
+import { useAppDispatch, useAppSelector } from "@core/store/hook";
 import SettingsSection from "../components/SettingsSection";
 import OptionPill from "../components/OptionPill";
-import { useAppDispatch, useAppSelector } from "@core/store/hook";
 import { settingsSelectors } from "../store/settingsSelectors";
 import {
   savePreferences,
@@ -43,7 +44,7 @@ const PreferencesScreen = () => {
       />
 
       <SettingsSection title={t("settings:preferences.language.title")}>
-        <View style={styles.row}>
+        <Stack direction="row" wrap gap="sm" style={styles.row}>
           {languageOptions.map((option) => (
             <OptionPill
               key={option.value}
@@ -52,11 +53,11 @@ const PreferencesScreen = () => {
               onPress={() => updatePreferences("language", option.value)}
             />
           ))}
-        </View>
+        </Stack>
       </SettingsSection>
 
       <SettingsSection title={t("settings:preferences.distance.title")}>
-        <View style={styles.row}>
+        <Stack direction="row" wrap gap="sm" style={styles.row}>
           {distanceOptions.map((option) => (
             <OptionPill
               key={option.value}
@@ -65,11 +66,11 @@ const PreferencesScreen = () => {
               onPress={() => updatePreferences("distanceUnit", option.value)}
             />
           ))}
-        </View>
+        </Stack>
       </SettingsSection>
 
       <SettingsSection title={t("settings:preferences.theme.title")}>
-        <View style={styles.row}>
+        <Stack direction="row" wrap gap="sm" style={styles.row}>
           {themeOptions.map((option) => (
             <OptionPill
               key={option.value}
@@ -78,19 +79,16 @@ const PreferencesScreen = () => {
               onPress={() => updatePreferences("theme", option.value)}
             />
           ))}
-        </View>
+        </Stack>
       </SettingsSection>
     </AppScreen>
   );
 };
 
-const styles = StyleSheet.create({
+const styles = {
   row: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
     padding: 12,
   },
-});
+} satisfies Record<string, object>;
 
 export default PreferencesScreen;

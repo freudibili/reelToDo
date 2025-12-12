@@ -1,20 +1,22 @@
 import React, { useEffect, useState } from "react";
-import { View, StyleSheet, Text, Pressable } from "react-native";
+import { StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
+
+import { Box, Button, Stack, Text } from "@common/designSystem";
 import AppScreen, { ScreenHeader } from "@common/components/AppScreen";
 import { useAppDispatch, useAppSelector } from "@core/store/hook";
-import { settingsSelectors } from "../store/settingsSelectors";
 import { useAppTheme } from "@common/theme/appTheme";
+import LocationAutocompleteInput from "@features/import/components/LocationAutocompleteInput";
+import { settingsSelectors } from "../store/settingsSelectors";
 import { saveProfile } from "../store/settingsSlice";
 import ProfileTextField from "../components/ProfileTextField";
-import LocationAutocompleteInput from "@features/import/components/LocationAutocompleteInput";
 
 const ProfileScreen = () => {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const { t } = useTranslation();
-  const { colors, mode } = useAppTheme();
+  const { colors } = useAppTheme();
 
   const profile = useAppSelector(settingsSelectors.profile);
   const loading = useAppSelector(settingsSelectors.loading);
@@ -50,7 +52,7 @@ const ProfileScreen = () => {
         onBackPress={() => router.back()}
       />
 
-      <View style={styles.form}>
+      <Stack gap="lg" style={styles.form}>
         <ProfileTextField
           label={t("settings:profile.firstName")}
           value={firstName}
@@ -69,8 +71,8 @@ const ProfileScreen = () => {
           editable={false}
           autoCapitalize="none"
         />
-        <View style={styles.fieldGroup}>
-          <Text style={[styles.label, { color: colors.text }]}>
+        <Box style={styles.fieldGroup} gap={6}>
+          <Text variant="headline" weight="700">
             {t("settings:profile.address")}
           </Text>
           <LocationAutocompleteInput
@@ -83,66 +85,29 @@ const ProfileScreen = () => {
             placeholder={t("settings:profile.address")}
             style={styles.autocompleteWrapper}
           />
-        </View>
+        </Box>
 
-        <Pressable
+        <Button
+          label={t("common:buttons.saveChanges")}
           onPress={handleSave}
+          loading={loading}
           disabled={loading}
-          style={[
-            styles.button,
-            {
-              backgroundColor: loading ? colors.overlay : colors.primary,
-              borderColor: loading ? colors.border : colors.primary,
-            },
-          ]}
-        >
-          <Text
-            style={[
-              styles.buttonText,
-              {
-                color: loading
-                  ? colors.secondaryText
-                  : mode === "dark"
-                    ? colors.background
-                    : colors.surface,
-              },
-            ]}
-          >
-            {t("common:buttons.saveChanges")}
-          </Text>
-        </Pressable>
-      </View>
+          fullWidth
+        />
+      </Stack>
     </AppScreen>
   );
 };
 
 const styles = StyleSheet.create({
   form: {
-    gap: 14,
     marginTop: 8,
   },
   fieldGroup: {
-    gap: 6,
     zIndex: 5,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: "600",
   },
   autocompleteWrapper: {
     zIndex: 5,
-  },
-  button: {
-    marginTop: 6,
-    borderRadius: 12,
-    paddingVertical: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-  },
-  buttonText: {
-    fontSize: 15,
-    fontWeight: "700",
   },
 });
 

@@ -1,6 +1,8 @@
 import React from "react";
-import { View, Text, StyleSheet, ScrollView } from "react-native";
+import { StyleSheet, ScrollView, View } from "react-native";
 import { useTranslation } from "react-i18next";
+
+import { Box, Text } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";
 import CategoryCard from "./CategoryCard";
 import type { CategoryCardItem } from "../store/activitiesSelectors";
@@ -16,12 +18,12 @@ const ActivityList: React.FC<Props> = ({ data, onSelectCategory }) => {
 
   if (!data || data.length === 0) {
     return (
-      <View style={styles.empty}>
-        <Text style={{ color: colors.text }}>{t("activities:list.emptyTitle")}</Text>
-        <Text style={{ color: colors.secondaryText }}>
+      <Stack align="center" gap="xs" style={styles.empty}>
+        <Text variant="headline">{t("activities:list.emptyTitle")}</Text>
+        <Text variant="bodySmall" tone="muted">
           {t("activities:list.emptySubtitle")}
         </Text>
-      </View>
+      </Stack>
     );
   }
 
@@ -29,7 +31,7 @@ const ActivityList: React.FC<Props> = ({ data, onSelectCategory }) => {
     <ScrollView contentContainerStyle={styles.scrollContent}>
       <View style={styles.gridWrapper}>
         {data.map((section) => (
-          <View key={section.id} style={styles.cardColumn}>
+          <Box key={section.id} style={styles.cardColumn}>
             <CategoryCard
               id={section.id}
               name={section.name}
@@ -38,7 +40,7 @@ const ActivityList: React.FC<Props> = ({ data, onSelectCategory }) => {
               hasCluster={section.hasCluster}
               onPress={onSelectCategory}
             />
-          </View>
+          </Box>
         ))}
       </View>
     </ScrollView>
@@ -58,7 +60,6 @@ const styles = StyleSheet.create({
   cardColumn: {
     width: "50%",
     paddingHorizontal: 8,
-    marginBottom: 16,
   },
   empty: { marginTop: 40, alignItems: "center", gap: 4 },
 });

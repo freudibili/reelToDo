@@ -1,7 +1,7 @@
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { IconButton } from "react-native-paper";
-import { useAppTheme } from "@common/theme/appTheme";
+import { StyleSheet, View } from "react-native";
+
+import { IconButton, Stack, Text } from "@common/designSystem";
 
 export interface ScreenHeaderProps {
   title: string;
@@ -22,32 +22,36 @@ const ScreenHeader: React.FC<ScreenHeaderProps> = ({
   compact = false,
   alignLeftWhenNoBack = true,
 }) => {
-  const { colors } = useAppTheme();
-  const titleStyle = compact ? styles.headerTitleCompact : styles.headerTitle;
-  const wrapperStyle = compact ? styles.headerCompact : styles.header;
   const showPlaceholder = !onBackPress && !alignLeftWhenNoBack;
 
   return (
-    <View style={wrapperStyle}>
+    <Stack
+      direction="row"
+      align="center"
+      gap="md"
+      style={compact ? styles.headerCompact : styles.header}
+    >
       {onBackPress ? (
         <IconButton
           icon="chevron-left"
-          size={24}
+          size={40}
+          variant="subtle"
+          tone="primary"
           onPress={onBackPress}
-          style={styles.backButton}
+          accessibilityLabel="Go back"
         />
       ) : showPlaceholder ? (
         <View style={styles.backPlaceholder} />
       ) : null}
 
-      <View style={styles.headerText}>
+      <Stack gap="xxs" style={styles.headerText}>
         {eyebrow ? (
-          <Text style={[styles.eyebrow, { color: colors.secondaryText }]}>
+          <Text variant="eyebrow" tone="muted">
             {eyebrow}
           </Text>
         ) : null}
         <Text
-          style={[titleStyle, { color: colors.text }]}
+          variant={compact ? "title2" : "title1"}
           numberOfLines={1}
           ellipsizeMode="tail"
         >
@@ -55,63 +59,35 @@ const ScreenHeader: React.FC<ScreenHeaderProps> = ({
         </Text>
         {subtitle ? (
           <Text
-            style={[
-              styles.headerSubtitle,
-              compact && styles.headerSubtitleCompact,
-              { color: colors.secondaryText },
-            ]}
+            variant="bodySmall"
+            tone="muted"
             numberOfLines={1}
             ellipsizeMode="tail"
           >
             {subtitle}
           </Text>
         ) : null}
-      </View>
+      </Stack>
 
       <View style={styles.headerRight}>{right}</View>
-    </View>
+    </Stack>
   );
 };
 
 const styles = StyleSheet.create({
   header: {
-    flexDirection: "row",
-    alignItems: "center",
     marginBottom: 16,
   },
   headerCompact: {
-    flexDirection: "row",
-    alignItems: "center",
     marginBottom: 12,
-  },
-  backButton: {
-    marginLeft: -8,
-    marginRight: 4,
   },
   backPlaceholder: {
     width: 40,
   },
   headerText: { flex: 1 },
   eyebrow: {
-    color: "#9aa0ad",
-    fontSize: 11,
-    letterSpacing: 0.3,
-    textTransform: "none",
+    marginTop: 2,
   },
-  headerTitle: {
-    fontSize: 24,
-    lineHeight: 30,
-    fontWeight: "700",
-    color: "#1a1a1a",
-  },
-  headerTitleCompact: {
-    fontSize: 20,
-    lineHeight: 26,
-    fontWeight: "700",
-    color: "#1a1a1a",
-  },
-  headerSubtitle: { marginTop: 2, color: "#8a8f98" },
-  headerSubtitleCompact: { fontSize: 12.5, color: "#8a8f98" },
   headerRight: { minWidth: 40, alignItems: "flex-end" },
 });
 

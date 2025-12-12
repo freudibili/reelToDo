@@ -1,7 +1,9 @@
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { Pressable, StyleSheet } from "react-native";
 import { Avatar, Icon } from "react-native-paper";
 import { useTranslation } from "react-i18next";
+
+import { Box, Card, Stack, Text } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";
 
 interface Props {
@@ -21,48 +23,39 @@ const UserSettingsHeader: React.FC<Props> = ({
   const { colors } = useAppTheme();
 
   return (
-    <TouchableOpacity
-      style={[
-        styles.container,
-        { backgroundColor: colors.surface, borderColor: colors.border },
-      ]}
-      onPress={onPress}
-      activeOpacity={0.9}
-    >
-      <Avatar.Icon
-        size={56}
-        icon="account-circle"
-        style={[styles.avatar, { backgroundColor: colors.overlay }]}
-        color={colors.secondaryText}
-      />
-      <View style={styles.info}>
-        <Text style={[styles.eyebrow, { color: colors.secondaryText }]}>
-          {t("settings:items.profile")}
-        </Text>
-        <Text style={[styles.name, { color: colors.text }]}>{name}</Text>
-        {email ? (
-          <Text style={[styles.meta, { color: colors.mutedText }]}>{email}</Text>
-        ) : null}
-        {address ? (
-          <Text style={[styles.meta, { color: colors.mutedText }]}>
-            {address}
-          </Text>
-        ) : null}
-      </View>
-      <Icon source="chevron-right" size={22} color={colors.secondaryText} />
-    </TouchableOpacity>
+    <Pressable onPress={onPress} disabled={!onPress} style={{ marginBottom: 18 }}>
+      <Card variant="outlined" padding="md" radius="lg">
+        <Stack direction="row" align="center" gap="md">
+          <Avatar.Icon
+            size={56}
+            icon="account-circle"
+            style={[styles.avatar, { backgroundColor: colors.overlay }]}
+            color={colors.secondaryText}
+          />
+          <Box style={styles.info} gap={4}>
+            <Text variant="eyebrow" tone="muted">
+              {t("settings:items.profile")}
+            </Text>
+            <Text variant="title3">{name}</Text>
+            {email ? (
+              <Text variant="bodySmall" tone="muted">
+                {email}
+              </Text>
+            ) : null}
+            {address ? (
+              <Text variant="bodySmall" tone="muted">
+                {address}
+              </Text>
+            ) : null}
+          </Box>
+          <Icon source="chevron-right" size={22} color={colors.secondaryText} />
+        </Stack>
+      </Card>
+    </Pressable>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 14,
-    borderRadius: 18,
-    borderWidth: 1,
-    marginBottom: 18,
-  },
   avatar: {},
   info: {
     flex: 1,

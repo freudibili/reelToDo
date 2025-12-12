@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { Icon } from "react-native-paper";
 import { useAppTheme } from "@common/theme/appTheme";
+import { GradientButton } from "@common/designSystem";
 
 interface ManualLinkCardProps {
   value: string;
@@ -35,6 +36,7 @@ const ManualLinkCard: React.FC<ManualLinkCardProps> = ({
   helperText,
 }) => {
   const { colors } = useAppTheme();
+  const gradientColors = [colors.gradientPrimaryStart, colors.gradientPrimaryEnd];
 
   return (
     <View
@@ -77,18 +79,19 @@ const ManualLinkCard: React.FC<ManualLinkCardProps> = ({
           style={({ pressed }) => [
             styles.analyzePressable,
             {
-              backgroundColor: colors.overlay,
-              borderColor: colors.border,
               opacity: !canAnalyze ? 0.5 : pressed ? 0.9 : 1,
             },
           ]}
         >
-          <View style={styles.analyzeBtn}>
-            <Icon source="link-plus" size={16} color={colors.primary} />
-            <Text style={[styles.analyzeText, { color: colors.text }]}>
-              {loading ? analyzingLabel : analyzeLabel}
-            </Text>
-          </View>
+          <GradientButton
+            label={loading ? analyzingLabel : analyzeLabel}
+            icon={<Icon source="link-plus" size={16} color="#fff" />}
+            onPress={onAnalyze}
+            gradient={gradientColors}
+            loading={loading}
+            size="sm"
+            style={styles.analyzeButton}
+          />
         </Pressable>
       </View>
     </View>
@@ -136,18 +139,10 @@ const styles = StyleSheet.create({
   analyzePressable: {
     borderRadius: 14,
     borderWidth: 1,
+    overflow: "hidden",
   },
-  analyzeBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingHorizontal: 16,
-    paddingVertical: 11,
+  analyzeButton: {
     borderRadius: 14,
-  },
-  analyzeText: {
-    fontWeight: "700",
-    fontSize: 13,
   },
 });
 

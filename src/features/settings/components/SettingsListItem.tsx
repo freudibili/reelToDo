@@ -1,12 +1,13 @@
 import React from "react";
 import {
-  View,
-  StyleSheet,
-  TouchableOpacity,
-  Text,
   GestureResponderEvent,
+  Pressable,
+  StyleSheet,
+  View,
 } from "react-native";
 import { Icon } from "react-native-paper";
+
+import { Box, Stack, Text } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";
 
 type Tone = "default" | "danger";
@@ -31,62 +32,54 @@ const SettingsListItem: React.FC<Props> = ({
   const { colors } = useAppTheme();
   const titleStyle = tone === "danger" ? { color: colors.danger } : undefined;
   const iconColor = tone === "danger" ? colors.danger : colors.primary;
-  const iconBg =
-    tone === "danger" ? "rgba(248,113,113,0.12)" : colors.overlay;
+  const iconBg = tone === "danger" ? "rgba(248,113,113,0.12)" : colors.overlay;
 
-  return (
-    <TouchableOpacity
-      style={styles.item}
-      activeOpacity={0.85}
-      onPress={onPress}
-      disabled={!onPress}
-    >
-      <View style={[styles.iconPill, { backgroundColor: iconBg }]}>
+  const content = (
+    <Stack direction="row" align="center" gap="md" style={styles.item}>
+      <Box rounded="md" background={iconBg} center style={styles.iconPill}>
         <Icon source={icon} size={20} color={iconColor} />
-      </View>
+      </Box>
 
-      <View style={styles.textBlock}>
-        <Text style={[styles.title, { color: colors.text }, titleStyle]}>
+      <Box style={styles.textBlock} gap={4}>
+        <Text variant="headline" style={titleStyle}>
           {title}
         </Text>
         {description ? (
-          <Text
-            style={[styles.description, { color: colors.secondaryText }]}
-            numberOfLines={2}
-          >
+          <Text variant="bodySmall" tone="muted" numberOfLines={2}>
             {description}
           </Text>
         ) : null}
-      </View>
+      </Box>
 
       <View style={styles.right}>
         {right}
         {onPress ? (
-          <Icon
-            source="chevron-right"
-            size={20}
-            color={colors.secondaryText}
-          />
+          <Icon source="chevron-right" size={20} color={colors.secondaryText} />
         ) : null}
       </View>
-    </TouchableOpacity>
+    </Stack>
+  );
+
+  if (!onPress) {
+    return content;
+  }
+
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        pressed ? { backgroundColor: colors.overlay } : undefined,
+      ]}
+    >
+      {content}
+    </Pressable>
   );
 };
 
 const styles = StyleSheet.create({
   item: {
-    flexDirection: "row",
-    alignItems: "center",
     paddingHorizontal: 14,
     paddingVertical: 12,
-  },
-  title: {
-    fontWeight: "600",
-    fontSize: 16,
-  },
-  description: {
-    marginTop: 2,
-    fontSize: 13,
   },
   textBlock: {
     flex: 1,

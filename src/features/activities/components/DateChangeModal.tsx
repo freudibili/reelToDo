@@ -1,6 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
+import { Icon } from "react-native-paper";
+
+import { Box, Button, Input, Stack, Text } from "@common/designSystem";
 import AppModal from "@common/components/AppModal";
 import { useAppTheme } from "@common/theme/appTheme";
 import { formatDisplayDateTime } from "../utils/activityDisplay";
@@ -92,40 +95,24 @@ const DateChangeModal: React.FC<Props> = ({
       title={resolvedTitle}
       subtitle={resolvedSubtitle}
     >
-      <View style={styles.content}>
-        <Text style={[styles.label, { color: colors.text }]}>
+      <Stack gap="md" style={styles.content}>
+        <Text variant="headline" weight="700">
           {t("activities:details.suggestDatePickLabel")}
         </Text>
 
-        <Pressable
-          style={[
-            styles.dateButton,
-            {
-              borderColor: colors.border,
-              backgroundColor: colors.card,
-            },
-          ]}
+        <Button
+          label={formattedDate}
+          variant="outline"
           onPress={openPicker}
-        >
-          <Text style={[styles.dateText, { color: colors.text }]}>
-            {formattedDate}
-          </Text>
-        </Pressable>
+          icon={<Icon source="calendar" size={16} color={colors.text} />}
+          fullWidth
+        />
 
-        <Text style={[styles.label, { color: colors.text }]}>
+        <Text variant="headline" weight="700">
           {t("activities:details.suggestDateNoteLabel")}
         </Text>
-        <TextInput
-          style={[
-            styles.noteInput,
-            {
-              backgroundColor: colors.surface,
-              color: colors.text,
-              borderColor: colors.border,
-            },
-          ]}
+        <Input
           placeholder={t("activities:details.suggestDateNotePlaceholder")}
-          placeholderTextColor={colors.secondaryText}
           value={note}
           onChangeText={setNote}
           multiline
@@ -134,50 +121,27 @@ const DateChangeModal: React.FC<Props> = ({
 
         {pickerModal}
 
-        <View style={styles.actions}>
-          <Pressable
-            style={[
-              styles.button,
-              styles.secondaryButton,
-              {
-                backgroundColor: colors.card,
-                borderColor: colors.border,
-              },
-            ]}
+        <Box direction="row" gap={10}>
+          <Button
+            label={t("common:buttons.cancel")}
+            variant="secondary"
             onPress={onClose}
             disabled={submitting}
-          >
-            <Text style={[styles.buttonText, { color: colors.text }]}>
-              {t("common:buttons.cancel")}
-            </Text>
-          </Pressable>
-          <Pressable
-            style={[
-              styles.button,
-              styles.primaryButton,
-              {
-                backgroundColor: isDisabled ? colors.overlay : colors.accent,
-                borderColor: isDisabled ? colors.border : colors.accent,
-              },
-            ]}
+            style={{ flex: 1 }}
+          />
+          <Button
+            label={
+              submitting
+                ? t("activities:details.suggestDateSubmitting")
+                : t("activities:details.suggestDateConfirm")
+            }
+            variant="primary"
             onPress={handleConfirm}
             disabled={isDisabled}
-          >
-            <Text
-              style={[
-                styles.buttonText,
-                {
-                  color: isDisabled ? colors.secondaryText : colors.accentText,
-                },
-              ]}
-            >
-              {submitting
-                ? t("activities:details.suggestDateSubmitting")
-                : t("activities:details.suggestDateConfirm")}
-            </Text>
-          </Pressable>
-        </View>
-      </View>
+            style={{ flex: 1 }}
+          />
+        </Box>
+      </Stack>
     </AppModal>
   );
 };
@@ -187,44 +151,5 @@ export default DateChangeModal;
 const styles = StyleSheet.create({
   content: {
     gap: 12,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: "700",
-  },
-  dateButton: {
-    borderRadius: 12,
-    borderWidth: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-  },
-  dateText: {
-    fontSize: 14,
-    fontWeight: "700",
-  },
-  noteInput: {
-    borderRadius: 12,
-    borderWidth: 1,
-    paddingVertical: 10,
-    paddingHorizontal: 10,
-    textAlignVertical: "top",
-  },
-  actions: {
-    flexDirection: "row",
-    gap: 10,
-  },
-  button: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-  },
-  secondaryButton: {},
-  primaryButton: {},
-  buttonText: {
-    fontSize: 14,
-    fontWeight: "700",
   },
 });

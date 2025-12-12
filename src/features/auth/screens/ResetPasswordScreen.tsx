@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { Text, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
-import AuthLayout from "../components/AuthLayout";
-import AuthTextField from "../components/AuthTextField";
-import AuthButton from "../components/AuthButton";
+
+import { InlineMessage } from "@common/designSystem";
 import { useAppDispatch, useAppSelector } from "@core/store/hook";
 import {
   selectAuthError,
@@ -13,14 +11,14 @@ import {
   selectRequiresPasswordChange,
 } from "@features/auth/store/authSelectors";
 import { clearError, updatePassword } from "@features/auth/store/authSlice";
-import { useAppTheme } from "@common/theme/appTheme";
+import AuthButton from "../components/AuthButton";
+import AuthLayout from "../components/AuthLayout";
+import AuthTextField from "../components/AuthTextField";
 
 const ResetPasswordScreen = () => {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const { t } = useTranslation();
-  const { colors, mode } = useAppTheme();
-
   const requiresPasswordChange = useAppSelector(selectRequiresPasswordChange);
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
   const status = useAppSelector(selectAuthRequestStatus("updatePassword"));
@@ -64,34 +62,18 @@ const ResetPasswordScreen = () => {
       loading={status === "pending"}
     >
       {error ? (
-        <Text
-          style={[
-            styles.error,
-            {
-              color: colors.danger,
-              borderColor: colors.danger,
-              backgroundColor:
-                mode === "dark" ? colors.mutedSurface : colors.overlay,
-            },
-          ]}
-        >
-          {error}
-        </Text>
+        <InlineMessage
+          tone="danger"
+          description={error}
+          icon="alert-circle-outline"
+        />
       ) : null}
       {localError ? (
-        <Text
-          style={[
-            styles.error,
-            {
-              color: colors.danger,
-              borderColor: colors.danger,
-              backgroundColor:
-                mode === "dark" ? colors.mutedSurface : colors.overlay,
-            },
-          ]}
-        >
-          {localError}
-        </Text>
+        <InlineMessage
+          tone="danger"
+          description={localError}
+          icon="alert-circle-outline"
+        />
       ) : null}
       <AuthTextField
         label={t("auth:resetPassword.password")}
@@ -118,11 +100,3 @@ const ResetPasswordScreen = () => {
 };
 
 export default ResetPasswordScreen;
-
-const styles = StyleSheet.create({
-  error: {
-    borderWidth: 1,
-    padding: 10,
-    borderRadius: 10,
-  },
-});

@@ -1,13 +1,12 @@
 import React, { useEffect, useMemo } from "react";
-import { View, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
+
+import { Card } from "@common/designSystem";
 import AppScreen, { ScreenHeader } from "@common/components/AppScreen";
-import SettingsSection from "../components/SettingsSection";
-import SettingsListItem from "../components/SettingsListItem";
-import UserSettingsHeader from "../components/UserSettingsHeader";
-import { useAppDispatch, useAppSelector } from "@core/store/hook";
 import { useAppTheme } from "@common/theme/appTheme";
+import { useAppDispatch, useAppSelector } from "@core/store/hook";
 import { selectAuthUser } from "@features/auth/store/authSelectors";
 import {
   loadSettings,
@@ -15,6 +14,9 @@ import {
 } from "@features/settings/store/settingsSlice";
 import { settingsSelectors } from "@features/settings/store/settingsSelectors";
 import { signOut } from "@features/auth/store/authSlice";
+import SettingsSection from "../components/SettingsSection";
+import SettingsListItem from "../components/SettingsListItem";
+import UserSettingsHeader from "../components/UserSettingsHeader";
 
 const SettingsScreen = () => {
   const router = useRouter();
@@ -123,19 +125,14 @@ const SettingsScreen = () => {
         />
       </SettingsSection>
 
-      <View
-        style={[
-          styles.footer,
-          { backgroundColor: colors.card, borderColor: colors.border },
-        ]}
-      >
+      <Card variant="outlined" padding="lg" radius="lg" style={styles.footer}>
         <SettingsListItem
           title={t("settings:actions.signOut")}
           icon="logout"
           onPress={handleLogout}
           tone="danger"
         />
-      </View>
+      </Card>
     </AppScreen>
   );
 };
@@ -143,9 +140,6 @@ const SettingsScreen = () => {
 const styles = StyleSheet.create({
   footer: {
     marginTop: 12,
-    borderRadius: 16,
-    borderWidth: 1,
-    overflow: "hidden",
   },
 });
 

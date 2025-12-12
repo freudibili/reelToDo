@@ -1,22 +1,19 @@
 import React from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  ActivityIndicator,
-} from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 import { Icon } from "react-native-paper";
+import { useTranslation } from "react-i18next";
+
+import { Box, Text } from "@common/designSystem";
+import { radii, spacing } from "@common/designSystem/tokens";
+import { useAppTheme } from "@common/theme/appTheme";
+import AppImage from "@common/components/AppImage";
+import FavoriteHeart from "./FavoriteHeart";
 import {
   formatActivityLocation,
   formatDisplayDate,
   getPrimaryDateValue,
 } from "../utils/activityDisplay";
 import type { Activity, ActivityProcessingStatus } from "../utils/types";
-import { useTranslation } from "react-i18next";
-import { useAppTheme } from "@common/theme/appTheme";
-import FavoriteHeart from "./FavoriteHeart";
-import AppImage from "@common/components/AppImage";
 
 interface Props {
   activity: Activity;
@@ -45,7 +42,8 @@ const ActivityCard: React.FC<Props> = ({
 
   return (
     <Pressable style={styles.card} onPress={() => onPress(activity)}>
-      <View
+      <Box
+        rounded="lg"
         style={[styles.imageWrapper, { backgroundColor: colors.mutedSurface }]}
       >
         <AppImage
@@ -54,20 +52,30 @@ const ActivityCard: React.FC<Props> = ({
           resizeMode="cover"
         >
           {isProcessing ? (
-            <View style={[styles.statusPill, { backgroundColor: "#0f172a99" }]}>
+            <Box
+              rounded="pill"
+              paddingHorizontal={spacing.sm}
+              paddingVertical={spacing.xs}
+              style={[styles.statusPill, { backgroundColor: "#0f172a99" }]}
+            >
               <ActivityIndicator color={colors.surface} size="small" />
-              <Text style={[styles.statusText, { color: colors.surface }]}>
+              <Text variant="caption" weight="700" style={{ color: colors.surface }}>
                 {t("activities:card.processing")}
               </Text>
-            </View>
+            </Box>
           ) : null}
           {isFailed ? (
-            <View style={[styles.statusPill, { backgroundColor: colors.danger }]}>
+            <Box
+              rounded="pill"
+              paddingHorizontal={spacing.sm}
+              paddingVertical={spacing.xs}
+              style={[styles.statusPill, { backgroundColor: colors.danger }]}
+            >
               <Icon source="alert" size={14} color="#fff" />
-              <Text style={[styles.statusText, { color: "#fff" }]}>
+              <Text variant="caption" weight="700" style={{ color: "#fff" }}>
                 {t("activities:card.failed")}
               </Text>
-            </View>
+            </Box>
           ) : null}
           {onToggleFavorite && (
             <Pressable
@@ -79,49 +87,37 @@ const ActivityCard: React.FC<Props> = ({
             </Pressable>
           )}
         </AppImage>
-      </View>
+      </Box>
 
-      <View style={styles.content}>
-        <Text
-          style={[styles.title, { color: colors.text }]}
-          numberOfLines={2}
-          ellipsizeMode="tail"
-        >
+      <Box style={styles.content} gap={spacing.xs}>
+        <Text variant="headline" numberOfLines={2} ellipsizeMode="tail">
           {activity.title ?? t("activities:card.untitled")}
         </Text>
 
         {locationLabel ? (
-          <View style={styles.metaRow}>
+          <Box direction="row" align="center" gap={6}>
             <Icon source="map-marker" size={14} color={colors.secondaryText} />
-            <Text
-              style={[styles.metaText, { color: colors.secondaryText }]}
-              numberOfLines={1}
-              ellipsizeMode="tail"
-            >
+            <Text variant="bodySmall" tone="muted" numberOfLines={1} ellipsizeMode="tail">
               {locationLabel}
             </Text>
-          </View>
+          </Box>
         ) : null}
 
         {dateLabel ? (
-          <View style={styles.metaRow}>
+          <Box direction="row" align="center" gap={6}>
             <Icon
               source={isPlanned ? "calendar-check" : "calendar"}
               size={14}
               color={colors.secondaryText}
             />
-            <Text
-              style={[styles.metaText, { color: colors.secondaryText }]}
-              numberOfLines={1}
-              ellipsizeMode="tail"
-            >
+            <Text variant="bodySmall" tone="muted" numberOfLines={1} ellipsizeMode="tail">
               {isPlanned
                 ? t("activities:planned.timeLabel", { value: dateLabel })
                 : dateLabel}
             </Text>
-          </View>
+          </Box>
         ) : null}
-      </View>
+      </Box>
     </Pressable>
   );
 };
@@ -130,12 +126,12 @@ export default ActivityCard;
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 12,
+    borderRadius: radii.lg,
   },
   imageWrapper: {
     width: "100%",
     height: 150,
-    borderRadius: 12,
+    borderRadius: radii.lg,
     overflow: "hidden",
     position: "relative",
   },
@@ -144,23 +140,8 @@ const styles = StyleSheet.create({
     height: "100%",
   },
   content: {
-    paddingHorizontal: 6,
-    paddingVertical: 8,
-    gap: 6,
-  },
-  title: {
-    fontSize: 15,
-    fontWeight: "700",
-    lineHeight: 19,
-  },
-  metaRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  metaText: {
-    fontSize: 12,
-    flexShrink: 1,
+    paddingHorizontal: spacing.sm / 2,
+    paddingVertical: spacing.sm,
   },
   favoriteBtn: {
     position: "absolute",
@@ -174,15 +155,5 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 12,
     left: 12,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 999,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: "700",
   },
 });

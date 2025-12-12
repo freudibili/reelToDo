@@ -1,23 +1,17 @@
 import React from "react";
-import { View, ActivityIndicator, StyleSheet } from "react-native";
+import { ActivityIndicator } from "react-native";
+
+import { Box } from "@common/designSystem";
 import AppScreen from "@common/components/AppScreen";
 
 const AuthLoadingScreen = () => {
   return (
     <AppScreen alignToTabBar={false} withBottomInset>
-      <View style={styles.container}>
+      <Box flex={1} center>
         <ActivityIndicator />
-      </View>
+      </Box>
     </AppScreen>
   );
 };
 
 export default AuthLoadingScreen;
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});

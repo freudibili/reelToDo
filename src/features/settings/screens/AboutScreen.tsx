@@ -1,15 +1,19 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
 import Constants from "expo-constants";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
+
+import { Card, Text } from "@common/designSystem";
 import AppScreen, { ScreenHeader } from "@common/components/AppScreen";
+import { useAppTheme } from "@common/theme/appTheme";
 import SettingsSection from "../components/SettingsSection";
 import SettingsListItem from "../components/SettingsListItem";
 
 const AboutScreen = () => {
   const router = useRouter();
   const { t } = useTranslation();
+  const { colors } = useAppTheme();
 
   const manifest = (Constants as unknown as { manifest?: Record<string, any> })
     .manifest;
@@ -42,29 +46,29 @@ const AboutScreen = () => {
         />
       </SettingsSection>
 
-      <View style={styles.note}>
-        <Text style={styles.noteTitle}>{t("settings:about.roadmapTitle")}</Text>
-        <Text style={styles.noteText}>{t("settings:about.roadmap")}</Text>
-      </View>
+      <Card
+        padding="lg"
+        radius="lg"
+        style={[
+          styles.note,
+          { backgroundColor: colors.mutedSurface, borderColor: colors.border },
+        ]}
+        variant="outlined"
+      >
+        <Text variant="headline" weight="700">
+          {t("settings:about.roadmapTitle")}
+        </Text>
+        <Text variant="body" tone="muted">
+          {t("settings:about.roadmap")}
+        </Text>
+      </Card>
     </AppScreen>
   );
 };
 
 const styles = StyleSheet.create({
   note: {
-    padding: 14,
-    borderRadius: 12,
-    backgroundColor: "#0f172a",
     marginTop: 10,
-  },
-  noteTitle: {
-    color: "#fff",
-    fontWeight: "700",
-    marginBottom: 4,
-  },
-  noteText: {
-    color: "#e2e8f0",
-    lineHeight: 20,
   },
 });
 

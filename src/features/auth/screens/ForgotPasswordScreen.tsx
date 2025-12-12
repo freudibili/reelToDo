@@ -1,11 +1,9 @@
 import React, { useCallback, useState } from "react";
-import { Text, StyleSheet, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { useFocusEffect } from "@react-navigation/native";
-import AuthLayout from "../components/AuthLayout";
-import AuthTextField from "../components/AuthTextField";
-import AuthButton from "../components/AuthButton";
+
+import { InlineMessage } from "@common/designSystem";
 import { useAppDispatch, useAppSelector } from "@core/store/hook";
 import {
   requestPasswordReset,
@@ -15,13 +13,14 @@ import {
   selectAuthError,
   selectAuthRequestStatus,
 } from "@features/auth/store/authSelectors";
-import { useAppTheme } from "@common/theme/appTheme";
+import AuthButton from "../components/AuthButton";
+import AuthLayout from "../components/AuthLayout";
+import AuthTextField from "../components/AuthTextField";
 
 const ForgotPasswordScreen = () => {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const { t } = useTranslation();
-  const { colors, mode } = useAppTheme();
   const [email, setEmail] = useState("");
   const [linkSent, setLinkSent] = useState(false);
 
@@ -62,34 +61,18 @@ const ForgotPasswordScreen = () => {
       onBackPress={handleBack}
     >
       {error ? (
-        <Text
-          style={[
-            styles.error,
-            {
-              color: colors.danger,
-              borderColor: colors.danger,
-              backgroundColor:
-                mode === "dark" ? colors.mutedSurface : colors.overlay,
-            },
-          ]}
-        >
-          {error}
-        </Text>
+        <InlineMessage
+          tone="danger"
+          description={error}
+          icon="alert-circle-outline"
+        />
       ) : null}
       {linkSent ? (
-        <Text
-          style={[
-            styles.info,
-            {
-              color: colors.primary,
-              borderColor: colors.border,
-              backgroundColor:
-                mode === "dark" ? colors.mutedSurface : colors.overlay,
-            },
-          ]}
-        >
-          {t("auth:emailCheck.resetMessage")}
-        </Text>
+        <InlineMessage
+          tone="info"
+          description={t("auth:emailCheck.resetMessage")}
+          icon="email-send-outline"
+        />
       ) : null}
       <AuthTextField
         label={t("common:fields.email")}
@@ -110,20 +93,3 @@ const ForgotPasswordScreen = () => {
 };
 
 export default ForgotPasswordScreen;
-
-const styles = StyleSheet.create({
-  link: {
-    fontWeight: "600",
-    fontSize: 14,
-  },
-  error: {
-    borderWidth: 1,
-    padding: 10,
-    borderRadius: 10,
-  },
-  info: {
-    borderWidth: 1,
-    padding: 10,
-    borderRadius: 10,
-  },
-});

@@ -1,7 +1,8 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
 import AppScreen from "@common/components/AppScreen";
 import { useAppTheme } from "@common/theme/appTheme";
+import { Box, Card, Stack, Text } from "@common/designSystem";
 
 type AuthLayoutProps = {
   title: string;
@@ -35,8 +36,6 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
   const resolvedBackground =
     backgroundColor ??
     (isDark ? colors.surface : colors.background);
-  const titleColor = colors.text;
-  const subtitleColor = colors.secondaryText;
 
   return (
     <AppScreen
@@ -51,34 +50,42 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
       onBackPress={showBackButton ? onBackPress : undefined}
       headerCompact={showBackButton}
     >
-      <View
+      <Stack
+        gap="lg"
         style={[
           styles.container,
-          centered && styles.centered,
-          !centered && styles.topAligned,
+          centered ? styles.centered : styles.topAligned,
         ]}
       >
-        <View style={styles.header}>
-          <Text style={[styles.title, { color: titleColor }]}>{title}</Text>
+        <Stack align="center" gap="xs">
+          <Text variant="title1">{title}</Text>
           {subtitle ? (
-            <Text style={[styles.subtitle, { color: subtitleColor }]}>
+            <Text variant="body" tone="muted" align="center">
               {subtitle}
             </Text>
           ) : null}
-        </View>
+        </Stack>
 
         {withCard ? (
-          <View
-            style={[styles.card, { backgroundColor: colors.surface }]}
+          <Card
+            padding="lg"
+            radius="lg"
+            variant={isDark ? "outlined" : "elevated"}
           >
             {children}
-          </View>
+          </Card>
         ) : (
-          <View style={styles.content}>{children}</View>
+          <Box style={styles.content} gap={12}>
+            {children}
+          </Box>
         )}
-      </View>
+      </Stack>
 
-      {footer ? <View style={styles.footer}>{footer}</View> : null}
+      {footer ? (
+        <Box style={styles.footer} gap={10}>
+          {footer}
+        </Box>
+      ) : null}
     </AppScreen>
   );
 };
@@ -97,18 +104,6 @@ const styles = StyleSheet.create({
   topAligned: {
     justifyContent: "flex-start",
   },
-  header: {
-    alignItems: "center",
-    gap: 6,
-  },
-  card: {
-    borderRadius: 16,
-    padding: 18,
-    gap: 12,
-    width: "100%",
-    maxWidth: 520,
-    alignSelf: "center",
-  },
   content: {
     width: "100%",
     maxWidth: 520,
@@ -118,14 +113,5 @@ const styles = StyleSheet.create({
   footer: {
     marginTop: 12,
     gap: 10,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "700",
-  },
-  subtitle: {
-    fontSize: 15,
-    textAlign: "center",
-    marginTop: 4,
   },
 });

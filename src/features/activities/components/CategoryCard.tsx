@@ -1,10 +1,13 @@
 import React, { useRef } from "react";
-import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
+import { Animated, Pressable, StyleSheet, View } from "react-native";
 import { Icon } from "react-native-paper";
+
+import { Box, Text } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";
-import type { CategoryCardItem } from "../utils/categorySummary";
-import { formatCategoryName } from "../utils/categorySummary";
+import { radii, spacing } from "@common/designSystem/tokens";
 import AppImage from "@common/components/AppImage";
+import { formatCategoryName } from "../utils/categorySummary";
+import type { CategoryCardItem } from "../utils/categorySummary";
 
 interface Props extends CategoryCardItem {
   onPress: (category: string) => void;
@@ -54,7 +57,12 @@ const CategoryCard: React.FC<Props> = ({
     (colors as any).surfaceVariant ?? colors.card ?? "#1f2937";
 
   return (
-    <Animated.View style={[styles.wrapper, { transform: [{ scale }] }]}>
+    <Animated.View
+      style={[
+        styles.wrapper,
+        { transform: [{ scale }], shadowColor: "transparent" },
+      ]}
+    >
       <Pressable
         onPress={handlePress}
         onPressIn={handlePressIn}
@@ -70,39 +78,43 @@ const CategoryCard: React.FC<Props> = ({
             resizeMode="cover"
           >
             {activityCount > 0 ? (
-              <View
-                style={[
-                  styles.countBadge,
-                  { backgroundColor: countBackground },
-                ]}
+              <Box
+                background={countBackground}
+                paddingHorizontal={spacing.md}
+                paddingVertical={spacing.xs}
+                rounded="sm"
+                style={styles.countBadge}
               >
-                <View style={styles.countRow}>
-                  <Text style={[styles.countText, { color: countIconColor }]}>
-                    {countLabel} spots
-                  </Text>
-                </View>
-              </View>
+                <Text
+                  variant="caption"
+                  weight="700"
+                  style={{ color: countIconColor }}
+                >
+                  {countLabel} spots
+                </Text>
+              </Box>
             ) : null}
 
             {hasCluster ? (
-              <View
-                style={[styles.clusterBadge, { backgroundColor: colors.card }]}
+              <Box
+                rounded="pill"
+                background={colors.card}
+                padding={spacing.sm}
+                style={styles.clusterBadge}
+                shadow="sm"
               >
                 <Icon
                   source="map-marker-multiple"
                   size={18}
                   color={colors.primary}
                 />
-              </View>
+              </Box>
             ) : null}
           </AppImage>
         </View>
 
         <View style={styles.content}>
-          <Text
-            style={[styles.title, { color: colors.text }]}
-            numberOfLines={1}
-          >
+          <Text variant="headline" numberOfLines={1}>
             {displayName}
           </Text>
         </View>
@@ -116,48 +128,30 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   card: {
-    borderRadius: 14,
+    borderRadius: radii.lg,
     overflow: "hidden",
   },
   media: {
     width: "100%",
     aspectRatio: 1,
     position: "relative",
-    borderRadius: 14,
+    borderRadius: radii.lg,
     overflow: "hidden",
   },
   content: {
-    paddingHorizontal: 6,
-    paddingVertical: 8,
-    gap: 6,
-  },
-  title: {
-    fontSize: 15,
-    fontWeight: "700",
-    lineHeight: 19,
+    paddingHorizontal: spacing.sm / 2,
+    paddingVertical: spacing.sm,
+    gap: spacing.xs,
   },
   countBadge: {
     position: "absolute",
     top: 10,
     left: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 10,
-  },
-  countText: {
-    fontWeight: "700",
-    fontSize: 12,
-  },
-  countRow: {
-    flexDirection: "row",
-    alignItems: "center",
   },
   clusterBadge: {
     position: "absolute",
     top: 10,
     right: 10,
-    padding: 7,
-    borderRadius: 20,
     shadowColor: "#000",
     shadowOpacity: 0.12,
     shadowRadius: 6,

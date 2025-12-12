@@ -1,12 +1,14 @@
 import React, { useEffect, useMemo, useRef } from "react";
 import {
-  View,
   TextInput,
   StyleSheet,
   TextInputKeyPressEventData,
   NativeSyntheticEvent,
 } from "react-native";
+
+import { Stack } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";
+import { radii, spacing } from "@common/designSystem/tokens";
 
 type Props = {
   value: string;
@@ -59,7 +61,7 @@ const OtpInput: React.FC<Props> = ({
   };
 
   return (
-    <View style={styles.container}>
+    <Stack direction="row" justify="center" gap="sm">
       {Array.from({ length }).map((_, idx) => (
         <TextInput
           key={idx}
@@ -90,24 +92,20 @@ const OtpInput: React.FC<Props> = ({
           secureTextEntry={false}
         />
       ))}
-    </View>
+    </Stack>
   );
 };
 
 export default OtpInput;
 
 const styles = StyleSheet.create({
-  container: {
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: 10,
-  },
   input: {
     width: 48,
     height: 56,
-    borderRadius: 12,
-    borderWidth: 1,
+    borderRadius: radii.md,
+    borderWidth: 1.2,
     fontSize: 20,
     fontWeight: "700",
+    paddingVertical: spacing.xs,
   },
 });

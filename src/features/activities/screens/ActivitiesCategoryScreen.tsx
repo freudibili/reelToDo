@@ -1,27 +1,29 @@
 import React, { useCallback, useMemo, useRef, useState } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
+
+import { Stack, Text } from "@common/designSystem";
+import AppBottomSheet from "@common/components/AppBottomSheet";
+import Screen from "@common/components/AppScreen";
+import { useConfirmDialog } from "@common/hooks/useConfirmDialog";
 import { useAppDispatch, useAppSelector } from "@core/store/hook";
-import { activitiesSelectors } from "../store/activitiesSelectors";
+import { createActivityCalendarEvent } from "@features/calendar/store/calendarThunks";
+import ActivityCard from "../components/ActivityCard";
+import ActivityDetailsSheet from "../components/ActivityDetailsSheet";
 import {
   addFavorite,
   removeFavorite,
   deleteActivity,
   setPlannedDate,
 } from "../store/activitiesSlice";
-import { createActivityCalendarEvent } from "@features/calendar/store/calendarThunks";
-import ActivityCard from "../components/ActivityCard";
-import ActivityDetailsSheet from "../components/ActivityDetailsSheet";
-import type { Activity } from "../utils/types";
-import { useConfirmDialog } from "@common/hooks/useConfirmDialog";
-import Screen from "@common/components/AppScreen";
-import AppBottomSheet from "@common/components/AppBottomSheet";
-import { useTranslation } from "react-i18next";
+import { activitiesSelectors } from "../store/activitiesSelectors";
 import {
   openActivityInMaps,
   openActivitySource,
 } from "../services/linksService";
 import { formatCategoryName } from "../utils/categorySummary";
+import type { Activity } from "../utils/types";
 
 const ActivitiesCategoryScreen = () => {
   const { category: categoryParam } = useLocalSearchParams<{
@@ -133,9 +135,11 @@ const ActivitiesCategoryScreen = () => {
           ))}
 
           {activities.length === 0 && (
-            <View style={styles.empty}>
-              <Text>{t("activities:category.empty")}</Text>
-            </View>
+            <Stack align="center" style={styles.empty}>
+              <Text variant="bodySmall" tone="muted">
+                {t("activities:category.empty")}
+              </Text>
+            </Stack>
           )}
         </View>
       </Screen>
@@ -175,9 +179,9 @@ const ActivitiesCategoryScreen = () => {
 const styles = StyleSheet.create({
   list: {
     paddingBottom: 12,
+    marginHorizontal: -6,
     flexDirection: "row",
     flexWrap: "wrap",
-    marginHorizontal: -6,
   },
   cardSpacer: {
     width: "50%",

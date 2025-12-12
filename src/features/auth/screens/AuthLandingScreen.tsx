@@ -1,7 +1,9 @@
 import React from "react";
-import { View, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
+
+import { Box, Stack } from "@common/designSystem";
 import AuthLayout from "../components/AuthLayout";
 import AuthButton from "../components/AuthButton";
 import MagicLinkButton from "../components/MagicLinkButton";
@@ -17,14 +19,14 @@ const AuthLandingScreen = () => {
       tone="dark"
       backgroundColor="#040815"
     >
-      <View style={styles.page}>
-        <View style={styles.backgroundLayer} pointerEvents="none">
-          <View style={[styles.circle, styles.circleA]} />
-          <View style={[styles.circle, styles.circleB]} />
-          <View style={[styles.circle, styles.circleC]} />
-        </View>
+      <Box style={styles.page}>
+        <Box style={styles.backgroundLayer} pointerEvents="none">
+          <Box style={[styles.circle, styles.circleA]} />
+          <Box style={[styles.circle, styles.circleB]} />
+          <Box style={[styles.circle, styles.circleC]} />
+        </Box>
 
-        <View style={styles.actions}>
+        <Stack gap="md" style={styles.actions}>
           <AuthButton
             label={t("auth:landing.signIn")}
             onPress={() => router.push("/auth/signin")}
@@ -35,14 +37,14 @@ const AuthLandingScreen = () => {
             onPress={() => router.push("/auth/signup")}
           />
 
-          <View style={styles.altGroup}>
+          <Stack gap="sm" style={styles.altGroup}>
             <MagicLinkButton
               label={t("auth:landing.magicLink")}
               onPress={() => router.push("/auth/magic-link")}
             />
-          </View>
-        </View>
-      </View>
+          </Stack>
+        </Stack>
+      </Box>
     </AuthLayout>
   );
 };

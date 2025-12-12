@@ -1,12 +1,12 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { useFocusEffect } from "@react-navigation/native";
 import { Icon } from "react-native-paper";
-import AuthLayout from "../components/AuthLayout";
-import AuthTextField from "../components/AuthTextField";
-import AuthButton from "../components/AuthButton";
+
+import { Divider, InlineMessage, Stack, Text } from "@common/designSystem";
+import { useAppTheme } from "@common/theme/appTheme";
 import { useAppDispatch, useAppSelector } from "@core/store/hook";
 import { clearError, signInWithPassword } from "@features/auth/store/authSlice";
 import {
@@ -14,13 +14,15 @@ import {
   selectAuthRequestStatus,
   selectIsAuthenticated,
 } from "@features/auth/store/authSelectors";
-import { useAppTheme } from "@common/theme/appTheme";
+import AuthButton from "../components/AuthButton";
+import AuthLayout from "../components/AuthLayout";
+import AuthTextField from "../components/AuthTextField";
 
 const SignInScreen = () => {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const { t } = useTranslation();
-  const { colors, mode } = useAppTheme();
+  const { colors } = useAppTheme();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -68,19 +70,11 @@ const SignInScreen = () => {
       onBackPress={handleBack}
     >
       {error ? (
-        <Text
-          style={[
-            styles.error,
-            {
-              color: colors.danger,
-              borderColor: colors.danger,
-              backgroundColor:
-                mode === "dark" ? colors.mutedSurface : colors.overlay,
-            },
-          ]}
-        >
-          {error}
-        </Text>
+        <InlineMessage
+          tone="danger"
+          description={error}
+          icon="alert-circle-outline"
+        />
       ) : null}
       <AuthTextField
         label={t("common:fields.email")}
@@ -105,44 +99,50 @@ const SignInScreen = () => {
       loading={passwordStatus === "pending"}
       disabled={!email || !password}
     />
-      <TouchableOpacity onPress={() => router.push("/auth/forgot-password")}>
-        <Text style={[styles.forgot, { color: colors.primary }]}>
-          {t("auth:signIn.forgot")}
-        </Text>
-      </TouchableOpacity>
-      <View style={styles.dividerRow}>
-        <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
-        <Text style={[styles.dividerText, { color: colors.secondaryText }]}>
+      <Text
+        variant="bodySmall"
+        tone="primary"
+        weight="700"
+        onPress={() => router.push("/auth/forgot-password")}
+        style={styles.link}
+      >
+        {t("auth:signIn.forgot")}
+      </Text>
+
+      <Stack direction="row" align="center" gap="sm" style={styles.dividerRow}>
+        <Divider style={styles.dividerLine} />
+        <Text variant="caption" tone="muted" weight="700">
           {t("auth:or")}
         </Text>
-        <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
-      </View>
-      <View style={styles.altRow}>
-        <TouchableOpacity onPress={() => router.replace("/auth/signup")}>
-          <Text style={[styles.altLink, { color: colors.primary }]}>
-            {t("auth:signUp.title")}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() =>
-            router.push({
-              pathname: "/auth/magic-link",
-              params: email ? { email } : undefined,
-            })
-          }
+        <Divider style={styles.dividerLine} />
+      </Stack>
+
+      <Stack direction="row" justify="space-between" align="center">
+        <Text
+          variant="body"
+          tone="primary"
+          weight="700"
+          onPress={() => router.replace("/auth/signup")}
         >
-          <View style={styles.magicLinkRow}>
-            <Icon
-              source="star-four-points"
-              size={16}
-              color={colors.primary}
-            />
-            <Text style={[styles.altLink, { color: colors.primary }]}>
-              {t("auth:signIn.useMagicLink")}
-            </Text>
-          </View>
-        </TouchableOpacity>
-      </View>
+          {t("auth:signUp.title")}
+        </Text>
+        <Stack direction="row" align="center" gap="xs">
+          <Icon source="star-four-points" size={16} color={colors.primary} />
+          <Text
+            variant="body"
+            tone="primary"
+            weight="700"
+            onPress={() =>
+              router.push({
+                pathname: "/auth/magic-link",
+                params: email ? { email } : undefined,
+              })
+            }
+          >
+            {t("auth:signIn.useMagicLink")}
+          </Text>
+        </Stack>
+      </Stack>
     </AuthLayout>
   );
 };
@@ -150,53 +150,16 @@ const SignInScreen = () => {
 export default SignInScreen;
 
 const styles = StyleSheet.create({
-  error: {
-    borderWidth: 1,
-    padding: 10,
-    borderRadius: 10,
-  },
-  forgot: {
-    fontWeight: "600",
-    fontSize: 14,
+  link: {
     alignSelf: "flex-start",
     marginTop: -2,
     marginBottom: 4,
   },
-  secondaryAction: {
-    alignSelf: "flex-start",
-    gap: 6,
-    flexDirection: "row",
-    alignItems: "center",
-  },
   dividerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
     marginTop: 12,
     marginBottom: 12,
   },
   dividerLine: {
     flex: 1,
-    height: StyleSheet.hairlineWidth,
-  },
-  dividerText: {
-    fontSize: 12,
-    fontWeight: "700",
-    letterSpacing: 0.6,
-  },
-  altRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: -2,
-  },
-  altLink: {
-    fontWeight: "700",
-    fontSize: 14,
-  },
-  magicLinkRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
   },
 });
