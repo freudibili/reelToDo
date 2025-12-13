@@ -4,6 +4,7 @@ import type { NotificationBehavior } from "expo-notifications";
 import { Platform } from "react-native";
 
 import { supabase } from "@config/supabase";
+import type { ProfileEmailRow } from "@features/settings/utils/types";
 
 const defaultNotificationBehavior: NotificationBehavior = {
   shouldShowAlert: true,
@@ -67,10 +68,20 @@ export const savePushToken = async (
   userId: string,
   token: string
 ): Promise<void> => {
+  // Ensure we always provide a non-null email to satisfy DB constraint on profiles.email.
+  const { data: existingProfile } = await supabase
+    .from("profiles")
+    .select("email")
+    .eq("user_id", userId)
+    .maybeSingle<ProfileEmailRow>();
+
+  const { data: authData } = await supabase.auth.getUser();
+  const email = existingProfile?.email ?? authData?.user?.email ?? "";
+
   const { error } = await supabase
     .from("profiles")
     .upsert(
-      { user_id: userId, expo_push_token: token },
+      { user_id: userId, email: email || "", expo_push_token: token },
       { onConflict: "user_id" }
     );
 

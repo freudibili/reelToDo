@@ -11,6 +11,7 @@ import type {
   NotificationSettings,
   PreferenceSettings,
   ProfileSettings,
+  ProfileEmailRow,
   SettingsStateData,
 } from "../utils/types";
 
@@ -35,9 +36,6 @@ const ensureUserSettings = (userId: string): SettingsStateData => {
   }
   return cachedSettingsByUser[userId];
 };
-
-const simulateLatency = async <T>(data: T): Promise<T> =>
-  new Promise((resolve) => setTimeout(() => resolve(data), 10));
 
 const mapNotifications = (
   prefs?: Partial<NotificationSettings> | null
@@ -152,11 +150,23 @@ export const settingsService = {
     preferences: NotificationSettings
   ): Promise<NotificationSettings> {
     const normalized = mapNotifications(preferences);
+
+    // Ensure we always provide a non-null email since the profiles table enforces NOT NULL on email.
+    const { data: existingProfile } = await supabase
+      .from("profiles")
+      .select("email")
+      .eq("user_id", userId)
+      .maybeSingle<ProfileEmailRow>();
+    const { data: authData } = await supabase.auth.getUser();
+    const email =
+      existingProfile?.email ?? authData?.user?.email ?? "";
+
     const { data, error } = await supabase
       .from("profiles")
       .upsert(
         {
           user_id: userId,
+          email: email || "",
           notification_preferences: normalized,
         },
         { onConflict: "user_id" }
@@ -176,7 +186,7 @@ export const settingsService = {
         ...next,
       },
     };
-    return simulateLatency({ ...cachedSettingsByUser[userId].notifications });
+    return { ...cachedSettingsByUser[userId].notifications };
   },
 
   async updatePreferences(
@@ -189,7 +199,7 @@ export const settingsService = {
         ...preferences,
       },
     };
-    return simulateLatency({ ...cachedSettingsByUser[userId].preferences });
+    return { ...cachedSettingsByUser[userId].preferences };
   },
 
   getDistanceLabel(value: PreferenceSettings["distanceUnit"]) {

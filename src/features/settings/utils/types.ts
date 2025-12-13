@@ -27,3 +27,7 @@ export interface SettingsStateData {
   notifications: NotificationSettings;
   preferences: PreferenceSettings;
 }
+
+export interface ProfileEmailRow {
+  email: string | null;
+}
