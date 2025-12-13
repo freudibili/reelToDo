@@ -17,7 +17,7 @@ import rootSaga from "./rootSaga";
 const persistConfig = {
   key: "root",
   storage: AsyncStorage,
-  whitelist: ["settings"], // only these slices will be persisted
+  whitelist: ["settings", "app"], // only these slices will be persisted
   version: 1,
 };
 

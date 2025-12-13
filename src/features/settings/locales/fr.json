@@ -7,6 +7,7 @@
   },
   "sections": {
     "account": "Compte",
+    "experience": "Expérience",
     "safety": "Sécurité & aide"
   },
   "items": {
@@ -21,7 +22,9 @@
     "support": "Aide et support",
     "supportSubtitle": "Contactez-nous ou signalez un souci",
     "about": "À propos de ReelToDo",
-    "aboutSubtitle": "Version et feuille de route"
+    "aboutSubtitle": "Version et feuille de route",
+    "onboarding": "Revoir l'onboarding",
+    "onboardingSubtitle": "SHARE IT, FIND IT, GO."
   },
   "actions": {
     "signOut": "Se déconnecter"

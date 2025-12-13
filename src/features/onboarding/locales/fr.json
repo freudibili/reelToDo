@@ -1,0 +1,27 @@
+{
+  "title": "Bienvenue sur ReelToDo",
+  "subtitle": "Un aperçu rapide du flux ReelToDo.",
+  "tagline": "SHARE IT, FIND IT, GO",
+  "slides": {
+    "share": {
+      "eyebrow": "Partage-le",
+      "title": "Capturez liens et invitations vite.",
+      "body": "Enregistrez un lieu ou une note en quelques gestes."
+    },
+    "find": {
+      "eyebrow": "Retrouve-le",
+      "title": "Tout reste facile à retrouver.",
+      "body": "Carte, liste ou agenda d'un geste."
+    },
+    "go": {
+      "eyebrow": "Go",
+      "title": "Sortez prêts.",
+      "body": "Votre plan, votre rythme — partage-le, trouve-le, go."
+    }
+  },
+  "actions": {
+    "skip": "Passer",
+    "next": "Suivant",
+    "start": "Commencer"
+  }
+}

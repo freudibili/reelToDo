@@ -17,6 +17,10 @@ type ToastState = {
 
 type AppState = {
   toast: ToastState;
+  onboarding: {
+    shouldShow: boolean;
+    completed: boolean;
+  };
 };
 
 const initialState: AppState = {
@@ -24,6 +28,10 @@ const initialState: AppState = {
     message: null,
     type: "info",
     action: null,
+  },
+  onboarding: {
+    shouldShow: true,
+    completed: false,
   },
 };
 
@@ -47,10 +55,28 @@ const appSlice = createSlice({
       state.toast.message = null;
       state.toast.action = null;
     },
+    completeOnboarding: (state) => {
+      state.onboarding.shouldShow = false;
+      state.onboarding.completed = true;
+    },
+    requestOnboardingReplay: (state) => {
+      state.onboarding.shouldShow = true;
+      state.onboarding.completed = false;
+    },
     resetApp: () => initialState,
   },
 });
 
 export const selectToast = (state: RootState) => state.app.toast;
-export const { showToast, hideToast, resetApp } = appSlice.actions;
+export const selectShouldShowOnboarding = (state: RootState) =>
+  state.app.onboarding.shouldShow;
+export const selectHasCompletedOnboarding = (state: RootState) =>
+  state.app.onboarding.completed;
+export const {
+  showToast,
+  hideToast,
+  resetApp,
+  completeOnboarding,
+  requestOnboardingReplay,
+} = appSlice.actions;
 export default appSlice.reducer;

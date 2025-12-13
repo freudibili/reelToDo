@@ -8,6 +8,8 @@ import authEn from "@features/auth/locales/en.json";
 import authFr from "@features/auth/locales/fr.json";
 import importEn from "@features/import/locales/en.json";
 import importFr from "@features/import/locales/fr.json";
+import onboardingEn from "@features/onboarding/locales/en.json";
+import onboardingFr from "@features/onboarding/locales/fr.json";
 import settingsEn from "@features/settings/locales/en.json";
 import settingsFr from "@features/settings/locales/fr.json";
 
@@ -29,6 +31,7 @@ i18next.use(initReactI18next).init({
       activities: activitiesEn,
       import: importEn,
       settings: settingsEn,
+      onboarding: onboardingEn,
     },
     fr: {
       common: commonFr,
@@ -36,12 +39,13 @@ i18next.use(initReactI18next).init({
       activities: activitiesFr,
       import: importFr,
       settings: settingsFr,
+      onboarding: onboardingFr,
     },
   },
   lng: detectSystemLanguage(),
   fallbackLng: "en",
   supportedLngs: ["en", "fr"],
-  ns: ["common", "auth", "activities", "import", "settings"],
+  ns: ["common", "auth", "activities", "import", "settings", "onboarding"],
   defaultNS: "common",
   interpolation: {
     escapeValue: false, // React already does escaping

@@ -7,6 +7,7 @@
   },
   "sections": {
     "account": "Account",
+    "experience": "Experience",
     "safety": "Safety & Support"
   },
   "items": {
@@ -21,7 +22,9 @@
     "support": "Help & support",
     "supportSubtitle": "Contact, report an issue",
     "about": "About ReelToDo",
-    "aboutSubtitle": "Version and roadmap"
+    "aboutSubtitle": "Version and roadmap",
+    "onboarding": "Replay onboarding",
+    "onboardingSubtitle": "SHARE IT, FIND IT, GO"
   },
   "actions": {
     "signOut": "Sign out"

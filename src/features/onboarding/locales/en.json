@@ -1,0 +1,27 @@
+{
+  "title": "Welcome to ReelToDo",
+  "subtitle": "A quick glance at how ReelToDo flows.",
+  "tagline": "SHARE IT, FIND IT, GO",
+  "slides": {
+    "share": {
+      "eyebrow": "Share it",
+      "title": "Capture links and invites fast.",
+      "body": "Save a spot or note in a couple taps."
+    },
+    "find": {
+      "eyebrow": "Find it",
+      "title": "Everything stays easy to reach.",
+      "body": "Jump between map, list or calendar views."
+    },
+    "go": {
+      "eyebrow": "Go",
+      "title": "Step out ready.",
+      "body": "Your plan, your pace—share it, find it, go."
+    }
+  },
+  "actions": {
+    "skip": "Skip",
+    "next": "Next",
+    "start": "Start exploring"
+  }
+}

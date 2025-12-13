@@ -5,6 +5,7 @@ import { StyleSheet } from "react-native";
 
 import AppScreen, { ScreenHeader } from "@common/components/AppScreen";
 import { Card } from "@common/designSystem";
+import { requestOnboardingReplay } from "@common/store/appSlice";
 import { useAppTheme } from "@common/theme/appTheme";
 import { useAppDispatch, useAppSelector } from "@core/store/hook";
 import { selectAuthUser } from "@features/auth/store/authSelectors";
@@ -73,6 +74,11 @@ const SettingsScreen = () => {
     dispatch(signOut());
   };
 
+  const handleReplayOnboarding = () => {
+    dispatch(requestOnboardingReplay());
+    goTo("/onboarding");
+  };
+
   return (
     <AppScreen
       scrollable
@@ -104,6 +110,15 @@ const SettingsScreen = () => {
           description={t("settings:items.preferencesSubtitle")}
           icon="tune-variant"
           onPress={() => goTo("/settings/preferences")}
+        />
+      </SettingsSection>
+
+      <SettingsSection title={t("settings:sections.experience")}>
+        <SettingsListItem
+          title={t("settings:items.onboarding")}
+          description={t("settings:items.onboardingSubtitle")}
+          icon="play-circle-outline"
+          onPress={handleReplayOnboarding}
         />
       </SettingsSection>
 
