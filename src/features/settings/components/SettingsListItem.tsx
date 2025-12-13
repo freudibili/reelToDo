@@ -19,6 +19,7 @@ interface Props {
   onPress?: (event: GestureResponderEvent) => void;
   right?: React.ReactNode;
   tone?: Tone;
+  showChevron?: boolean;
 }
 
 const SettingsListItem: React.FC<Props> = ({
@@ -28,8 +29,10 @@ const SettingsListItem: React.FC<Props> = ({
   onPress,
   right,
   tone = "default",
+  showChevron,
 }) => {
   const { colors } = useAppTheme();
+  const shouldShowChevron = showChevron ?? Boolean(onPress);
   const titleStyle = tone === "danger" ? { color: colors.danger } : undefined;
   const iconColor = tone === "danger" ? colors.danger : colors.primary;
   const iconBg = tone === "danger" ? colors.dangerSurface : colors.overlay;
@@ -53,7 +56,7 @@ const SettingsListItem: React.FC<Props> = ({
 
       <View style={styles.right}>
         {right}
-        {onPress ? (
+        {shouldShowChevron ? (
           <Icon source="chevron-right" size={20} color={colors.secondaryText} />
         ) : null}
       </View>

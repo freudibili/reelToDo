@@ -1,6 +1,7 @@
 import { supabase } from "@config/supabase";
 
 import {
+  defaultNotifications,
   defaultSettingsState,
   distanceOptions,
   languageOptions,
@@ -16,10 +17,7 @@ import type {
 const cachedSettingsByUser: Record<string, SettingsStateData> = {};
 
 const mapProfile = (
-  profile: Pick<
-    ProfileSettings,
-    "firstName" | "lastName" | "email" | "address"
-  >
+  profile: Pick<ProfileSettings, "firstName" | "lastName" | "email" | "address">
 ): ProfileSettings => ({
   firstName: profile.firstName ?? "",
   lastName: profile.lastName ?? "",
@@ -38,14 +36,23 @@ const ensureUserSettings = (userId: string): SettingsStateData => {
   return cachedSettingsByUser[userId];
 };
 
-const simulateLatency = async <T,>(data: T): Promise<T> =>
+const simulateLatency = async <T>(data: T): Promise<T> =>
   new Promise((resolve) => setTimeout(() => resolve(data), 10));
+
+const mapNotifications = (
+  prefs?: Partial<NotificationSettings> | null
+): NotificationSettings => ({
+  activityReminders: Boolean(prefs?.activityReminders),
+  productNews: Boolean(prefs?.productNews),
+  travelTips: Boolean(prefs?.travelTips),
+  privacyAlerts: Boolean(prefs?.privacyAlerts),
+});
 
 export const settingsService = {
   async fetch(userId: string, email?: string): Promise<SettingsStateData> {
     const { data, error } = await supabase
       .from("profiles")
-      .select("email, first_name, last_name, address")
+      .select("email, first_name, last_name, address, notification_preferences")
       .eq("user_id", userId)
       .maybeSingle();
 
@@ -57,6 +64,9 @@ export const settingsService = {
       email: data?.email || email || "",
       address: data?.address ?? "",
     });
+    const notifications = mapNotifications(
+      (data as any)?.notification_preferences ?? null
+    );
 
     if (!data) {
       const { data: inserted, error: insertError } = await supabase
@@ -65,10 +75,13 @@ export const settingsService = {
           {
             user_id: userId,
             email: email ?? "",
+            notification_preferences: { ...defaultNotifications },
           },
           { onConflict: "user_id" }
         )
-        .select("email, first_name, last_name, address")
+        .select(
+          "email, first_name, last_name, address, notification_preferences"
+        )
         .single();
 
       if (insertError) throw insertError;
@@ -78,11 +91,29 @@ export const settingsService = {
         email: inserted.email || email || "",
         address: inserted.address ?? "",
       });
+      cachedSettingsByUser[userId] = {
+        ...ensureUserSettings(userId),
+        profile,
+        notifications: mapNotifications(
+          (inserted as any)?.notification_preferences ?? defaultNotifications
+        ),
+      };
+      return {
+        profile,
+        notifications: cachedSettingsByUser[userId].notifications,
+        preferences: { ...ensureUserSettings(userId).preferences },
+      };
     }
+
+    cachedSettingsByUser[userId] = {
+      ...ensureUserSettings(userId),
+      profile,
+      notifications,
+    };
 
     return {
       profile,
-      notifications: { ...ensureUserSettings(userId).notifications },
+      notifications: { ...cachedSettingsByUser[userId].notifications },
       preferences: { ...ensureUserSettings(userId).preferences },
     };
   },
@@ -120,10 +151,29 @@ export const settingsService = {
     userId: string,
     preferences: NotificationSettings
   ): Promise<NotificationSettings> {
+    const normalized = mapNotifications(preferences);
+    const { data, error } = await supabase
+      .from("profiles")
+      .upsert(
+        {
+          user_id: userId,
+          notification_preferences: normalized,
+        },
+        { onConflict: "user_id" }
+      )
+      .select("notification_preferences")
+      .single();
+
+    if (error) throw error;
+
+    const next = mapNotifications(
+      (data as any)?.notification_preferences ?? normalized
+    );
+
     cachedSettingsByUser[userId] = {
       ...ensureUserSettings(userId),
       notifications: {
-        ...preferences,
+        ...next,
       },
     };
     return simulateLatency({ ...cachedSettingsByUser[userId].notifications });

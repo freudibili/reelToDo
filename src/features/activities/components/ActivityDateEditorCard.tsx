@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { View, StyleSheet, Pressable } from "react-native";
 
-import { Text } from "@common/designSystem";
+import { Badge, Text } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";
 
 import AdditionalInfoList from "./AdditionalInfoList";
@@ -43,7 +43,6 @@ const ActivityDateEditorCard: React.FC<ActivityDateEditorCardProps> = ({
 }) => {
   const { colors, mode } = useAppTheme();
   const { t } = useTranslation();
-  const contrastColor = colors.favoriteContrast;
   const officialDateValue = getOfficialDateValue(activity);
   const officialDate = useMemo(
     () => parseDateValue(officialDateValue),
@@ -85,12 +84,12 @@ const ActivityDateEditorCard: React.FC<ActivityDateEditorCardProps> = ({
     ? t("activities:details.dateFallback")
     : t("activities:editor.dateConfirmedTitle");
 
-  const statusColor =
+  const statusTone =
     status.tone === "success"
-      ? colors.success
+      ? "success"
       : status.tone === "warning"
-        ? colors.danger
-        : colors.accent;
+        ? "danger"
+        : "accent";
   const action = useMemo(
     () => resolveDateAction({ activity, isOwner, draftDate }),
     [activity, draftDate, isOwner]
@@ -117,20 +116,7 @@ const ActivityDateEditorCard: React.FC<ActivityDateEditorCardProps> = ({
               {status.helper}
             </Text>
           </View>
-          <View
-            style={[
-              styles.statusPill,
-              { backgroundColor: statusColor, shadowColor: colors.text },
-            ]}
-          >
-            <Text
-              variant="caption"
-              weight="700"
-              style={{ color: contrastColor }}
-            >
-              {status.label}
-            </Text>
-          </View>
+          <Badge tone={statusTone}>{status.label}</Badge>
         </View>
       ) : null}
 
@@ -168,7 +154,7 @@ const ActivityDateEditorCard: React.FC<ActivityDateEditorCardProps> = ({
           <Text
             variant="bodyStrong"
             style={{
-              color: saving ? colors.secondaryText : contrastColor,
+              color: saving ? colors.secondaryText : colors.favoriteContrast,
             }}
           >
             {primaryLabel}
@@ -195,15 +181,6 @@ const styles = StyleSheet.create({
   titleGroup: {
     flex: 1,
     gap: 4,
-  },
-  statusPill: {
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderRadius: 10,
-    alignSelf: "flex-start",
-    shadowOpacity: 0.08,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 6,
   },
   actionsRow: {
     flexDirection: "row",

@@ -19,23 +19,19 @@ import { buildDayActivityViews } from "../utils/dayActivityView";
 interface Props {
   dateLabel: string;
   subtitle: string | null;
-  isToday: boolean;
   entries: CalendarActivityEntry[];
   favoriteIds: string[];
   emptyLabel: string;
   onSelectActivity: (activity: Activity) => void;
-  todayLabel: string;
 }
 
 const DayActivitiesList: React.FC<Props> = ({
   dateLabel,
   subtitle,
-  isToday,
   entries,
   favoriteIds,
   emptyLabel,
   onSelectActivity,
-  todayLabel,
 }) => {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
@@ -60,7 +56,6 @@ const DayActivitiesList: React.FC<Props> = ({
         </Stack>
 
         <Stack direction="row" align="center" gap="xs">
-          {isToday ? <Badge tone="primary">{todayLabel}</Badge> : null}
           <Badge tone="neutral">{countLabel}</Badge>
         </Stack>
       </Stack>

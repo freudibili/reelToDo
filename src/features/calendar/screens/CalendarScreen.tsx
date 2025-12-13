@@ -82,7 +82,6 @@ const CalendarScreen = () => {
   const selectedDateObj = useMemo(() => new Date(selectedDate), [selectedDate]);
   const selectedGroup = dayGroups.find((g) => g.key === selectedDate) ?? null;
   const selectedEntries = selectedGroup?.entries ?? [];
-  const isSelectedToday = selectedDate === todayKey;
 
   const monthLabel = useMemo(
     () =>
@@ -206,11 +205,9 @@ const CalendarScreen = () => {
       <DayActivitiesList
         dateLabel={formatDayHeader(selectedDateObj)}
         subtitle={formatDisplayDate(selectedDateObj)}
-        isToday={isSelectedToday}
         entries={selectedEntries}
         favoriteIds={favoriteIds}
         emptyLabel={t("activities:calendar.noActivitiesForDay")}
-        todayLabel={t("activities:calendar.today")}
         onSelectActivity={handleSelect}
       />
 

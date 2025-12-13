@@ -1,9 +1,8 @@
+import { Text } from "@common/designSystem";
+import { useAppDispatch } from "@core/store/hook";
 import { useRouter } from "expo-router";
 import React from "react";
 import { useTranslation } from "react-i18next";
-
-import { Text } from "@common/designSystem";
-import { useAppDispatch } from "@core/store/hook";
 
 import AuthButton from "../components/AuthButton";
 import AuthLayout from "../components/AuthLayout";

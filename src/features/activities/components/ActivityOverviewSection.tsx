@@ -37,12 +37,16 @@ const ActivityOverviewSection: React.FC<Props> = ({
 
   return (
     <View style={styles.container}>
-      <Text variant="headline" weight="700" style={{ color: colors.text }}>
-        {t("activities:details.overview")}
-      </Text>
       <View
-        style={[styles.sectionUnderline, { backgroundColor: colors.primary }]}
-      />
+        style={[
+          styles.sectionHeader,
+          { borderBottomColor: colors.primary },
+        ]}
+      >
+        <Text variant="headline" weight="700" style={{ color: colors.text }}>
+          {t("activities:details.overview")}
+        </Text>
+      </View>
 
       <InfoRow
         icon="map-marker"
@@ -91,10 +95,9 @@ const styles = StyleSheet.create({
   container: {
     gap: 10,
   },
-  sectionUnderline: {
-    marginTop: 4,
-    height: 2,
-    width: 70,
-    borderRadius: 999,
+  sectionHeader: {
+    alignSelf: "flex-start",
+    paddingBottom: 4,
+    borderBottomWidth: 2,
   },
 });

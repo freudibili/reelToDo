@@ -1,9 +1,9 @@
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { View, StyleSheet, Pressable } from "react-native";
+import { View, StyleSheet } from "react-native";
 
 import LocationChangeModal from "@common/components/LocationChangeModal";
-import { Text } from "@common/designSystem";
+import { Badge, Button, Text } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";
 import type { PlaceDetails } from "@features/import/types";
 
@@ -49,7 +49,6 @@ const ActivityLocationEditorCard: React.FC<ActivityLocationEditorCardProps> = ({
 }) => {
   const { colors } = useAppTheme();
   const { t } = useTranslation();
-  const contrastColor = colors.favoriteContrast;
   const [modalVisible, setModalVisible] = useState(false);
 
   const locations = useMemo(() => getActivityLocations(activity), [activity]);
@@ -87,12 +86,12 @@ const ActivityLocationEditorCard: React.FC<ActivityLocationEditorCardProps> = ({
     ? t("activities:details.locationFallback")
     : t("activities:editor.locationConfirmedTitle");
 
-  const statusColor =
+  const statusTone =
     status.tone === "success"
-      ? colors.success
+      ? "success"
       : status.tone === "warning"
-        ? colors.danger
-        : colors.accent;
+        ? "danger"
+        : "accent";
   const primaryLabel = saving
     ? t("common:locationPicker.submitting")
     : action === "continue"
@@ -108,13 +107,15 @@ const ActivityLocationEditorCard: React.FC<ActivityLocationEditorCardProps> = ({
 
   return (
     <View style={styles.container}>
-      <View style={styles.sectionHeader}>
+      <View
+        style={[
+          styles.sectionHeader,
+          { borderBottomColor: colors.primary },
+        ]}
+      >
         <Text variant="eyebrow" tone="muted">
           {t("activities:details.overview")}
         </Text>
-        <View
-          style={[styles.sectionUnderline, { backgroundColor: colors.primary }]}
-        />
       </View>
 
       {isOwner ? (
@@ -127,20 +128,7 @@ const ActivityLocationEditorCard: React.FC<ActivityLocationEditorCardProps> = ({
               {status.helper}
             </Text>
           </View>
-          <View
-            style={[
-              styles.statusPill,
-              { backgroundColor: statusColor, shadowColor: colors.text },
-            ]}
-          >
-            <Text
-              variant="caption"
-              weight="700"
-              style={{ color: contrastColor }}
-            >
-              {status.label}
-            </Text>
-          </View>
+        <Badge tone={statusTone}>{status.label}</Badge>
         </View>
       ) : null}
 
@@ -163,43 +151,26 @@ const ActivityLocationEditorCard: React.FC<ActivityLocationEditorCardProps> = ({
       ) : null}
 
       <View style={styles.actionsRow}>
-        <Pressable
-          style={[
-            styles.secondaryButton,
-            {
-              borderColor: colors.danger,
-              backgroundColor: colors.overlay,
-            },
-          ]}
+        <Button
+          label={
+            deleting
+              ? t("common:buttons.delete") + "…"
+              : t("activities:editor.cancelActivity")
+          }
+          variant="secondary"
           onPress={onCancelActivity}
           disabled={saving || deleting}
-        >
-          <Text variant="bodyStrong" style={{ color: colors.danger }}>
-            {deleting
-              ? t("common:buttons.delete") + "…"
-              : t("activities:editor.cancelActivity")}
-          </Text>
-        </Pressable>
-        <Pressable
-          style={[
-            styles.primaryButton,
-            {
-              backgroundColor: saving ? colors.overlay : colors.primary,
-              borderColor: colors.primaryBorder,
-            },
-          ]}
+          style={{ flex: 1 }}
+          shadow={false}
+        />
+        <Button
+          label={primaryLabel}
+          variant="primary"
           onPress={onSave}
           disabled={saving || deleting}
-        >
-          <Text
-            variant="bodyStrong"
-            style={{
-              color: saving ? colors.secondaryText : contrastColor,
-            }}
-          >
-            {primaryLabel}
-          </Text>
-        </Pressable>
+          loading={saving}
+          style={{ flex: 1 }}
+        />
       </View>
 
       <LocationChangeModal
@@ -222,13 +193,10 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   sectionHeader: {
+    alignSelf: "flex-start",
+    paddingBottom: 4,
     marginBottom: 2,
-  },
-  sectionUnderline: {
-    marginTop: 4,
-    height: 2,
-    width: 48,
-    borderRadius: 999,
+    borderBottomWidth: 2,
   },
   headerRow: {
     flexDirection: "row",
@@ -239,15 +207,6 @@ const styles = StyleSheet.create({
   titleGroup: {
     flex: 1,
     gap: 4,
-  },
-  statusPill: {
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderRadius: 10,
-    alignSelf: "flex-start",
-    shadowOpacity: 0.08,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 6,
   },
   actionsRow: {
     flexDirection: "row",

@@ -14,15 +14,15 @@ import {
   loadSettings,
   hydrateProfileFromUser,
 } from "@features/settings/store/settingsSlice";
-
-import SettingsListItem from "../components/SettingsListItem";
-import SettingsSection from "../components/SettingsSection";
-import UserSettingsHeader from "../components/UserSettingsHeader";
 import {
   deriveProfileAddress,
   deriveProfileEmail,
   deriveProfileName,
-} from "../utils/profile";
+} from "@features/settings/utils/profile";
+
+import SettingsListItem from "../components/SettingsListItem";
+import SettingsSection from "../components/SettingsSection";
+import UserSettingsHeader from "../components/UserSettingsHeader";
 
 const SettingsScreen = () => {
   const router = useRouter();

@@ -24,7 +24,11 @@ import { categoryNeedsDate } from "@features/activities/utils/activityHelper";
 
 import DateSection from "./DateSection";
 import LocationSection from "./LocationSection";
-import type { PlaceDetails , type ImportDraftDetails, type UpdateActivityPayload } from "../types";
+import type {
+  PlaceDetails,
+  ImportDraftDetails,
+  UpdateActivityPayload,
+} from "../types";
 
 export type ImportDetailsFormHandle = {
   save: () => void;

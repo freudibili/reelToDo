@@ -13,10 +13,10 @@ export const defaultProfile: ProfileSettings = {
 };
 
 export const defaultNotifications: NotificationSettings = {
-  activityReminders: true,
+  activityReminders: false,
   productNews: false,
-  travelTips: true,
-  privacyAlerts: true,
+  travelTips: false,
+  privacyAlerts: false,
 };
 
 export const defaultPreferences: PreferenceSettings = {
