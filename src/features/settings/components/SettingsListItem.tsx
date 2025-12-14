@@ -81,8 +81,8 @@ const SettingsListItem: React.FC<Props> = ({
 
 const styles = StyleSheet.create({
   item: {
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+    paddingHorizontal: 4,
+    paddingVertical: 4,
   },
   textBlock: {
     flex: 1,
