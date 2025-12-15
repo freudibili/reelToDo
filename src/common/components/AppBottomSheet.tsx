@@ -1,16 +1,7 @@
-import BottomSheet, {
-  BottomSheetView,
-  BottomSheetScrollView,
-} from "@gorhom/bottom-sheet";
-import React from "react";
+import BottomSheet from "@gorhom/bottom-sheet";
+import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  View,
-  StyleSheet,
-  ViewStyle,
-  Platform,
-} from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { StyleSheet, ViewStyle, Platform, View } from "react-native";
 
 import { IconButton } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";
@@ -20,9 +11,7 @@ interface AppBottomSheetProps {
   snapPoints?: (string | number)[];
   onClose: () => void;
   children: React.ReactNode;
-  style?: ViewStyle;
-  contentStyle?: ViewStyle;
-  scrollable?: boolean;
+  handleContainerStyle?: ViewStyle;
 }
 
 const AppBottomSheet = React.forwardRef<BottomSheet, AppBottomSheetProps>(
@@ -32,40 +21,16 @@ const AppBottomSheet = React.forwardRef<BottomSheet, AppBottomSheetProps>(
       snapPoints,
       onClose,
       children,
-      style,
-      contentStyle,
-      scrollable = false,
+      handleContainerStyle,
     },
     ref
   ) => {
     const { colors } = useAppTheme();
     const { t } = useTranslation();
-    const insets = useSafeAreaInsets();
-    const bottomSpacing = Math.max(insets.bottom, 8);
-    const resolvedSnapPoints = snapPoints ?? ["25%", "60%", "90%"];
 
-    const content = scrollable ? (
-      <BottomSheetScrollView
-        style={styles.scroll}
-        contentContainerStyle={[
-          styles.inner,
-          contentStyle,
-          { paddingBottom: bottomSpacing + 16 },
-        ]}
-        nestedScrollEnabled
-      >
-        {children}
-      </BottomSheetScrollView>
-    ) : (
-      <View
-        style={[
-          styles.inner,
-          contentStyle,
-          { paddingBottom: bottomSpacing + 12 },
-        ]}
-      >
-        {children}
-      </View>
+    const resolvedSnapPoints = useMemo(
+      () => snapPoints ?? ["25%", "60%", "90%"],
+      [snapPoints]
     );
 
     return (
@@ -76,6 +41,7 @@ const AppBottomSheet = React.forwardRef<BottomSheet, AppBottomSheetProps>(
         enablePanDownToClose
         onClose={onClose}
         enableOverDrag
+        handleStyle={[styles.handle, handleContainerStyle]}
         handleIndicatorStyle={[
           styles.handleIndicator,
           { backgroundColor: colors.border },
@@ -85,26 +51,34 @@ const AppBottomSheet = React.forwardRef<BottomSheet, AppBottomSheetProps>(
           {
             backgroundColor: colors.surface,
             shadowColor: colors.text,
+            shadowOpacity: Platform.OS === "ios" ? 0.16 : undefined,
             borderTopColor: colors.border,
           },
         ]}
-        handleStyle={styles.handle}
       >
-        <BottomSheetView
-          style={[styles.content, { backgroundColor: colors.surface }, style]}
-        >
-          <IconButton
-            icon="close"
-            size={32}
-            variant="subtle"
-            tone="default"
-            accessibilityLabel={t("accessibility.close")}
-            onPress={onClose}
-            style={styles.closeBtn}
-            shadow={false}
-          />
-          <View style={styles.body}>{content}</View>
-        </BottomSheetView>
+        <View pointerEvents="box-none" style={styles.overlay}>
+          <View
+            style={[
+              styles.closeWrapper,
+              { backgroundColor: colors.overlaySurface },
+            ]}
+          >
+            <IconButton
+              icon="close"
+              size={30}
+              variant="ghost"
+              tone="default"
+              accessibilityLabel={t("accessibility.close")}
+              onPress={onClose}
+              style={({ pressed }) => [
+                styles.closeBtn,
+                { opacity: pressed ? 0.85 : 1 },
+              ]}
+              shadow={false}
+            />
+          </View>
+        </View>
+        {children}
       </BottomSheet>
     );
   }
@@ -118,6 +92,7 @@ const styles = StyleSheet.create({
   sheetBackground: {
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
+    borderTopWidth: 1,
     ...Platform.select({
       ios: {
         shadowOffset: { width: 0, height: -6 },
@@ -132,25 +107,19 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
   },
   handleIndicator: {},
-  content: {
-    paddingBottom: 12,
-    overflow: "hidden",
-    flex: 1,
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 50,
   },
-  body: {
-    flex: 1,
-  },
-  scroll: {
-    flex: 1,
-  },
-  inner: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
-  },
-  closeBtn: {
+  closeWrapper: {
     position: "absolute",
     right: 12,
-    top: 12,
+    top: 8,
+    borderRadius: 999,
+    padding: 2,
     zIndex: 10,
+  },
+  closeBtn: {
+    alignSelf: "center",
   },
 });

@@ -1,4 +1,5 @@
 import type BottomSheet from "@gorhom/bottom-sheet";
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import React, { useRef, useState, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet } from "react-native";
@@ -43,6 +44,7 @@ const MapScreen: React.FC = () => {
   const { confirm } = useConfirmDialog();
   const { t } = useTranslation();
   const { colors } = useAppTheme();
+  const tabBarHeight = useBottomTabBarHeight();
 
   const profile = useAppSelector(settingsSelectors.profile);
   const user = useAppSelector(selectAuthUser);
@@ -242,7 +244,6 @@ const MapScreen: React.FC = () => {
         ref={sheetRef}
         index={sheetIndex}
         onClose={handleCloseSheet}
-        scrollable={sheetMode === "details"}
         snapPoints={snapPoints}
       >
         {sheetMode === "list" ? (
@@ -251,6 +252,7 @@ const MapScreen: React.FC = () => {
             userRegion={userRegion}
             category={selectedCategory}
             onSelectActivity={handleSelectFromNearby}
+            tabBarHeight={tabBarHeight}
           />
         ) : (
           <ActivityDetailsSheet
@@ -262,6 +264,7 @@ const MapScreen: React.FC = () => {
             onOpenSource={handleOpenSource}
             onAddToCalendar={handleAddToCalendar}
             onChangePlannedDate={handleSetPlannedDate}
+            tabBarHeight={tabBarHeight}
           />
         )}
       </AppBottomSheet>

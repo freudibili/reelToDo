@@ -2,6 +2,7 @@ import { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import ActivityHero from "@common/components/ActivityHero";
 import ActivitySummaryHeader from "@common/components/ActivitySummaryHeader";
@@ -26,6 +27,7 @@ interface Props {
   onOpenSource: (activity: Activity) => void;
   onAddToCalendar: (activity: Activity) => void;
   onChangePlannedDate: (activity: Activity, date: Date | null) => void;
+  tabBarHeight?: number;
 }
 
 const ActivityDetailsSheet: React.FC<Props> = ({
@@ -37,9 +39,12 @@ const ActivityDetailsSheet: React.FC<Props> = ({
   onOpenSource,
   onAddToCalendar,
   onChangePlannedDate,
+  tabBarHeight = 0,
 }) => {
   const { t } = useTranslation();
   const { colors, mode } = useAppTheme();
+  const insets = useSafeAreaInsets();
+  const bottomPadding = Math.max(insets.bottom, 8) + tabBarHeight + 16;
 
   const viewModel = useActivityDetailsViewModel(activity, t);
 
@@ -87,9 +92,10 @@ const ActivityDetailsSheet: React.FC<Props> = ({
   return (
     <>
       <BottomSheetScrollView
+        style={styles.list}
         contentContainerStyle={[
           styles.scrollContent,
-          { backgroundColor: colors.surface },
+          { paddingBottom: bottomPadding },
         ]}
         nestedScrollEnabled
       >
@@ -178,13 +184,17 @@ const ActivityDetailsSheet: React.FC<Props> = ({
 export default ActivityDetailsSheet;
 
 const styles = StyleSheet.create({
+  list: {
+    flex: 1,
+  },
   scrollContent: {
-    paddingBottom: 18,
+    paddingHorizontal: 16,
+    paddingTop: 8,
     gap: 10,
     flexGrow: 1,
   },
   headerBlock: {
-    paddingHorizontal: 4,
+    paddingHorizontal: 0,
   },
   actionsRailWrapper: {
     marginTop: 6,

@@ -212,12 +212,7 @@ const CalendarScreen = () => {
       />
 
       {sheetVisible ? (
-        <AppBottomSheet
-          ref={sheetRef}
-          index={1}
-          onClose={handleClose}
-          scrollable
-        >
+        <AppBottomSheet ref={sheetRef} index={1} onClose={handleClose}>
           <ActivityDetailsSheet
             activity={effectiveSelected}
             isFavorite={

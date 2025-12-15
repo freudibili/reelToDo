@@ -1,7 +1,9 @@
+import { BottomSheetFlatList } from "@gorhom/bottom-sheet";
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { View, Text, StyleSheet, FlatList, Pressable } from "react-native";
+import { View, Text, StyleSheet, Pressable } from "react-native";
 import type { Region, LatLng } from "react-native-maps";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useAppTheme } from "@common/theme/appTheme";
 
@@ -13,18 +15,22 @@ interface Props {
   userRegion: Region | null;
   category?: string | null;
   onSelectActivity: (activity: Activity) => void;
+  tabBarHeight?: number;
 }
 
-const MAX_NEARBY_ITEMS = 30;
+const MAX_NEARBY_ITEMS = 20;
 
 const NearbyActivitiesSheet: React.FC<Props> = ({
   activities,
   userRegion,
   category,
   onSelectActivity,
+  tabBarHeight = 0,
 }) => {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
+  const insets = useSafeAreaInsets();
+  const bottomPadding = Math.max(insets.bottom, 8) + tabBarHeight + 16;
 
   const origin: LatLng | null = useMemo(() => {
     if (userRegion) {
@@ -91,52 +97,64 @@ const NearbyActivitiesSheet: React.FC<Props> = ({
   }, [activities, origin, category]);
 
   return (
-    <View>
-      <Text style={[styles.title, { color: colors.text }]}>
-        {t("activities:map.nearby")}
-      </Text>
-      <FlatList
-        data={sorted}
-        keyExtractor={(item) => item.activity.id}
-        renderItem={({ item }) => (
-          <Pressable
-            onPress={() => onSelectActivity(item.activity)}
-            style={[styles.row, { borderColor: colors.border }]}
-          >
-            <View style={styles.rowText}>
-              <Text style={[styles.name, { color: colors.text }]}>
-                {item.activity.title ?? t("common:labels.untitled")}
-              </Text>
-              <Text style={[styles.sub, { color: colors.secondaryText }]}>
-                {item.activity.location_name ?? item.activity.category ?? ""}
-              </Text>
-            </View>
-            {item.distance != null ? (
-              <Text style={[styles.distance, { color: colors.secondaryText }]}>
-                {item.distance < 1
-                  ? `${Math.round(item.distance * 1000)} m`
-                  : `${item.distance.toFixed(1)} km`}
-              </Text>
-            ) : null}
-          </Pressable>
-        )}
-        ItemSeparatorComponent={() => (
-          <View
-            style={[styles.separator, { backgroundColor: colors.border }]}
-          />
-        )}
-      />
-    </View>
+    <BottomSheetFlatList
+      data={sorted}
+      keyExtractor={(item) => item.activity.id}
+      style={styles.list}
+      contentContainerStyle={[
+        styles.contentContainer,
+        { paddingBottom: bottomPadding },
+      ]}
+      nestedScrollEnabled
+      keyboardShouldPersistTaps="handled"
+      renderItem={({ item }) => (
+        <Pressable
+          onPress={() => onSelectActivity(item.activity)}
+          style={[styles.row, { borderColor: colors.border }]}
+        >
+          <View style={styles.rowText}>
+            <Text style={[styles.name, { color: colors.text }]}>
+              {item.activity.title ?? t("common:labels.untitled")}
+            </Text>
+            <Text style={[styles.sub, { color: colors.secondaryText }]}>
+              {item.activity.location_name ?? item.activity.category ?? ""}
+            </Text>
+          </View>
+          {item.distance != null ? (
+            <Text style={[styles.distance, { color: colors.secondaryText }]}>
+              {item.distance < 1
+                ? `${Math.round(item.distance * 1000)} m`
+                : `${item.distance.toFixed(1)} km`}
+            </Text>
+          ) : null}
+        </Pressable>
+      )}
+      ItemSeparatorComponent={() => (
+        <View style={[styles.separator, { backgroundColor: colors.border }]} />
+      )}
+      ListHeaderComponent={
+        <Text style={[styles.title, { color: colors.text }]}>
+          {t("activities:map.nearby")}
+        </Text>
+      }
+    />
   );
 };
 
 export default NearbyActivitiesSheet;
 
 const styles = StyleSheet.create({
+  list: {
+    flex: 1,
+  },
   title: {
     fontSize: 16,
     fontWeight: "600",
     marginBottom: 8,
+  },
+  contentContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 8,
   },
   row: {
     flexDirection: "row",
