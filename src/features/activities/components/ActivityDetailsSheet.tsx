@@ -25,7 +25,6 @@ interface Props {
   onToggleFavorite: (activity: Activity) => void;
   onOpenMaps: (activity: Activity) => void;
   onOpenSource: (activity: Activity) => void;
-  onAddToCalendar: (activity: Activity) => void;
   onChangePlannedDate: (activity: Activity, date: Date | null) => void;
   tabBarHeight?: number;
 }
@@ -37,7 +36,6 @@ const ActivityDetailsSheet: React.FC<Props> = ({
   onToggleFavorite,
   onOpenMaps,
   onOpenSource,
-  onAddToCalendar,
   onChangePlannedDate,
   tabBarHeight = 0,
 }) => {
@@ -117,7 +115,6 @@ const ActivityDetailsSheet: React.FC<Props> = ({
             onToggleFavorite={onToggleFavorite}
             onOpenMaps={onOpenMaps}
             onOpenSource={onOpenSource}
-            onAddToCalendar={onAddToCalendar}
             openPicker={openPicker}
           />
         </View>

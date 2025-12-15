@@ -5,10 +5,10 @@ import i18next from "@common/i18n/i18n";
 import { supabase } from "@config/supabase";
 import type { AppDispatch, RootState } from "@core/store";
 import {
+  createCalendarEventForActivity,
   deleteCalendarEvent,
   updateCalendarEventForActivity,
 } from "@features/calendar/services/calendarService";
-import { createActivityCalendarEvent } from "@features/calendar/store/calendarThunks";
 
 import { ActivitiesService } from "../services/activitiesService";
 import type { Activity } from "../types";
@@ -197,9 +197,9 @@ export const setPlannedDate = createAsyncThunk<
     const iso = plannedAt ? new Date(plannedAt).toISOString() : null;
     let nextCalendarEventId = activity.calendar_event_id ?? null;
 
-    if (nextCalendarEventId) {
-      try {
-        if (iso) {
+    if (iso) {
+      if (nextCalendarEventId) {
+        try {
           const updatedEventId = await updateCalendarEventForActivity(
             nextCalendarEventId,
             activity,
@@ -208,14 +208,31 @@ export const setPlannedDate = createAsyncThunk<
           if (updatedEventId) {
             nextCalendarEventId = updatedEventId;
           }
-        } else {
-          const deleted = await deleteCalendarEvent(nextCalendarEventId);
-          if (deleted) {
-            nextCalendarEventId = null;
+        } catch (err) {
+          console.warn("Failed to update calendar event", err);
+        }
+      } else {
+        try {
+          const createdEventId = await createCalendarEventForActivity(
+            userId,
+            activity,
+            { start: iso }
+          );
+          if (createdEventId) {
+            nextCalendarEventId = createdEventId;
           }
+        } catch (err) {
+          console.warn("Failed to create calendar event", err);
+        }
+      }
+    } else if (nextCalendarEventId) {
+      try {
+        const deleted = await deleteCalendarEvent(nextCalendarEventId);
+        if (deleted) {
+          nextCalendarEventId = null;
         }
       } catch (err) {
-        console.warn("Failed to sync calendar event", err);
+        console.warn("Failed to delete calendar event", err);
       }
     }
 
@@ -394,18 +411,6 @@ const activitiesSlice = createSlice({
       state.favoriteIds = state.favoriteIds.filter((x) => x !== id);
       if (removedActivity) {
         updateRecentlyEmptiedCategory(state, removedActivity.category);
-      }
-    });
-    builder.addCase(createActivityCalendarEvent.fulfilled, (state, action) => {
-      const { activityId, calendarEventId, plannedAt } = action.payload;
-      const idx = state.items.findIndex((a) => a.id === activityId);
-      if (idx >= 0) {
-        state.items[idx] = {
-          ...state.items[idx],
-          calendar_event_id: calendarEventId,
-          planned_at:
-            plannedAt !== undefined ? plannedAt : state.items[idx].planned_at,
-        } as Activity;
       }
     });
     builder.addCase(setPlannedDate.fulfilled, (state, action) => {

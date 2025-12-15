@@ -1,5 +1,11 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
 
@@ -8,7 +14,6 @@ import Screen from "@common/components/AppScreen";
 import { Stack, Text } from "@common/designSystem";
 import { useConfirmDialog } from "@common/hooks/useConfirmDialog";
 import { useAppDispatch, useAppSelector } from "@core/store/hook";
-import { createActivityCalendarEvent } from "@features/calendar/store/calendarThunks";
 
 import ActivityCard from "../components/ActivityCard";
 import ActivityDetailsSheet from "../components/ActivityDetailsSheet";
@@ -21,8 +26,8 @@ import {
   addFavorite,
   removeFavorite,
   deleteActivity,
-  setPlannedDate,
   clearRecentlyEmptiedCategory,
+  setPlannedDate,
 } from "../store/activitiesSlice";
 import type { Activity } from "../types";
 import { formatCategoryName } from "../utils/categorySummary";
@@ -49,10 +54,7 @@ const ActivitiesCategoryScreen = () => {
   const recentlyEmptiedCategory = useAppSelector(
     activitiesSelectors.recentlyEmptiedCategory
   );
-  const normalizedCategory = useMemo(
-    () => category.toLowerCase(),
-    [category]
-  );
+  const normalizedCategory = useMemo(() => category.toLowerCase(), [category]);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selectedSelector = useMemo(
@@ -128,12 +130,7 @@ const ActivitiesCategoryScreen = () => {
     } else {
       router.replace("/activities" as never);
     }
-  }, [
-    dispatch,
-    normalizedCategory,
-    recentlyEmptiedCategory,
-    router,
-  ]);
+  }, [dispatch, normalizedCategory, recentlyEmptiedCategory, router]);
 
   return (
     <>
@@ -178,16 +175,6 @@ const ActivitiesCategoryScreen = () => {
             onToggleFavorite={(activity) => handleToggleFavorite(activity.id)}
             onOpenMaps={(activity) => openActivityInMaps(activity)}
             onOpenSource={(activity) => openActivitySource(activity)}
-            onAddToCalendar={(activity) => {
-              dispatch(
-                createActivityCalendarEvent({
-                  activityId: activity.id,
-                  activityDate: activity.planned_at
-                    ? { start: activity.planned_at }
-                    : undefined,
-                })
-              );
-            }}
             onChangePlannedDate={handleSetPlannedDate}
           />
         </AppBottomSheet>

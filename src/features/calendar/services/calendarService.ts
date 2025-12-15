@@ -17,6 +17,32 @@ const ensureCalendarPermission = async () => {
   return next === "granted";
 };
 
+const buildActivityDeepLink = (activityId: string) =>
+  `reeltodo://activity/${encodeURIComponent(activityId)}`;
+
+const buildEventNotes = (activity: Activity, deepLink: string) => {
+  const lines = [
+    "Created with ReelToDo",
+    `Open in app: ${deepLink}`,
+  ];
+
+  const locationParts = [
+    activity.location_name,
+    activity.address,
+    activity.city,
+    activity.country,
+  ].filter((part): part is string => Boolean(part && part.trim().length > 0));
+  if (locationParts.length) {
+    lines.push(`Location: ${locationParts.join(", ")}`);
+  }
+
+  if (activity.source_url) {
+    lines.push(`Source: ${activity.source_url}`);
+  }
+
+  return lines.join("\n");
+};
+
 const getDefaultSource = async () => {
   try {
     const defaultCalendar = await Calendar.getDefaultCalendarAsync();
@@ -108,14 +134,16 @@ export const createCalendarEventForActivity = async (
     : new Date(startDate.getTime() + 60 * 60 * 1000);
 
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const deepLink = buildActivityDeepLink(activity.id);
+  const notes = buildEventNotes(activity, deepLink);
 
   const eventId = await Calendar.createEventAsync(calendarId, {
     title: activity.title,
     startDate,
     endDate,
     location: activity.location_name ?? activity.address ?? activity.city ?? "",
-    notes: activity.source_url ?? "",
-    url: activity.source_url ?? undefined,
+    notes,
+    url: deepLink,
     timeZone,
   });
 
@@ -129,7 +157,7 @@ export const createCalendarEventForActivity = async (
       user_id: userId,
       activity_id: activity.id,
       activity_date_id: activityDate?.id ?? null,
-      is_favorite: true,
+      is_favorite: Boolean(activity.is_favorite),
       calendar_event_id: eventId,
       planned_at: plannedAtIso ? new Date(plannedAtIso).toISOString() : null,
     },
@@ -171,14 +199,16 @@ export const updateCalendarEventForActivity = async (
     : new Date(startDate.getTime() + baseDuration);
 
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const deepLink = buildActivityDeepLink(activity.id);
+  const notes = buildEventNotes(activity, deepLink);
 
   await Calendar.updateEventAsync(eventId, {
     title: activity.title,
     startDate,
     endDate,
     location: activity.location_name ?? activity.address ?? activity.city ?? "",
-    notes: activity.source_url ?? "",
-    url: activity.source_url ?? undefined,
+    notes,
+    url: deepLink,
     timeZone,
   });
 

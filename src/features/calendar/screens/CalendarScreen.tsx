@@ -32,7 +32,6 @@ import type { Activity } from "@features/activities/types";
 import { formatDisplayDate } from "@features/activities/utils/activityDisplay";
 import { calendarSelectors } from "@features/calendar/store/calendarSelectors";
 import { calendarActions } from "@features/calendar/store/calendarSlice";
-import { createActivityCalendarEvent } from "@features/calendar/store/calendarThunks";
 import { toDayKey } from "@features/calendar/utils/dates";
 import { formatDayHeader } from "@features/calendar/utils/formatDayHeader";
 
@@ -186,20 +185,6 @@ const CalendarScreen = () => {
     [confirm, dispatch, handleClose, t]
   );
 
-  const handleAddToCalendar = useCallback(
-    (activity: Activity) => {
-      dispatch(
-        createActivityCalendarEvent({
-          activityId: activity.id,
-          activityDate: activity.planned_at
-            ? { start: activity.planned_at }
-            : undefined,
-        })
-      );
-    },
-    [dispatch]
-  );
-
   const handleSetPlannedDate = useCallback(
     (activity: Activity, planned: Date | null) => {
       dispatch(
@@ -212,27 +197,15 @@ const CalendarScreen = () => {
     [dispatch]
   );
 
-  const formatDayHeader = useCallback(
-    (date: Date) => {
-      const weekday = date.toLocaleDateString(locale, { weekday: "long" });
-      const full = date.toLocaleDateString(locale, {
-        day: "numeric",
-        month: "long",
-      });
-      return `${weekday} · ${full}`;
-    },
-    [locale]
-  );
-
   return (
     <Screen
       loading={loading && !initialized}
       headerTitle={t("activities:calendar.title")}
       flushBottom
     >
-      <MonthNavigator
-        label={monthLabel}
-        subtitle={formatDayHeader(visibleMonthDate)}
+        <MonthNavigator
+          label={monthLabel}
+          subtitle={formatDayHeader(visibleMonthDate, locale)}
         onPrev={() => dispatch(calendarActions.goToPreviousMonth())}
         onNext={() => dispatch(calendarActions.goToNextMonth())}
       />
@@ -252,8 +225,8 @@ const CalendarScreen = () => {
         snapPoints={snapPoints}
       >
         {sheetMode === "list" ? (
-          <SelectedDayActivitiesSheet
-            dateLabel={formatDayHeader(selectedDateObj)}
+            <SelectedDayActivitiesSheet
+              dateLabel={formatDayHeader(selectedDateObj, locale)}
             subtitle={formatDisplayDate(selectedDateObj)}
             entries={selectedEntries}
             favoriteIds={favoriteIds}
@@ -273,7 +246,6 @@ const CalendarScreen = () => {
             onToggleFavorite={handleToggleFavorite}
             onOpenMaps={(activity) => openActivityInMaps(activity)}
             onOpenSource={(activity) => openActivitySource(activity)}
-            onAddToCalendar={handleAddToCalendar}
             onChangePlannedDate={handleSetPlannedDate}
             tabBarHeight={tabBarHeight}
           />

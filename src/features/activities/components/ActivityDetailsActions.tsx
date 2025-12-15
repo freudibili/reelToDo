@@ -14,7 +14,6 @@ type Props = {
   onToggleFavorite: (activity: Activity) => void;
   onOpenMaps: (activity: Activity) => void;
   onOpenSource: (activity: Activity) => void;
-  onAddToCalendar: (activity: Activity) => void;
   openPicker: () => void;
 };
 
@@ -25,7 +24,6 @@ const ActivityDetailsActions: React.FC<Props> = ({
   onToggleFavorite,
   onOpenMaps,
   onOpenSource,
-  onAddToCalendar,
   openPicker,
 }) => {
   const { t } = useTranslation();
@@ -34,12 +32,6 @@ const ActivityDetailsActions: React.FC<Props> = ({
   const planActionLabel = getPlanActionLabel(activity.planned_at, t);
 
   const actions: ActionRailItem[] = [
-    {
-      key: "plan",
-      label: planActionLabel,
-      icon: activity.planned_at ? "calendar-edit" : "calendar-plus",
-      onPress: openPicker,
-    },
     {
       key: "maps",
       label: t("activities:details.actions.maps"),
@@ -54,17 +46,17 @@ const ActivityDetailsActions: React.FC<Props> = ({
       onPress: () => onToggleFavorite(activity),
     },
     {
+      key: "plan",
+      label: planActionLabel,
+      icon: activity.planned_at ? "calendar-edit" : "calendar-plus",
+      onPress: openPicker,
+    },
+    {
       key: "source",
       label: t("activities:details.actions.source"),
       icon: "link-variant",
       onPress: () => onOpenSource(activity),
       disabled: !activity.source_url,
-    },
-    {
-      key: "calendar",
-      label: t("activities:details.actions.calendar"),
-      icon: "calendar-plus",
-      onPress: () => onAddToCalendar(activity),
     },
     {
       key: "delete",

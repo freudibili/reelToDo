@@ -29,15 +29,16 @@ import {
 import type { Activity } from "@features/activities/types";
 import { formatCategoryName } from "@features/activities/utils/categorySummary";
 import { selectAuthUser } from "@features/auth/store/authSelectors";
-import { createActivityCalendarEvent } from "@features/calendar/store/calendarThunks";
 import { mapSelectors } from "@features/map/store/mapSelectors";
 import { mapActions } from "@features/map/store/mapSlice";
 import { useMapRegionState } from "@features/map/utils/mapRegionState";
-import { getActivityCategories, getFallbackAddress } from "@features/map/utils/regionUtils";
+import {
+  getActivityCategories,
+  getFallbackAddress,
+} from "@features/map/utils/regionUtils";
 import { settingsSelectors } from "@features/settings/store/settingsSelectors";
 
 import MapHeader from "../components/MapHeader";
-
 
 const MapScreen: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -63,7 +64,11 @@ const MapScreen: React.FC = () => {
     [profile.address, user?.user_metadata]
   );
 
-  const { userRegion, initialRegion, ready: regionReady } = useMapRegionState({
+  const {
+    userRegion,
+    initialRegion,
+    ready: regionReady,
+  } = useMapRegionState({
     activities,
     fallbackAddress,
     t,
@@ -148,20 +153,6 @@ const MapScreen: React.FC = () => {
     openActivitySource(activity);
   }, []);
 
-  const handleAddToCalendar = useCallback(
-    (activity: Activity) => {
-      dispatch(
-        createActivityCalendarEvent({
-          activityId: activity.id,
-          activityDate: activity.planned_at
-            ? { start: activity.planned_at }
-            : undefined,
-        })
-      );
-    },
-    [dispatch]
-  );
-
   const handleSetPlannedDate = useCallback(
     (activity: Activity, planned: Date | null) => {
       dispatch(
@@ -235,7 +226,10 @@ const MapScreen: React.FC = () => {
             shadow="lg"
             onPress={handleShowNearby}
             accessibilityLabel={t("activities:map.openList")}
-            style={{ backgroundColor: colors.primary, borderColor: colors.primary }}
+            style={{
+              backgroundColor: colors.primary,
+              borderColor: colors.primary,
+            }}
           />
         </Box>
       </Box>
@@ -262,7 +256,6 @@ const MapScreen: React.FC = () => {
             onToggleFavorite={handleToggleFavorite}
             onOpenMaps={handleOpenMaps}
             onOpenSource={handleOpenSource}
-            onAddToCalendar={handleAddToCalendar}
             onChangePlannedDate={handleSetPlannedDate}
             tabBarHeight={tabBarHeight}
           />
