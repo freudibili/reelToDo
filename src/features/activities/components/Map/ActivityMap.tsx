@@ -49,32 +49,30 @@ const ActivitiesMap = forwardRef<ActivitiesMapHandle, Props>(
     }));
 
     const visibleActivities = useMemo(() => {
-      if (!selectedCategory) return activities;
-      return activities.filter((a) => a.category === selectedCategory);
+      const filtered = !selectedCategory
+        ? activities
+        : activities.filter((a) => a.category === selectedCategory);
+      return filtered.filter(
+        (activity) =>
+          typeof activity.latitude === "number" &&
+          typeof activity.longitude === "number"
+      );
     }, [activities, selectedCategory]);
 
     return (
       <MapView ref={mapRef} style={styles.map} initialRegion={initialRegion}>
-        {visibleActivities.map((activity) => {
-          if (
-            typeof activity.latitude !== "number" ||
-            typeof activity.longitude !== "number"
-          ) {
-            return null;
-          }
-          return (
-            <Marker
-              key={activity.id}
-              coordinate={{
-                latitude: activity.latitude,
-                longitude: activity.longitude,
-              }}
-              title={activity.title ?? t("common:labels.activity")}
-              description={activity.location_name ?? activity.category ?? ""}
-              onPress={() => onSelectActivity(activity)}
-            />
-          );
-        })}
+        {visibleActivities.map((activity) => (
+          <Marker
+            key={activity.id}
+            coordinate={{
+              latitude: activity.latitude as number,
+              longitude: activity.longitude as number,
+            }}
+            title={activity.title ?? t("common:labels.activity")}
+            description={activity.location_name ?? activity.category ?? ""}
+            onPress={() => onSelectActivity(activity)}
+          />
+        ))}
       </MapView>
     );
   }

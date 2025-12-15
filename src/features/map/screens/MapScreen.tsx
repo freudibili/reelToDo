@@ -198,7 +198,6 @@ const MapScreen: React.FC = () => {
   return (
     <Screen noPadding loading={isLoading}>
       <MapHeader
-        title={t("activities:map.title")}
         allLabel={t("activities:map.all")}
         categories={categories}
         selectedCategory={selectedCategory}

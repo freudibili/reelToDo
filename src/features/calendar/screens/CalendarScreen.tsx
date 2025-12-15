@@ -198,14 +198,10 @@ const CalendarScreen = () => {
   );
 
   return (
-    <Screen
-      loading={loading && !initialized}
-      headerTitle={t("activities:calendar.title")}
-      flushBottom
-    >
-        <MonthNavigator
-          label={monthLabel}
-          subtitle={formatDayHeader(visibleMonthDate, locale)}
+    <Screen loading={loading && !initialized} flushBottom>
+      <MonthNavigator
+        label={monthLabel}
+        subtitle={formatDayHeader(visibleMonthDate, locale)}
         onPrev={() => dispatch(calendarActions.goToPreviousMonth())}
         onNext={() => dispatch(calendarActions.goToNextMonth())}
       />
@@ -225,8 +221,8 @@ const CalendarScreen = () => {
         snapPoints={snapPoints}
       >
         {sheetMode === "list" ? (
-            <SelectedDayActivitiesSheet
-              dateLabel={formatDayHeader(selectedDateObj, locale)}
+          <SelectedDayActivitiesSheet
+            dateLabel={formatDayHeader(selectedDateObj, locale)}
             subtitle={formatDisplayDate(selectedDateObj)}
             entries={selectedEntries}
             favoriteIds={favoriteIds}
