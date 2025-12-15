@@ -3,6 +3,7 @@ import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import React, { useRef, useState, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet } from "react-native";
+import { Icon } from "react-native-paper";
 
 import AppBottomSheet from "@common/components/AppBottomSheet";
 import Screen from "@common/components/AppScreen";
@@ -44,7 +45,7 @@ const MapScreen: React.FC = () => {
   const dispatch = useAppDispatch();
   const { confirm } = useConfirmDialog();
   const { t } = useTranslation();
-  const { colors } = useAppTheme();
+  const { colors, mode } = useAppTheme();
   const tabBarHeight = useBottomTabBarHeight();
 
   const profile = useAppSelector(settingsSelectors.profile);
@@ -195,6 +196,11 @@ const MapScreen: React.FC = () => {
 
   const isLoading = !initialized || loading || !regionReady || !initialRegion;
 
+  const fabIconColor =
+    mode === "light" ? colors.favoriteContrast : colors.background;
+
+  const showFab = sheetIndex < 0;
+
   return (
     <Screen noPadding loading={isLoading}>
       <MapHeader
@@ -216,21 +222,29 @@ const MapScreen: React.FC = () => {
           />
         )}
 
-        <Box style={styles.fabContainer}>
-          <IconButton
-            icon="format-list-bulleted"
-            tone="primary"
-            variant="filled"
-            size={54}
-            shadow="lg"
-            onPress={handleShowNearby}
-            accessibilityLabel={t("activities:map.openList")}
-            style={{
-              backgroundColor: colors.primary,
-              borderColor: colors.primary,
-            }}
-          />
-        </Box>
+        {showFab ? (
+          <Box style={styles.fabContainer}>
+            <IconButton
+              icon={
+                <Icon
+                  source="format-list-bulleted"
+                  size={18}
+                  color={fabIconColor}
+                />
+              }
+              tone="primary"
+              variant="filled"
+              size={54}
+              shadow="lg"
+              onPress={handleShowNearby}
+              accessibilityLabel={t("activities:map.openList")}
+              style={{
+                backgroundColor: colors.primary,
+                borderColor: colors.primary,
+              }}
+            />
+          </Box>
+        ) : null}
       </Box>
 
       <AppBottomSheet

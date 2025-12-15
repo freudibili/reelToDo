@@ -133,59 +133,66 @@ const AppScreen: React.FC<AppScreenProps> = ({
   );
 
   return (
-    <SafeAreaView
-      style={[styles.safeArea, { backgroundColor: resolvedBackgroundColor }]}
-      edges={["top", "left", "right"]}
+    <View
+      style={[styles.root, { backgroundColor: resolvedBackgroundColor }]}
     >
-      <View style={styles.container}>
-        <KeyboardAvoidingView
-          style={styles.keyboard}
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          keyboardVerticalOffset={insets.top}
+      <SafeAreaView
+        style={[styles.safeArea, { backgroundColor: resolvedBackgroundColor }]}
+        edges={["top", "left", "right"]}
+      >
+        <View style={styles.container}>
+          <KeyboardAvoidingView
+            style={styles.keyboard}
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            keyboardVerticalOffset={insets.top}
+          >
+            <View style={styles.contentArea}>{content}</View>
+          </KeyboardAvoidingView>
+
+          {footer ? (
+            <View
+              onLayout={handleFooterLayout}
+              style={[
+                styles.footer,
+                {
+                  paddingHorizontal: horizontalPadding,
+                  paddingTop: noPadding ? 8 : 12,
+                  paddingBottom: footerBottomPadding,
+                  backgroundColor: resolvedBackgroundColor,
+                  borderTopColor: colors.border,
+                  position: "absolute",
+                  left: 0,
+                  right: 0,
+                  bottom: footerOffset,
+                },
+              ]}
+            >
+              {footer}
+            </View>
+          ) : null}
+        </View>
+      </SafeAreaView>
+
+      {loading && (
+        <View
+          style={[
+            styles.loadingOverlay,
+            { backgroundColor: colors.backdrop },
+          ]}
         >
-          <View style={styles.contentArea}>{content}</View>
-        </KeyboardAvoidingView>
-
-        {footer ? (
-          <View
-            onLayout={handleFooterLayout}
-            style={[
-              styles.footer,
-              {
-                paddingHorizontal: horizontalPadding,
-                paddingTop: noPadding ? 8 : 12,
-                paddingBottom: footerBottomPadding,
-                backgroundColor: resolvedBackgroundColor,
-                borderTopColor: colors.border,
-                position: "absolute",
-                left: 0,
-                right: 0,
-                bottom: footerOffset,
-              },
-            ]}
-          >
-            {footer}
-          </View>
-        ) : null}
-
-        {loading && (
-          <View
-            style={[
-              styles.loadingOverlay,
-              { backgroundColor: colors.backdrop },
-            ]}
-          >
-            {loadingContent ?? (
-              <ActivityIndicator size="large" color={colors.primary} />
-            )}
-          </View>
-        )}
-      </View>
-    </SafeAreaView>
+          {loadingContent ?? (
+            <ActivityIndicator size="large" color={colors.primary} />
+          )}
+        </View>
+      )}
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
   safeArea: {
     flex: 1,
   },
