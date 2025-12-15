@@ -106,8 +106,8 @@ const MapScreen: React.FC = () => {
       dispatch(mapActions.setLastFocusedActivity(activity.id));
       setSelectedId(activity.id);
       setSheetMode("details");
-      setSheetIndex(0);
-      sheetRef.current?.snapToIndex?.(0);
+      setSheetIndex(1);
+      sheetRef.current?.snapToIndex?.(1);
     },
     [dispatch]
   );

@@ -124,8 +124,8 @@ const CalendarScreen = () => {
     setSelected(activity);
     setSelectedId(activity.id);
     setSheetMode("details");
-    setSheetIndex(0);
-    sheetRef.current?.snapToIndex?.(0);
+    setSheetIndex(1);
+    sheetRef.current?.snapToIndex?.(1);
   }, []);
 
   const handleClose = useCallback(() => {

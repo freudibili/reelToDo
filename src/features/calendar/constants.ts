@@ -1,0 +1,2 @@
+export const CALENDAR_GRID_COLUMNS = 5;
+export const CALENDAR_MAX_MONTH_DAYS = 31;

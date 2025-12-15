@@ -1,18 +1,14 @@
 import type { FC } from "react";
-import {
-  Dimensions,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  View,
-} from "react-native";
+import { Dimensions, Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Box, Text, spacing } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";
 import { getDateVisuals } from "@features/activities/utils/dateVisuals";
 
+import { CALENDAR_GRID_COLUMNS, CALENDAR_MAX_MONTH_DAYS } from "../constants";
 import { CalendarDay } from "../utils/dates";
+import { calculateDayGridLayout } from "../utils/gridLayout";
 
 interface Props {
   days: CalendarDay[];
@@ -21,9 +17,6 @@ interface Props {
   locale: string;
   onSelectDay: (dayKey: string) => void;
 }
-
-// With flexBasis/maxWidth: "18%" ~ 5 columns per row
-const COLUMNS = 5;
 
 const DayGrid: FC<Props> = ({
   days,
@@ -36,9 +29,14 @@ const DayGrid: FC<Props> = ({
   const insets = useSafeAreaInsets();
   const screenHeight = Dimensions.get("window").height;
 
-  // Safe area height = screen - top/bottom insets
-  const safeAreaHeight = screenHeight - (insets.top + insets.bottom);
-  const maxGridHeight = safeAreaHeight * 0.75;
+  const { chipPadding, rowGap, maxGridHeight, chipHeight, rowCount } =
+    calculateDayGridLayout({
+      dayCount: days.length,
+      columns: CALENDAR_GRID_COLUMNS,
+      screenHeight,
+      insets,
+      maxDayCount: CALENDAR_MAX_MONTH_DAYS,
+    });
 
   // compute once, not inside map
   const plannedVisuals = getDateVisuals(colors, "planned");
@@ -47,8 +45,8 @@ const DayGrid: FC<Props> = ({
   const officialDotColor = officialVisuals.color;
 
   // --- spacer logic to keep last row left-aligned with space-between ---
-  const remainder = days.length % COLUMNS;
-  const spacerCount = remainder === 0 ? 0 : COLUMNS - remainder;
+  const totalCells = rowCount * CALENDAR_GRID_COLUMNS;
+  const spacerCount = Math.max(0, totalCells - days.length);
   const daysWithSpacers: (CalendarDay | null)[] = [
     ...days,
     ...Array(spacerCount).fill(null),
@@ -56,19 +54,15 @@ const DayGrid: FC<Props> = ({
   // ---------------------------------------------------------------------
 
   return (
-    <ScrollView
-      style={{ maxHeight: maxGridHeight }}
-      contentContainerStyle={styles.scrollContainer}
-      showsVerticalScrollIndicator={false}
-    >
-      <View style={styles.daysGrid}>
+    <View style={[styles.gridContainer, { maxHeight: maxGridHeight }]}>
+      <View style={[styles.daysGrid, { rowGap }]}>
         {daysWithSpacers.map((item, index) => {
           // Render invisible spacers to fill the last row
           if (!item) {
             return (
               <View
                 key={`spacer-${index}`}
-                style={[styles.dayChip, styles.spacer]}
+                style={[styles.dayChip, styles.spacer, { height: chipHeight }]}
                 pointerEvents="none"
               />
             );
@@ -97,7 +91,7 @@ const DayGrid: FC<Props> = ({
           return (
             <Pressable
               key={item.key}
-              style={styles.dayChip}
+              style={[styles.dayChip, { height: chipHeight }]}
               onPress={() => onSelectDay(item.key)}
               hitSlop={6}
             >
@@ -105,8 +99,8 @@ const DayGrid: FC<Props> = ({
                 border
                 rounded="md"
                 align="center"
-                paddingVertical="xs"
-                paddingHorizontal="xs"
+                paddingVertical={chipPadding}
+                paddingHorizontal={chipPadding}
                 background={dayBackground}
                 borderColor={dayBorder}
                 style={styles.chipContent}
@@ -151,21 +145,21 @@ const DayGrid: FC<Props> = ({
           );
         })}
       </View>
-    </ScrollView>
+    </View>
   );
 };
 
 export default DayGrid;
 
 const styles = StyleSheet.create({
-  scrollContainer: {
+  gridContainer: {
     paddingBottom: spacing.sm,
+    flexShrink: 1,
   },
   daysGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
-    rowGap: spacing.sm,
     marginBottom: spacing.sm,
   },
   dayChip: {
@@ -174,6 +168,7 @@ const styles = StyleSheet.create({
   },
   chipContent: {
     width: "100%",
+    flex: 1,
   },
   dayNumber: {
     marginTop: 1,
