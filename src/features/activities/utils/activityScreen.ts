@@ -81,3 +81,19 @@ export const getFallbackLabels = (t: TFunction) => ({
   location: t("import:details.locationFallback"),
   date: t("activities:details.dateMissing"),
 });
+
+export const shouldShowActivityFooter = (
+  createdParam: string | string[] | null | undefined
+) => {
+  if (!createdParam) return false;
+  const value = Array.isArray(createdParam) ? createdParam[0] : createdParam;
+  if (!value) return false;
+  const normalized = value.toString().trim().toLowerCase();
+  return (
+    normalized === "1" ||
+    normalized === "true" ||
+    normalized === "yes" ||
+    normalized === "import" ||
+    normalized === "created"
+  );
+};

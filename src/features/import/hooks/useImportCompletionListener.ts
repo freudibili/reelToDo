@@ -12,6 +12,8 @@ import { selectImportedActivity } from "@features/import/store/importSelectors";
 import { setImportActivity } from "@features/import/store/importSlice";
 
 const POLL_INTERVAL = 4000;
+const buildCreatedActivityHref = (activityId: string) =>
+  `/activity/${activityId}?created=1`;
 
 export const useImportCompletionListener = () => {
   const activity = useAppSelector(selectImportedActivity);
@@ -45,7 +47,7 @@ export const useImportCompletionListener = () => {
       if (nextStatus === "complete" && prev !== "complete") {
         const action = {
           label: t("import:toast.view"),
-          href: `/activity/${activityId}`,
+          href: buildCreatedActivityHref(activityId),
         };
 
         dispatch(
@@ -59,7 +61,7 @@ export const useImportCompletionListener = () => {
         if (onImportScreen) {
           // Delay redirect slightly so the toast is visible even when coming from import screen.
           setTimeout(() => {
-            router.replace(`/activity/${activityId}` as never);
+            router.replace(buildCreatedActivityHref(activityId) as never);
           }, 50);
         }
       }

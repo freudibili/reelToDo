@@ -21,10 +21,7 @@ const buildActivityDeepLink = (activityId: string) =>
   `reeltodo://activity/${encodeURIComponent(activityId)}`;
 
 const buildEventNotes = (activity: Activity, deepLink: string) => {
-  const lines = [
-    "Created with ReelToDo",
-    `Open in app: ${deepLink}`,
-  ];
+  const lines = ["Created with ReelToDo", `Open in app: ${deepLink}`];
 
   const locationParts = [
     activity.location_name,
@@ -34,10 +31,6 @@ const buildEventNotes = (activity: Activity, deepLink: string) => {
   ].filter((part): part is string => Boolean(part && part.trim().length > 0));
   if (locationParts.length) {
     lines.push(`Location: ${locationParts.join(", ")}`);
-  }
-
-  if (activity.source_url) {
-    lines.push(`Source: ${activity.source_url}`);
   }
 
   return lines.join("\n");

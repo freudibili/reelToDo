@@ -14,12 +14,17 @@ import ActivityDateEditorCard from "../components/ActivityDateEditorCard";
 import ActivityLocationEditorCard from "../components/ActivityLocationEditorCard";
 import ActivityScreenFooter from "../components/ActivityScreenFooter";
 import { useActivityScreenController } from "../hooks/useActivityScreenController";
+import { shouldShowActivityFooter } from "../utils/activityScreen";
 
 const ActivityScreen = () => {
-  const { id } = useLocalSearchParams();
+  const { id, created } = useLocalSearchParams();
   const activityId = useMemo(
     () => (Array.isArray(id) ? id[0] : id) ?? null,
     [id]
+  );
+  const shouldShowFooter = useMemo(
+    () => shouldShowActivityFooter(created),
+    [created]
   );
   const router = useRouter();
   const { colors } = useAppTheme();
@@ -74,7 +79,7 @@ const ActivityScreen = () => {
       onBackPress={() => router.back()}
       loading={loading && !activity}
       scrollable
-      footer={<ActivityScreenFooter {...footerProps} />}
+      footer={shouldShowFooter ? <ActivityScreenFooter {...footerProps} /> : null}
     >
       {!activity && loading ? (
         <View style={styles.centered}>
