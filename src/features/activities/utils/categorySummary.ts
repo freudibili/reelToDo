@@ -1,5 +1,9 @@
 import i18next from "i18next";
 
+import {
+  FAVORITES_CATEGORY_ID,
+  RECENT_CATEGORY_ID,
+} from "./constants";
 import { haversineDistanceKm } from "./distance";
 import { getRecentActivities } from "./recentActivities";
 import type { Activity } from "./types";
@@ -14,8 +18,6 @@ export interface CategoryCardItem {
 
 const CLUSTER_RADIUS_KM = 1;
 const MIN_CLUSTER = 2;
-const RECENT_CATEGORY_ID = "recent";
-const FAVORITES_CATEGORY_ID = "favorites";
 
 const parseDate = (value: string | null | undefined) => {
   if (!value) return 0;
@@ -90,7 +92,7 @@ const buildRecentCard = (
   const recentActivities = getRecentActivities(activities, recentLimit);
   return {
     id: RECENT_CATEGORY_ID,
-    name: RECENT_CATEGORY_ID,
+    name: i18next.t("activities:category.recents", "Recents"),
     activityCount: recentActivities.length,
     heroImageUrl: pickHeroImage(recentActivities),
     hasCluster: hasCluster(recentActivities),
@@ -103,7 +105,7 @@ const buildFavoritesCard = (
   if (!favoriteActivities || favoriteActivities.length === 0) return null;
   return {
     id: FAVORITES_CATEGORY_ID,
-    name: FAVORITES_CATEGORY_ID,
+    name: i18next.t("activities:category.favorites", "Favorites"),
     activityCount: favoriteActivities.length,
     heroImageUrl: pickHeroImage(favoriteActivities, {
       respectInputOrder: true,
@@ -170,9 +172,4 @@ export const formatCategoryName = (raw: string) => {
 export const categorySummary = {
   buildCategoryCards,
   formatCategoryName,
-};
-
-export const categoryConstants = {
-  RECENT_CATEGORY_ID,
-  FAVORITES_CATEGORY_ID,
 };

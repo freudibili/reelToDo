@@ -125,7 +125,9 @@
     "subtitle_other": "{{count}} activités",
     "empty": "Aucune activité pour cette catégorie.",
     "fallbackTitle": "Activités",
-    "other": "Autre"
+    "other": "Autre",
+    "recents": "Récents",
+    "favorites": "Favoris"
   },
   "map": {
     "title": "Carte",

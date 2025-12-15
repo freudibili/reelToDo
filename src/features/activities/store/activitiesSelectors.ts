@@ -5,9 +5,9 @@ import type { RootState } from "@core/store";
 import type { Activity } from "../types";
 import {
   buildCategoryCards,
-  categoryConstants,
   type CategoryCardItem,
 } from "../utils/categorySummary";
+import { categoryConstants } from "../utils/constants";
 import {
   getFavoriteActivitiesSorted,
   getRecentActivities,

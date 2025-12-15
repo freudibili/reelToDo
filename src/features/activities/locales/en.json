@@ -125,7 +125,9 @@
     "subtitle_other": "{{count}} activities",
     "empty": "No activities for this category.",
     "fallbackTitle": "Activities",
-    "other": "Other"
+    "other": "Other",
+    "recents": "Recents",
+    "favorites": "Favorites"
   },
   "map": {
     "title": "Map",
