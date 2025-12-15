@@ -1,3 +1,5 @@
+import type BottomSheet from "@gorhom/bottom-sheet";
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import React, {
   useCallback,
   useEffect,
@@ -21,8 +23,8 @@ import {
   addFavorite,
   deleteActivity,
   fetchActivities,
-  setPlannedDate,
   removeFavorite,
+  setPlannedDate,
   startActivitiesListener,
   stopActivitiesListener,
 } from "@features/activities/store/activitiesSlice";
@@ -32,10 +34,11 @@ import { calendarSelectors } from "@features/calendar/store/calendarSelectors";
 import { calendarActions } from "@features/calendar/store/calendarSlice";
 import { createActivityCalendarEvent } from "@features/calendar/store/calendarThunks";
 import { toDayKey } from "@features/calendar/utils/dates";
+import { formatDayHeader } from "@features/calendar/utils/formatDayHeader";
 
-import DayActivitiesList from "../components/DayActivitiesList";
 import DayGrid from "../components/DayGrid";
 import MonthNavigator from "../components/MonthNavigator";
+import SelectedDayActivitiesSheet from "../components/SelectedDayActivitiesSheet";
 import { buildDayGroups, buildMonthDays } from "../utils/calendarData";
 
 const CalendarScreen = () => {
@@ -49,6 +52,7 @@ const CalendarScreen = () => {
   const favoriteIds = useAppSelector(activitiesSelectors.favoriteIds);
   const selectedDate = useAppSelector(calendarSelectors.selectedDate);
   const visibleMonthDate = useAppSelector(calendarSelectors.visibleMonthDate);
+  const tabBarHeight = useBottomTabBarHeight();
 
   const locale = useMemo(
     () => (i18n.resolvedLanguage === "fr" ? "fr-FR" : "en-US"),
@@ -63,9 +67,15 @@ const CalendarScreen = () => {
   const selectedFromStore = useAppSelector((state) =>
     selectedSelector ? selectedSelector(state) : null
   );
-  const [sheetVisible, setSheetVisible] = useState(false);
+  const [sheetMode, setSheetMode] = useState<"list" | "details">("list");
+  const [sheetIndex, setSheetIndex] = useState(-1);
+  const [initialSheetEvaluated, setInitialSheetEvaluated] = useState(false);
   const effectiveSelected = selectedFromStore ?? selected;
-  const sheetRef = useRef(null);
+  const sheetRef = useRef<BottomSheet | null>(null);
+  const snapPoints = useMemo(
+    () => (sheetMode === "list" ? ["25%", "60%"] : ["25%", "60%", "90%"]),
+    [sheetMode]
+  );
 
   useEffect(() => {
     dispatch(fetchActivities());
@@ -97,17 +107,54 @@ const CalendarScreen = () => {
     [dayGroups, visibleMonthDate]
   );
 
+  useEffect(() => {
+    if (initialSheetEvaluated) return;
+    if (!initialized) return;
+    if (selectedEntries.length > 0) {
+      setSheetMode("list");
+      setSheetIndex(0);
+      sheetRef.current?.snapToIndex?.(0);
+    } else {
+      sheetRef.current?.close?.();
+      setSheetIndex(-1);
+    }
+    setInitialSheetEvaluated(true);
+  }, [initialSheetEvaluated, initialized, selectedEntries.length]);
+
   const handleSelect = useCallback((activity: Activity) => {
     setSelected(activity);
     setSelectedId(activity.id);
-    setSheetVisible(true);
+    setSheetMode("details");
+    setSheetIndex(0);
+    sheetRef.current?.snapToIndex?.(0);
   }, []);
 
   const handleClose = useCallback(() => {
-    setSheetVisible(false);
+    sheetRef.current?.close?.();
+    setSheetIndex(-1);
+    setSheetMode("list");
     setSelected(null);
     setSelectedId(null);
   }, []);
+
+  const handleSelectDay = useCallback(
+    (day: string) => {
+      dispatch(calendarActions.setSelectedDate(day));
+      dispatch(calendarActions.setVisibleMonth(day));
+      setSelected(null);
+      setSelectedId(null);
+      setSheetMode("list");
+      const nextGroup = dayGroups.find((g) => g.key === day);
+      if (nextGroup?.entries.length) {
+        setSheetIndex(0);
+        sheetRef.current?.snapToIndex?.(0);
+      } else {
+        sheetRef.current?.close?.();
+        setSheetIndex(-1);
+      }
+    },
+    [dayGroups, dispatch]
+  );
 
   const handleToggleFavorite = useCallback(
     (activity: Activity) => {
@@ -181,7 +228,6 @@ const CalendarScreen = () => {
     <Screen
       loading={loading && !initialized}
       headerTitle={t("activities:calendar.title")}
-      scrollable
       flushBottom
     >
       <MonthNavigator
@@ -196,23 +242,26 @@ const CalendarScreen = () => {
         selectedDate={selectedDate}
         todayKey={todayKey}
         locale={locale}
-        onSelectDay={(day) => {
-          dispatch(calendarActions.setSelectedDate(day));
-          dispatch(calendarActions.setVisibleMonth(day));
-        }}
+        onSelectDay={handleSelectDay}
       />
 
-      <DayActivitiesList
-        dateLabel={formatDayHeader(selectedDateObj)}
-        subtitle={formatDisplayDate(selectedDateObj)}
-        entries={selectedEntries}
-        favoriteIds={favoriteIds}
-        emptyLabel={t("activities:calendar.noActivitiesForDay")}
-        onSelectActivity={handleSelect}
-      />
-
-      {sheetVisible ? (
-        <AppBottomSheet ref={sheetRef} index={1} onClose={handleClose}>
+      <AppBottomSheet
+        ref={sheetRef}
+        index={sheetIndex}
+        onClose={handleClose}
+        snapPoints={snapPoints}
+      >
+        {sheetMode === "list" ? (
+          <SelectedDayActivitiesSheet
+            dateLabel={formatDayHeader(selectedDateObj)}
+            subtitle={formatDisplayDate(selectedDateObj)}
+            entries={selectedEntries}
+            favoriteIds={favoriteIds}
+            emptyLabel={t("activities:calendar.noActivitiesForDay")}
+            onSelectActivity={handleSelect}
+            tabBarHeight={tabBarHeight}
+          />
+        ) : (
           <ActivityDetailsSheet
             activity={effectiveSelected}
             isFavorite={
@@ -226,9 +275,10 @@ const CalendarScreen = () => {
             onOpenSource={(activity) => openActivitySource(activity)}
             onAddToCalendar={handleAddToCalendar}
             onChangePlannedDate={handleSetPlannedDate}
+            tabBarHeight={tabBarHeight}
           />
-        </AppBottomSheet>
-      ) : null}
+        )}
+      </AppBottomSheet>
     </Screen>
   );
 };

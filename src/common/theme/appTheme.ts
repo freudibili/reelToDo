@@ -102,10 +102,11 @@ const lightPalette: AppTheme["colors"] = {
   info: "#0097B2",
 
   // Dates
-  plannedDate: "#2FB59A",
-  plannedDateBackground: "#E3F7F2",
-  officialDate: "#6BCF7E",
-  officialDateBackground: "#EAF8EE",
+  plannedDate: "#B45309",
+  plannedDateBackground: "#FEF3C7",
+
+  officialDate: "#BE185D",
+  officialDateBackground: "#FCE7F3",
 };
 
 // 🌚 DARK – deep teal base, no neon, calm green accents
@@ -161,10 +162,11 @@ const darkPalette: AppTheme["colors"] = {
   info: "#4FBAD1",
 
   // Dates
-  plannedDate: "#63C8B3",
-  plannedDateBackground: "#0E2A33",
-  officialDate: "#8ADFA0",
-  officialDateBackground: "#102E1C",
+  plannedDate: "#FBBF24",
+  plannedDateBackground: "rgba(251,191,36,0.22)",
+
+  officialDate: "#FB7185",
+  officialDateBackground: "rgba(251,113,133,0.20)",
 };
 
 const buildPaperTheme = (mode: AppThemeMode): MD3Theme => {

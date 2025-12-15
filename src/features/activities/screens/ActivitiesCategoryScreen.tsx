@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
 
@@ -22,6 +22,7 @@ import {
   removeFavorite,
   deleteActivity,
   setPlannedDate,
+  clearRecentlyEmptiedCategory,
 } from "../store/activitiesSlice";
 import type { Activity } from "../types";
 import { formatCategoryName } from "../utils/categorySummary";
@@ -45,6 +46,13 @@ const ActivitiesCategoryScreen = () => {
   );
   const activities = useAppSelector(categorySelector);
   const favoriteIds = useAppSelector(activitiesSelectors.favoriteIds);
+  const recentlyEmptiedCategory = useAppSelector(
+    activitiesSelectors.recentlyEmptiedCategory
+  );
+  const normalizedCategory = useMemo(
+    () => category.toLowerCase(),
+    [category]
+  );
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selectedSelector = useMemo(
@@ -62,10 +70,10 @@ const ActivitiesCategoryScreen = () => {
     setSheetVisible(true);
   }, []);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setSheetVisible(false);
     setSelectedId(null);
-  };
+  }, []);
 
   const handleToggleFavorite = useCallback(
     (id: string, next?: boolean) => {
@@ -94,7 +102,7 @@ const ActivitiesCategoryScreen = () => {
         }
       );
     },
-    [confirm, dispatch, t]
+    [confirm, dispatch, handleClose, t]
   );
 
   const categoryLabel = formatCategoryName(category);
@@ -110,6 +118,22 @@ const ActivitiesCategoryScreen = () => {
     },
     [dispatch]
   );
+
+  useEffect(() => {
+    if (!recentlyEmptiedCategory) return;
+    if (recentlyEmptiedCategory !== normalizedCategory) return;
+    dispatch(clearRecentlyEmptiedCategory());
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace("/activities" as never);
+    }
+  }, [
+    dispatch,
+    normalizedCategory,
+    recentlyEmptiedCategory,
+    router,
+  ]);
 
   return (
     <>

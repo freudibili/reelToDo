@@ -1,14 +1,8 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { StyleSheet } from "react-native";
+import { StyleSheet, View } from "react-native";
 
-import {
-  Badge,
-  Card,
-  Stack,
-  Text,
-  spacing,
-} from "@common/designSystem";
+import { Badge, Stack, Text, spacing } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";
 import type { Activity } from "@features/activities/types";
 
@@ -39,7 +33,7 @@ const DayActivitiesList: React.FC<Props> = ({
   const countLabel = t("activities:calendar.count", { count: rows.length });
 
   return (
-    <Card variant="outlined" padding="lg" style={styles.card}>
+    <View style={styles.container}>
       <Stack
         direction="row"
         align="center"
@@ -76,18 +70,20 @@ const DayActivitiesList: React.FC<Props> = ({
           ))}
         </Stack>
       )}
-    </Card>
+    </View>
   );
 };
 
 export default DayActivitiesList;
 
 const styles = StyleSheet.create({
-  card: {
+  container: {
     marginBottom: spacing.md,
+    paddingHorizontal: spacing.lg,
   },
   header: {
     marginBottom: spacing.sm,
+    width: "95%",
   },
   emptySubtitle: {
     marginTop: spacing.xs,

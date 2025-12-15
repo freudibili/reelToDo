@@ -19,6 +19,7 @@ interface ActivitiesState {
   favoriteIds: string[];
   loading: boolean;
   initialized: boolean;
+  recentlyEmptiedCategory: string | null;
 }
 
 const initialState: ActivitiesState = {
@@ -26,6 +27,35 @@ const initialState: ActivitiesState = {
   favoriteIds: [],
   loading: false,
   initialized: false,
+  recentlyEmptiedCategory: null,
+};
+
+const normalizeCategoryKey = (value?: string | null) => {
+  if (typeof value === "string" && value.trim().length > 0) {
+    return value.toLowerCase();
+  }
+  return "other";
+};
+
+type CategoryAwareState = Pick<
+  ActivitiesState,
+  "items" | "recentlyEmptiedCategory"
+>;
+
+const updateRecentlyEmptiedCategory = (
+  state: CategoryAwareState,
+  removedCategory?: string | null
+) => {
+  if (removedCategory === undefined) {
+    return;
+  }
+  const categoryKey = normalizeCategoryKey(removedCategory);
+  const hasRemaining = state.items.some(
+    (activity) => normalizeCategoryKey(activity.category) === categoryKey
+  );
+  if (!hasRemaining) {
+    state.recentlyEmptiedCategory = categoryKey;
+  }
 };
 
 let activitiesChannel: RealtimeChannel | null = null;
@@ -308,6 +338,9 @@ const activitiesSlice = createSlice({
         state.favoriteIds = state.favoriteIds.filter((x) => x !== activityId);
       }
     },
+    clearRecentlyEmptiedCategory: (state) => {
+      state.recentlyEmptiedCategory = null;
+    },
   },
   extraReducers: (builder) => {
     builder.addCase(fetchActivities.pending, (state) => {
@@ -318,6 +351,7 @@ const activitiesSlice = createSlice({
       state.favoriteIds = action.payload.favorites;
       state.loading = false;
       state.initialized = true;
+      state.recentlyEmptiedCategory = null;
     });
     builder.addCase(fetchActivities.rejected, (state) => {
       state.loading = false;
@@ -346,13 +380,21 @@ const activitiesSlice = createSlice({
     });
     builder.addCase(deleteActivity.fulfilled, (state, action) => {
       const id = action.payload;
+      const removedActivity = state.items.find((a) => a.id === id);
       state.items = state.items.filter((a) => a.id !== id);
       state.favoriteIds = state.favoriteIds.filter((x) => x !== id);
+      if (removedActivity) {
+        updateRecentlyEmptiedCategory(state, removedActivity.category);
+      }
     });
     builder.addCase(cancelActivity.fulfilled, (state, action) => {
       const id = action.payload;
+      const removedActivity = state.items.find((a) => a.id === id);
       state.items = state.items.filter((a) => a.id !== id);
       state.favoriteIds = state.favoriteIds.filter((x) => x !== id);
+      if (removedActivity) {
+        updateRecentlyEmptiedCategory(state, removedActivity.category);
+      }
     });
     builder.addCase(createActivityCalendarEvent.fulfilled, (state, action) => {
       const { activityId, calendarEventId, plannedAt } = action.payload;
@@ -400,6 +442,7 @@ export const {
   activityDeleted,
   favoriteToggledLocal,
   userActivityUpdated,
+  clearRecentlyEmptiedCategory,
 } = activitiesSlice.actions;
 
 export default activitiesSlice.reducer;

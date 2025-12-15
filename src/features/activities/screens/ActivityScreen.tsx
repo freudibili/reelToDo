@@ -57,7 +57,6 @@ const ActivityScreen = () => {
     savingDate,
     deletingActivity,
     isOwner,
-    showDate,
     footerProps,
     openDateModal,
     closeDateModal,

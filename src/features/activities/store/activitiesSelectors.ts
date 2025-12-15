@@ -22,6 +22,10 @@ const favoriteIds = createSelector(
   [selectSlice],
   (slice) => slice.favoriteIds ?? []
 );
+const recentlyEmptiedCategory = createSelector(
+  [selectSlice],
+  (slice) => slice.recentlyEmptiedCategory
+);
 
 const groupedByCategory = createSelector([items], (list) => {
   const groups: Record<string, Activity[]> = {};
@@ -81,6 +85,7 @@ export const activitiesSelectors = {
   items,
   loading,
   initialized,
+  recentlyEmptiedCategory,
   groupedByCategory,
   categoryCards,
   recentActivities,

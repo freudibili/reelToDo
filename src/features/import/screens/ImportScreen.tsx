@@ -70,6 +70,7 @@ const ImportScreen = () => {
   const sharedUrl = parsedShared.sharedUrl;
   const hasSharedParam = !!parsedShared.raw;
   const [manualLink, setManualLink] = useState(() => sharedData?.text ?? "");
+  const lastInlineErrorRef = useRef<string | null>(null);
 
   const {
     displayActivity,
@@ -164,6 +165,19 @@ const ImportScreen = () => {
     }
   }, [displayActivity, error]);
 
+  useEffect(() => {
+    if (!showError || !error) return;
+    if (lastInlineErrorRef.current === error) return;
+    lastInlineErrorRef.current = error;
+    showToast(t("import:toast.failed"), "error");
+  }, [error, showError, showToast, t]);
+
+  useEffect(() => {
+    if (!error) {
+      lastInlineErrorRef.current = null;
+    }
+  }, [error]);
+
   const handleProcessingFailure = useCallback(
     async (activityId: string, alreadyDeleted = false) => {
       if (clearingRef.current) return;
@@ -181,11 +195,13 @@ const ImportScreen = () => {
         lastStatusRef.current = null;
         lastActivityIdRef.current = null;
         setManualLink("");
-        router.replace("/import" as never);
+        if (hasSharedParam) {
+          router.replace("/import" as never);
+        }
         clearingRef.current = false;
       }
     },
-    [dispatch, showToast, t, router]
+    [dispatch, hasSharedParam, showToast, t, router]
   );
 
   const handleActivityDeleted = useCallback(() => {
