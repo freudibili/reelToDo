@@ -13,6 +13,10 @@ const selectPreferences = createSelector(
   [selectSlice],
   (slice) => slice.preferences
 );
+const selectDistanceUnit = createSelector(
+  [selectPreferences],
+  (preferences) => preferences.distanceUnit
+);
 const selectLoading = createSelector([selectSlice], (slice) => slice.loading);
 const selectError = createSelector([selectSlice], (slice) => slice.error);
 const selectInitialized = createSelector(
@@ -24,6 +28,7 @@ export const settingsSelectors = {
   profile: selectProfile,
   notifications: selectNotifications,
   preferences: selectPreferences,
+  distanceUnit: selectDistanceUnit,
   loading: selectLoading,
   error: selectError,
   initialized: selectInitialized,
