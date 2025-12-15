@@ -24,8 +24,10 @@ const unconfirmedStatuses: Array<Activity["location_status"]> = [
 
 export const resolveLocationStatus = (
   activity: Activity,
-  t: TFunction<"translation">
+  t: TFunction<"translation">,
+  options?: { isOwner?: boolean }
 ): LocationStatusMeta => {
+  const isOwner = options?.isOwner ?? false;
   const status = activity.location_status ?? null;
   const needsConfirmation =
     activity.needs_location_confirmation ||
@@ -49,10 +51,21 @@ export const resolveLocationStatus = (
     };
   }
 
+  if (status === "suggested" && isOwner && !needsConfirmation) {
+    return {
+      label: t("activities:locationStatus.confirmedLabel"),
+      helper: t("activities:locationStatus.confirmed"),
+      tone: "success",
+      needsConfirmation: false,
+    };
+  }
+
   if (status === "suggested") {
     return {
       label: t("activities:locationStatus.suggestedLabel"),
-      helper: t("activities:locationStatus.suggested"),
+      helper: isOwner
+        ? t("activities:locationStatus.suggestedOwner")
+        : t("activities:locationStatus.suggested"),
       tone: "info",
       needsConfirmation: false,
     };

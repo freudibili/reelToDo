@@ -68,6 +68,10 @@
     "cancelActivity": "Cancel",
     "locationConfirmedTitle": "Location",
     "dateConfirmedTitle": "Date",
+    "updateLocationTitle": "Update the location",
+    "updateLocationSubtitle": "Choose and confirm the correct place.",
+    "updateDateTitle": "Update the date",
+    "updateDateSubtitle": "Pick the official date for this activity.",
     "deleteConfirmTitle": "Delete this activity?",
     "deleteConfirmBody": "This removes it for you and anyone else. This action cannot be undone.",
     "deleteConfirmCta": "Delete it",
@@ -91,7 +95,8 @@
     "missing": "We still need a location for this activity.",
     "missingLabel": "Missing location",
     "suggested": "Location suggested by someone. You can make it official.",
-    "suggestedLabel": "Suggested"
+    "suggestedLabel": "Suggested",
+    "suggestedOwner": "Someone suggested a new location. Review it and confirm if it's correct."
   },
   "toasts": {
     "locationSaved": "Location updated",

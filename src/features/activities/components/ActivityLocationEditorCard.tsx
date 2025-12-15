@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { View, StyleSheet } from "react-native";
 
 import LocationChangeModal from "@common/components/LocationChangeModal";
-import { Badge, Button, Text } from "@common/designSystem";
+import { Badge, Text } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";
 import type { PlaceDetails } from "@features/import/types";
 
@@ -16,10 +16,7 @@ import {
   formatLocationEntry,
   getActivityLocations,
 } from "../utils/activityDisplay";
-import {
-  resolveLocationAction,
-  type LocationStatusMeta,
-} from "../utils/locationEditor";
+import type { LocationStatusMeta } from "../utils/locationEditor";
 
 type ActivityLocationEditorCardProps = {
   activity: Activity;
@@ -29,11 +26,9 @@ type ActivityLocationEditorCardProps = {
     place: PlaceDetails;
     note: string | null;
   }) => void;
-  onSave: () => void;
-  onCancelActivity: () => void;
   saving: boolean;
-  deleting: boolean;
   isOwner: boolean;
+  disabled?: boolean;
 };
 
 const ActivityLocationEditorCard: React.FC<ActivityLocationEditorCardProps> = ({
@@ -41,11 +36,9 @@ const ActivityLocationEditorCard: React.FC<ActivityLocationEditorCardProps> = ({
   status,
   draftLocation,
   onChangeLocation,
-  onSave,
-  onCancelActivity,
   saving,
-  deleting,
   isOwner,
+  disabled = false,
 }) => {
   const { colors } = useAppTheme();
   const { t } = useTranslation();
@@ -67,10 +60,6 @@ const ActivityLocationEditorCard: React.FC<ActivityLocationEditorCardProps> = ({
       ) ?? formatActivityLocation(activity);
     return formattedPrimary ?? t("common:labels.locationPending");
   }, [activity, draftLocation, locations, t]);
-  const action = useMemo(
-    () => resolveLocationAction({ activity, isOwner, draftLocation }),
-    [activity, draftLocation, isOwner]
-  );
   const alternateLocations = useMemo(
     () =>
       locations
@@ -92,18 +81,19 @@ const ActivityLocationEditorCard: React.FC<ActivityLocationEditorCardProps> = ({
       : status.tone === "warning"
         ? "danger"
         : "accent";
-  const primaryLabel = saving
-    ? t("common:locationPicker.submitting")
-    : action === "continue"
-      ? t("common:buttons.continue")
-      : action === "save"
-        ? t("activities:editor.saveLocation")
-        : t("activities:editor.suggestLocation");
-
   const handleOpenModal = () => {
-    if (saving || deleting) return;
+    if (saving || disabled) return;
     setModalVisible(true);
   };
+  const modalTitle = isOwner
+    ? t("activities:editor.updateLocationTitle")
+    : t("activities:report.title");
+  const modalSubtitle = isOwner
+    ? t("activities:editor.updateLocationSubtitle")
+    : t("activities:report.subtitle", {
+        title: activity.title ?? t("common:labels.activity"),
+      });
+  const modalMode = isOwner ? "update" : "suggest";
 
   return (
     <View style={styles.container}>
@@ -128,7 +118,7 @@ const ActivityLocationEditorCard: React.FC<ActivityLocationEditorCardProps> = ({
               {status.helper}
             </Text>
           </View>
-        <Badge tone={statusTone}>{status.label}</Badge>
+          <Badge tone={statusTone}>{status.label}</Badge>
         </View>
       ) : null}
 
@@ -138,7 +128,7 @@ const ActivityLocationEditorCard: React.FC<ActivityLocationEditorCardProps> = ({
         rightSlot={
           <SuggestionPill
             onPress={handleOpenModal}
-            label={t("activities:editor.changeLocation")}
+            label={isOwner ? t("activities:editor.changeLocation") : undefined}
           />
         }
       />
@@ -150,29 +140,6 @@ const ActivityLocationEditorCard: React.FC<ActivityLocationEditorCardProps> = ({
         />
       ) : null}
 
-      <View style={styles.actionsRow}>
-        <Button
-          label={
-            deleting
-              ? t("common:buttons.delete") + "…"
-              : t("activities:editor.cancelActivity")
-          }
-          variant="secondary"
-          onPress={onCancelActivity}
-          disabled={saving || deleting}
-          style={{ flex: 1 }}
-          shadow={false}
-        />
-        <Button
-          label={primaryLabel}
-          variant="primary"
-          onPress={onSave}
-          disabled={saving || deleting}
-          loading={saving}
-          style={{ flex: 1 }}
-        />
-      </View>
-
       <LocationChangeModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
@@ -182,6 +149,9 @@ const ActivityLocationEditorCard: React.FC<ActivityLocationEditorCardProps> = ({
         }}
         initialValue={activity.address ?? activity.location_name ?? undefined}
         submitting={saving}
+        title={modalTitle}
+        subtitle={modalSubtitle}
+        mode={modalMode}
       />
     </View>
   );
@@ -207,26 +177,6 @@ const styles = StyleSheet.create({
   titleGroup: {
     flex: 1,
     gap: 4,
-  },
-  actionsRow: {
-    flexDirection: "row",
-    gap: 10,
-  },
-  primaryButton: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  secondaryButton: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    alignItems: "center",
-    justifyContent: "center",
   },
 });
 

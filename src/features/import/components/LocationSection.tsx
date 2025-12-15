@@ -133,6 +133,7 @@ const LocationSection: React.FC<LocationSectionProps> = ({
         onSelectPlace={handleSelectPlace}
         onClose={() => setModalVisible(false)}
         submitting={submitting}
+        mode={isSuggestMode ? "suggest" : "update"}
         title={
           isSuggestMode
             ? t("activities:report.title")

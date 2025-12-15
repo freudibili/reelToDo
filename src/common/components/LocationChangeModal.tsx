@@ -14,6 +14,7 @@ interface LocationChangeModalProps {
   title?: string;
   subtitle?: string;
   submitting?: boolean;
+  mode?: "update" | "suggest";
   onSelectPlace: (payload: {
     place: PlaceDetails;
     note: string | null;
@@ -27,6 +28,7 @@ const LocationChangeModal: React.FC<LocationChangeModalProps> = ({
   title,
   subtitle,
   submitting = false,
+  mode = "suggest",
   onSelectPlace,
   onClose,
 }) => {
@@ -35,6 +37,7 @@ const LocationChangeModal: React.FC<LocationChangeModalProps> = ({
   const [note, setNote] = useState("");
   const isConfirmDisabled = !selectedPlace || submitting;
   const isCancelDisabled = submitting;
+  const showNoteField = mode !== "update";
 
   useEffect(() => {
     if (!visible) {
@@ -43,8 +46,16 @@ const LocationChangeModal: React.FC<LocationChangeModalProps> = ({
     }
   }, [visible]);
 
-  const resolvedTitle = title ?? t("common:locationPicker.title");
-  const resolvedSubtitle = subtitle ?? t("common:locationPicker.subtitle");
+  const resolvedTitle =
+    title ??
+    (mode === "update"
+      ? t("activities:editor.updateLocationTitle")
+      : t("activities:details.suggestLocationTitle"));
+  const resolvedSubtitle =
+    subtitle ??
+    (mode === "update"
+      ? t("activities:editor.updateLocationSubtitle")
+      : t("activities:details.suggestLocationMessage"));
 
   return (
     <AppModal
@@ -62,18 +73,20 @@ const LocationChangeModal: React.FC<LocationChangeModalProps> = ({
           placeholder={t("common:locationPicker.placeholder")}
         />
 
-        <Box style={styles.noteGroup} gap={6}>
-          <Text variant="headline" weight="700">
-            {t("activities:report.noteLabel")}
-          </Text>
-          <Input
-            placeholder={t("activities:report.notePlaceholder")}
-            value={note}
-            onChangeText={setNote}
-            multiline
-            numberOfLines={3}
-          />
-        </Box>
+        {showNoteField ? (
+          <Box style={styles.noteGroup} gap={6}>
+            <Text variant="headline" weight="700">
+              {t("activities:report.noteLabel")}
+            </Text>
+            <Input
+              placeholder={t("activities:report.notePlaceholder")}
+              value={note}
+              onChangeText={setNote}
+              multiline
+              numberOfLines={3}
+            />
+          </Box>
+        ) : null}
 
         <Box direction="row" gap={10}>
           <Button

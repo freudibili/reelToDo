@@ -68,6 +68,10 @@
     "cancelActivity": "Annuler",
     "locationConfirmedTitle": "Lieu",
     "dateConfirmedTitle": "Date",
+    "updateLocationTitle": "Mettre à jour le lieu",
+    "updateLocationSubtitle": "Choisis et confirme l'endroit exact.",
+    "updateDateTitle": "Mettre à jour la date",
+    "updateDateSubtitle": "Sélectionne la date officielle de l'activité.",
     "deleteConfirmTitle": "Supprimer cette activité ?",
     "deleteConfirmBody": "Elle sera supprimée pour toi et pour les autres. Action irréversible.",
     "deleteConfirmCta": "Supprimer",
@@ -91,7 +95,8 @@
     "missing": "Nous avons encore besoin d'un lieu pour cette activité.",
     "missingLabel": "Lieu manquant",
     "suggested": "Lieu proposé par quelqu'un. Tu peux le rendre officiel.",
-    "suggestedLabel": "Proposé"
+    "suggestedLabel": "Proposé",
+    "suggestedOwner": "Quelqu'un a proposé un nouveau lieu. Vérifie-le et confirme s'il est correct."
   },
   "toasts": {
     "locationSaved": "Lieu mis à jour",

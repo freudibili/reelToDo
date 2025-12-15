@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { View, StyleSheet, Pressable } from "react-native";
+import { View, StyleSheet } from "react-native";
 
 import { Badge, Text } from "@common/designSystem";
 import { useAppTheme } from "@common/theme/appTheme";
@@ -18,7 +18,7 @@ import {
   getOfficialDateValue,
   parseDateValue,
 } from "../utils/activityDisplay";
-import { resolveDateAction, type DateStatusMeta } from "../utils/dateEditor";
+import type { DateStatusMeta } from "../utils/dateEditor";
 
 type ActivityDateEditorCardProps = {
   activity: Activity;
@@ -26,8 +26,6 @@ type ActivityDateEditorCardProps = {
   draftDate: Date | null;
   onChangeDate: (date: Date) => void;
   onRequestChange?: () => void;
-  onSave: () => void;
-  saving: boolean;
   isOwner: boolean;
 };
 
@@ -37,8 +35,6 @@ const ActivityDateEditorCard: React.FC<ActivityDateEditorCardProps> = ({
   draftDate,
   onChangeDate,
   onRequestChange,
-  onSave,
-  saving,
   isOwner,
 }) => {
   const { colors, mode } = useAppTheme();
@@ -90,20 +86,6 @@ const ActivityDateEditorCard: React.FC<ActivityDateEditorCardProps> = ({
       : status.tone === "warning"
         ? "danger"
         : "accent";
-  const action = useMemo(
-    () => resolveDateAction({ activity, isOwner, draftDate }),
-    [activity, draftDate, isOwner]
-  );
-  const primaryLabel = saving
-    ? t("common:locationPicker.submitting")
-    : action === "continue"
-      ? t("common:buttons.continue")
-      : action === "save"
-        ? t("activities:editor.saveDate")
-        : t("activities:editor.suggestDate");
-
-  const canSave = action === "continue" ? true : !!effectiveDate;
-
   return (
     <View style={styles.container}>
       {isOwner ? (
@@ -126,7 +108,7 @@ const ActivityDateEditorCard: React.FC<ActivityDateEditorCardProps> = ({
         rightSlot={
           <SuggestionPill
             onPress={onRequestChange ?? openPicker}
-            label={t("activities:editor.changeDate")}
+            label={isOwner ? t("activities:editor.changeDate") : undefined}
           />
         }
       />
@@ -137,30 +119,6 @@ const ActivityDateEditorCard: React.FC<ActivityDateEditorCardProps> = ({
           items={additionalDates}
         />
       ) : null}
-
-      <View style={styles.actionsRow}>
-        <Pressable
-          style={[
-            styles.primaryButton,
-            {
-              backgroundColor:
-                saving || !canSave ? colors.overlay : colors.primary,
-              borderColor: colors.primaryBorder,
-            },
-          ]}
-          onPress={onSave}
-          disabled={saving || !canSave}
-        >
-          <Text
-            variant="bodyStrong"
-            style={{
-              color: saving ? colors.secondaryText : colors.favoriteContrast,
-            }}
-          >
-            {primaryLabel}
-          </Text>
-        </Pressable>
-      </View>
 
       {onRequestChange ? null : pickerModal}
     </View>
@@ -181,18 +139,6 @@ const styles = StyleSheet.create({
   titleGroup: {
     flex: 1,
     gap: 4,
-  },
-  actionsRow: {
-    flexDirection: "row",
-    gap: 10,
-  },
-  primaryButton: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    alignItems: "center",
-    justifyContent: "center",
   },
 });
 

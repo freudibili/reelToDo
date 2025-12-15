@@ -18,6 +18,7 @@ type Props = {
   title?: string;
   subtitle?: string;
   onClose: () => void;
+  mode?: "update" | "suggest";
 };
 
 const DateChangeModal: React.FC<Props> = ({
@@ -28,9 +29,10 @@ const DateChangeModal: React.FC<Props> = ({
   title,
   subtitle,
   onClose,
+  mode = "suggest",
 }) => {
   const { t } = useTranslation();
-  const { colors, mode } = useAppTheme();
+  const { colors, mode: themeMode } = useAppTheme();
   const [note, setNote] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date>(
     initialValue ?? new Date()
@@ -67,7 +69,7 @@ const DateChangeModal: React.FC<Props> = ({
     value: selectedDate,
     onChange: handleSelectDate,
     cardColor: colors.card,
-    themeMode: mode,
+    themeMode: themeMode,
     textColor: colors.text,
   });
 
@@ -84,10 +86,17 @@ const DateChangeModal: React.FC<Props> = ({
   };
 
   const isDisabled = submitting || !selectedDate || !hasChangedFromInitial;
-  const resolvedTitle = title ?? t("activities:details.suggestDateTitle");
+  const resolvedTitle =
+    title ??
+    (mode === "update"
+      ? t("activities:editor.updateDateTitle")
+      : t("activities:details.suggestDateTitle"));
   const resolvedSubtitle =
     subtitle ??
-    t("activities:details.suggestDateSubtitle");
+    (mode === "update"
+      ? t("activities:editor.updateDateSubtitle")
+      : t("activities:details.suggestDateSubtitle"));
+  const showNoteField = mode !== "update";
 
   return (
     <AppModal
@@ -97,7 +106,7 @@ const DateChangeModal: React.FC<Props> = ({
       subtitle={resolvedSubtitle}
     >
       <Stack gap="md" style={styles.content}>
-        <Text variant="headline" weight="700">
+        <Text variant="headline">
           {t("activities:details.suggestDatePickLabel")}
         </Text>
 
@@ -109,16 +118,20 @@ const DateChangeModal: React.FC<Props> = ({
           fullWidth
         />
 
-        <Text variant="headline" weight="700">
-          {t("activities:details.suggestDateNoteLabel")}
-        </Text>
-        <Input
-          placeholder={t("activities:details.suggestDateNotePlaceholder")}
-          value={note}
-          onChangeText={setNote}
-          multiline
-          numberOfLines={3}
-        />
+        {showNoteField ? (
+          <>
+            <Text variant="headline">
+              {t("activities:details.suggestDateNoteLabel")}
+            </Text>
+            <Input
+              placeholder={t("activities:details.suggestDateNotePlaceholder")}
+              value={note}
+              onChangeText={setNote}
+              multiline
+              numberOfLines={3}
+            />
+          </>
+        ) : null}
 
         {pickerModal}
 
@@ -133,8 +146,10 @@ const DateChangeModal: React.FC<Props> = ({
           <Button
             label={
               submitting
-                ? t("activities:details.suggestDateSubmitting")
-                : t("activities:details.suggestDateConfirm")
+                ? mode === "update"
+                  ? t("common:locationPicker.submitting")
+                  : t("activities:details.suggestDateSubmitting")
+                : t("common:buttons.confirm")
             }
             variant="primary"
             onPress={handleConfirm}

@@ -176,6 +176,7 @@ const ActivityDetailsSheet: React.FC<Props> = ({
         subtitle={t("activities:details.suggestDateSubtitleForActivity", {
           title: activity.title ?? t("common:labels.activity"),
         })}
+        mode="suggest"
       />
     </>
   );
