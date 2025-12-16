@@ -157,6 +157,7 @@ const AppScreen: React.FC<AppScreenProps> = ({
                     : 12 + footerBottomPadding,
 
                   borderTopColor: colors.border,
+                  backgroundColor: colors.background,
                   position: "absolute",
                   left: 0,
                   right: 0,
