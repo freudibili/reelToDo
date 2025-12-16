@@ -44,22 +44,13 @@ const SettingsScreen = () => {
   }, [dispatch, initialized, user]);
 
   const displayName = useMemo(
-    () =>
-      deriveProfileName(
-        profile,
-        user,
-        t("settings:placeholders.guest")
-      ),
+    () => deriveProfileName(profile, user, t("settings:placeholders.guest")),
     [profile, t, user]
   );
 
   const address = useMemo(
     () =>
-      deriveProfileAddress(
-        profile,
-        user,
-        t("settings:placeholders.address")
-      ),
+      deriveProfileAddress(profile, user, t("settings:placeholders.address")),
     [profile, t, user]
   );
 
@@ -113,15 +104,6 @@ const SettingsScreen = () => {
         />
       </SettingsSection>
 
-      <SettingsSection title={t("settings:sections.experience")}>
-        <SettingsListItem
-          title={t("settings:items.onboarding")}
-          description={t("settings:items.onboardingSubtitle")}
-          icon="play-circle-outline"
-          onPress={handleReplayOnboarding}
-        />
-      </SettingsSection>
-
       <SettingsSection title={t("settings:sections.safety")}>
         <SettingsListItem
           title={t("settings:items.privacy")}
@@ -140,6 +122,15 @@ const SettingsScreen = () => {
           description={t("settings:items.aboutSubtitle")}
           icon="information-variant"
           onPress={() => goTo("/settings/about")}
+        />
+      </SettingsSection>
+
+      <SettingsSection title={t("settings:sections.experience")}>
+        <SettingsListItem
+          title={t("settings:items.onboarding")}
+          description={t("settings:items.onboardingSubtitle")}
+          icon="play-circle-outline"
+          onPress={handleReplayOnboarding}
         />
       </SettingsSection>
 

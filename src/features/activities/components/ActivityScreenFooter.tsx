@@ -45,6 +45,7 @@ const ActivityScreenFooter: React.FC<ActivityScreenFooterProps> = ({
           disabled={primaryDisabled}
           loading={primaryLoading}
           style={styles.button}
+          shadow={false}
         />
       ) : null}
     </View>

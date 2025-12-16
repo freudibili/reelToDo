@@ -79,12 +79,9 @@ const AppScreen: React.FC<AppScreenProps> = ({
       ? footerHeight + footerOffset + footerBottomPadding
       : footerBottomPadding);
 
-  const handleFooterLayout = React.useCallback(
-    (event: LayoutChangeEvent) => {
-      setFooterHeight(event.nativeEvent.layout.height);
-    },
-    [],
-  );
+  const handleFooterLayout = React.useCallback((event: LayoutChangeEvent) => {
+    setFooterHeight(event.nativeEvent.layout.height);
+  }, []);
 
   const renderHeader =
     headerTitle || onBackPress ? (
@@ -133,9 +130,7 @@ const AppScreen: React.FC<AppScreenProps> = ({
   );
 
   return (
-    <View
-      style={[styles.root, { backgroundColor: resolvedBackgroundColor }]}
-    >
+    <View style={[styles.root, { backgroundColor: resolvedBackgroundColor }]}>
       <SafeAreaView
         style={[styles.safeArea, { backgroundColor: resolvedBackgroundColor }]}
         edges={["top", "left", "right"]}
@@ -157,13 +152,15 @@ const AppScreen: React.FC<AppScreenProps> = ({
                 {
                   paddingHorizontal: horizontalPadding,
                   paddingTop: noPadding ? 8 : 12,
-                  paddingBottom: footerBottomPadding,
-                  backgroundColor: resolvedBackgroundColor,
+                  paddingBottom: noPadding
+                    ? 8 + footerBottomPadding
+                    : 12 + footerBottomPadding,
+
                   borderTopColor: colors.border,
                   position: "absolute",
                   left: 0,
                   right: 0,
-                  bottom: footerOffset,
+                  bottom: 0,
                 },
               ]}
             >
@@ -175,10 +172,7 @@ const AppScreen: React.FC<AppScreenProps> = ({
 
       {loading && (
         <View
-          style={[
-            styles.loadingOverlay,
-            { backgroundColor: colors.backdrop },
-          ]}
+          style={[styles.loadingOverlay, { backgroundColor: colors.backdrop }]}
         >
           {loadingContent ?? (
             <ActivityIndicator size="large" color={colors.primary} />

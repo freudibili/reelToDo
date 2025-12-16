@@ -39,6 +39,7 @@ const config: ExpoConfig = {
   },
   android: {
     package: "com.fredericstudio.reeltodo",
+    googleServicesFile: "./google-services.json",
     adaptiveIcon: {
       foregroundImage: "./assets/adaptive-icon.png",
       backgroundColor: "#ffffff",
