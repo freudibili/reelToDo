@@ -36,6 +36,7 @@ const SelectedDayActivitiesSheet: React.FC<Props> = ({
         paddingTop: 8,
         paddingBottom,
       }}
+      showsVerticalScrollIndicator={false}
     >
       <DayActivitiesList
         dateLabel={dateLabel}

@@ -47,6 +47,7 @@ const NearbyActivitiesSheet: React.FC<Props> = ({
       ]}
       nestedScrollEnabled
       keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
       renderItem={({ item }) => (
         <NearbyActivityRow
           entry={item}

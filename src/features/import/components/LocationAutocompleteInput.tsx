@@ -159,7 +159,11 @@ const LocationAutocompleteInput: React.FC<LocationAutocompleteInputProps> = ({
           shadow="sm"
           style={styles.suggestionsContainer}
         >
-          <ScrollView nestedScrollEnabled keyboardShouldPersistTaps="handled">
+          <ScrollView
+            nestedScrollEnabled
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
             <Stack gap="xxs">
               {suggestions.map((item) => (
                 <Pressable

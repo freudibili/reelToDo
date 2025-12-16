@@ -53,7 +53,10 @@ const ActivityList: React.FC<Props> = ({
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollContent}>
+    <ScrollView
+      contentContainerStyle={styles.scrollContent}
+      showsVerticalScrollIndicator={false}
+    >
       <View style={styles.gridWrapper}>
         {data.map((section) => (
           <Box key={section.id} style={styles.cardColumn}>

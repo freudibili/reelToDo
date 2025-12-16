@@ -96,6 +96,7 @@ const ActivityDetailsSheet: React.FC<Props> = ({
           { paddingBottom: bottomPadding },
         ]}
         nestedScrollEnabled
+        showsVerticalScrollIndicator={false}
       >
         <ActivitySummaryHeader
           title={activity.title ?? t("common:labels.activity")}
