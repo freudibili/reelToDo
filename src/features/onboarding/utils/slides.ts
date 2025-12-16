@@ -4,6 +4,10 @@ import type { AppTheme } from "@common/theme/appTheme";
 
 import type { OnboardingSlide } from "../types";
 
+const slide1 = require("../../../../assets/images/onboarding/slide1.jpg");
+const slide2 = require("../../../../assets/images/onboarding/slide2.jpg");
+const slide3 = require("../../../../assets/images/onboarding/slide3.jpg");
+
 export const buildSlides = (
   colors: AppTheme["colors"],
   t: TFunction<"onboarding">
@@ -16,6 +20,9 @@ export const buildSlides = (
     accent: colors.primary,
     accentSurface: colors.primarySurface,
     icon: "share-variant",
+    backgroundImage: slide1,
+    gradientStart: colors.primary,
+    gradientEnd: colors.primarySurface,
   },
   {
     key: "find",
@@ -25,6 +32,9 @@ export const buildSlides = (
     accent: colors.accent,
     accentSurface: colors.accentSurface,
     icon: "map-search",
+    backgroundImage: slide2,
+    gradientStart: colors.accent,
+    gradientEnd: colors.accentSurface,
   },
   {
     key: "go",
@@ -34,5 +44,8 @@ export const buildSlides = (
     accent: colors.primaryStrong,
     accentSurface: colors.mutedSurface,
     icon: "walk",
+    backgroundImage: slide3,
+    gradientStart: colors.secondary,
+    gradientEnd: colors.mutedSurface,
   },
 ];

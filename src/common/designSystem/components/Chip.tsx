@@ -12,6 +12,7 @@ type Props = PressableProps & {
   icon?: React.ReactNode;
   selected?: boolean;
   tone?: ChipTone;
+  textColor?: string;
 };
 
 const Chip: React.FC<Props> = ({
@@ -21,6 +22,7 @@ const Chip: React.FC<Props> = ({
   tone = "neutral",
   style,
   disabled,
+  textColor,
   ...rest
 }) => {
   const { colors } = useAppTheme();
@@ -51,7 +53,7 @@ const Chip: React.FC<Props> = ({
       <Text
         variant="bodySmall"
         weight="700"
-        style={{ color: palette.textColor }}
+        style={{ color: textColor ?? palette.textColor }}
       >
         {label}
       </Text>

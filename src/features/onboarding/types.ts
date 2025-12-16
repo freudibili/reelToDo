@@ -1,3 +1,5 @@
+import type { ImageSourcePropType } from "react-native";
+
 export type OnboardingSlide = {
   key: string;
   eyebrow: string;
@@ -6,4 +8,7 @@ export type OnboardingSlide = {
   accent: string;
   accentSurface: string;
   icon: string;
+  backgroundImage: ImageSourcePropType;
+  gradientStart: string;
+  gradientEnd: string;
 };

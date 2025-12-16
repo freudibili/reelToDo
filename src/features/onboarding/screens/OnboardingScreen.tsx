@@ -13,7 +13,7 @@ import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import AppScreen from "@common/components/AppScreen";
-import { Box, Button, GradientButton, Stack } from "@common/designSystem";
+import { Box, Chip, GradientButton, Stack, Text } from "@common/designSystem";
 import { spacing } from "@common/designSystem/tokens";
 import { completeOnboarding } from "@common/store/appSlice";
 import { useAppTheme } from "@common/theme/appTheme";
@@ -24,6 +24,8 @@ import OnboardingSlideCard from "../components/OnboardingSlideCard";
 import { buildSlides } from "../utils/slides";
 import type { OnboardingSlide } from "../types";
 
+const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient);
+
 const OnboardingScreen = () => {
   const dispatch = useAppDispatch();
   const router = useRouter();
@@ -31,7 +33,8 @@ const OnboardingScreen = () => {
   const { colors, mode } = useAppTheme();
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  const preferredSlideWidth = Math.round(width * 0.86);
+
+  const preferredSlideWidth = Math.round(width * 0.82);
   const maxSlideWidth = width - spacing.lg * 2;
   const slideWidth = Math.min(preferredSlideWidth, maxSlideWidth);
   const horizontalPadding = (width - slideWidth) / 2;
@@ -66,26 +69,103 @@ const OnboardingScreen = () => {
     router.replace("/activities");
   }, [dispatch, router]);
 
-  const handleNext = () => {
+  const handleNext = React.useCallback(() => {
     const lastIndex = slides.length - 1;
     if (currentIndex >= lastIndex) {
       completeFlow();
       return;
     }
+
     flatListRef.current?.scrollToIndex({
       index: currentIndex + 1,
       animated: true,
     });
-  };
+  }, [completeFlow, currentIndex, slides.length]);
 
-  const handleSkip = () => {
+  const handleSkip = React.useCallback(() => {
     completeFlow();
-  };
+  }, [completeFlow]);
 
   const actionLabel =
-    currentIndex === slides.length - 1
-      ? t("actions.start")
-      : t("actions.next");
+    currentIndex === slides.length - 1 ? t("actions.start") : t("actions.next");
+
+  const gradientLayers = React.useMemo(
+    () =>
+      slides.map((slide, idx) => {
+        const inputRange = [
+          (idx - 1) * slideWidth,
+          idx * slideWidth,
+          (idx + 1) * slideWidth,
+        ];
+        const opacity = scrollX.interpolate({
+          inputRange,
+          outputRange: [0, 1, 0],
+          extrapolate: "clamp",
+        });
+
+        return (
+          <AnimatedLinearGradient
+            pointerEvents="none"
+            key={slide.key}
+            colors={[slide.gradientStart, slide.gradientEnd, colors.background]}
+            style={[
+              styles.lightWash,
+              {
+                top: -insets.top,
+                bottom: 0,
+                opacity,
+              },
+            ]}
+            start={{ x: 0.1, y: 0 }}
+            end={{ x: 0.9, y: 1 }}
+          />
+        );
+      }),
+    [slides, slideWidth, scrollX, insets.top, colors.background]
+  );
+
+  const slideHeadlines = React.useMemo(
+    () =>
+      slides.map((slide, idx) => {
+        const inputRange = [
+          (idx - 1) * slideWidth,
+          idx * slideWidth,
+          (idx + 1) * slideWidth,
+        ];
+        const opacity = scrollX.interpolate({
+          inputRange,
+          outputRange: [0, 1, 0],
+          extrapolate: "clamp",
+        });
+        const translateY = scrollX.interpolate({
+          inputRange,
+          outputRange: [24, 0, -24],
+          extrapolate: "clamp",
+        });
+
+        return (
+          <Animated.View
+            key={`${slide.key}-headline`}
+            pointerEvents="none"
+            style={[
+              styles.titleLayer,
+              {
+                opacity,
+                transform: [{ translateY }],
+              },
+            ]}
+          >
+            <Text variant="title1" weight="800" style={styles.titleText}>
+              {slide.title}
+            </Text>
+            <Text variant="body" tone="muted" style={styles.subtitleText}>
+              {slide.body}
+            </Text>
+          </Animated.View>
+        );
+      }),
+    [slides, slideWidth, scrollX]
+  );
 
   return (
     <AppScreen
@@ -100,44 +180,37 @@ const OnboardingScreen = () => {
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
       />
-      <View
-        pointerEvents="none"
-        style={[
-          styles.floatingShape,
-          {
-            backgroundColor: colors.primarySurface,
-            top: -120,
-            right: -80,
-          },
-        ]}
-      />
-      <View
-        pointerEvents="none"
-        style={[
-          styles.floatingShape,
-          {
-            backgroundColor: colors.accentSurface,
-            bottom: -160,
-            left: -110,
-          },
-        ]}
-      />
-
-      <Stack flex={1} gap="lg" paddingTop="sm">
+      {gradientLayers}
+      <Stack flex={1} gap="sm" paddingTop="sm" paddingBottom={"xs"}>
         <Stack
           direction="row"
           align="center"
           justify="flex-end"
           paddingHorizontal="lg"
         >
-          <Button
+          <Chip
             label={t("actions.skip")}
             onPress={handleSkip}
-            size="sm"
-            pill
-            variant="ghost"
+            tone="neutral"
+            textColor={colors.favoriteContrast}
+            style={{
+              backgroundColor: "transparent",
+              borderColor: "transparent",
+            }}
+            accessibilityRole="button"
           />
         </Stack>
+
+        <View
+          style={[
+            styles.titleArea,
+            {
+              paddingHorizontal: horizontalPadding,
+            },
+          ]}
+        >
+          {slideHeadlines}
+        </View>
 
         <Animated.FlatList
           ref={flatListRef}
@@ -150,7 +223,7 @@ const OnboardingScreen = () => {
           keyExtractor={(item) => item.key}
           contentContainerStyle={{
             paddingHorizontal: horizontalPadding,
-            paddingTop: spacing.md,
+            paddingTop: spacing.xxs,
             paddingBottom: spacing.lg,
           }}
           renderItem={({ item, index }) => (
@@ -187,8 +260,8 @@ const OnboardingScreen = () => {
 
         <Box
           paddingHorizontal="lg"
-          paddingTop="lg"
-          paddingBottom={Math.max(insets.bottom, spacing.lg)}
+          paddingTop="xs"
+          paddingBottom={Math.max(insets.bottom, spacing.xs)}
         >
           <Stack align="center" fullWidth>
             <GradientButton
@@ -204,12 +277,27 @@ const OnboardingScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  floatingShape: {
+  lightWash: {
+    ...StyleSheet.absoluteFillObject,
+    opacity: 0.6,
+  },
+  titleArea: {
+    minHeight: 100,
+    justifyContent: "center",
+    position: "relative",
+  },
+  titleLayer: {
     position: "absolute",
-    width: 320,
-    height: 320,
-    borderRadius: 200,
-    opacity: 0.2,
+    left: 0,
+    right: 0,
+    alignItems: "center",
+  },
+  titleText: {
+    textAlign: "center",
+  },
+  subtitleText: {
+    marginTop: spacing.xs,
+    textAlign: "center",
   },
 });
 
