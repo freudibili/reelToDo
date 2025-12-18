@@ -1,17 +1,18 @@
 import Constants from "expo-constants";
 import * as Notifications from "expo-notifications";
-import type { NotificationBehavior } from "expo-notifications";
 import { Platform } from "react-native";
 
 import { supabase } from "@config/supabase";
 import type { ProfileEmailRow } from "@features/settings/utils/types";
 
-const defaultNotificationBehavior: NotificationBehavior = {
-  shouldShowAlert: true,
+const ANDROID_PUSH_CHANNEL_ID = "alerts";
+
+const defaultNotificationBehavior: Notifications.NotificationBehavior = {
+  // Keep foreground quiet; we handle routing ourselves.
+  shouldShowBanner: false,
+  shouldShowList: false,
   shouldPlaySound: false,
   shouldSetBadge: false,
-  shouldShowBanner: true,
-  shouldShowList: true,
 };
 
 Notifications.setNotificationHandler({
@@ -27,7 +28,20 @@ export const registerForPushNotifications = async (
 ): Promise<string | null> => {
   try {
     const { requestPermissions = true } = options;
-    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+
+    if (Platform.OS === "android") {
+      await Notifications.setNotificationChannelAsync(ANDROID_PUSH_CHANNEL_ID, {
+        name: "Alerts",
+        importance: Notifications.AndroidImportance.MAX,
+        sound: "default",
+        enableVibrate: true,
+        vibrationPattern: [0, 250, 250, 250],
+        lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+      });
+    }
+
+    const { status: existingStatus } =
+      await Notifications.getPermissionsAsync();
     let finalStatus = existingStatus;
 
     if (existingStatus !== "granted") {

@@ -40,6 +40,8 @@ export const sendActivityPush = async (
         to: token,
         title,
         body,
+        priority: "high",
+        channelId: "alerts",
         data: {
           activityId,
           url: `/activity/${activityId}`,

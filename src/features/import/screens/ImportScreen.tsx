@@ -248,10 +248,16 @@ const ImportScreen = () => {
     router.back();
   }, [router]);
 
+  const isImportInProgress =
+    !!displayActivity &&
+    ((displayActivity.processing_status ?? "processing") === "processing");
+
   const handleGoHome = useCallback(() => {
-    dispatch(resetImport());
+    if (!isImportInProgress) {
+      dispatch(resetImport());
+    }
     router.replace("/");
-  }, [dispatch, router]);
+  }, [dispatch, isImportInProgress, router]);
 
   return (
     <Screen
