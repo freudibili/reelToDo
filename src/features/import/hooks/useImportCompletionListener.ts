@@ -24,6 +24,7 @@ export const useImportCompletionListener = () => {
     id: string;
     status: ActivityProcessingStatus | null;
   } | null>(null);
+  const lastRedirectActivityIdRef = useRef<string | null>(null);
   const pathname = usePathname();
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
@@ -31,7 +32,7 @@ export const useImportCompletionListener = () => {
   useEffect(() => {
     const activityId = activity?.id;
     const status = (activity?.processing_status ??
-      "complete") as ActivityProcessingStatus | null;
+      "processing") as ActivityProcessingStatus | null;
 
     const handleStatusChange = (
       nextStatus: ActivityProcessingStatus | "deleted"
@@ -43,22 +44,30 @@ export const useImportCompletionListener = () => {
           ? lastStatusRef.current.status
           : null;
       const onImportScreen = pathname?.includes("/import");
+      const onActivityScreen = /\/activity(\/|$)/.test(pathname ?? "");
 
-      if (nextStatus === "complete" && prev !== "complete") {
-        const action = {
-          label: t("import:toast.view"),
-          href: buildCreatedActivityHref(activityId),
-        };
+      const shouldShowToast = !onActivityScreen;
+      const shouldRedirectToActivity =
+        onImportScreen && lastRedirectActivityIdRef.current !== activityId;
 
-        dispatch(
-          showToastAction({
-            message: t("import:toast.success"),
-            type: "success",
-            action,
-          })
-        );
+      if (nextStatus === "complete") {
+        if (prev !== "complete" && shouldShowToast) {
+          const action = {
+            label: t("import:toast.view"),
+            href: buildCreatedActivityHref(activityId),
+          };
 
-        if (onImportScreen) {
+          dispatch(
+            showToastAction({
+              message: t("import:toast.success"),
+              type: "success",
+              action,
+            })
+          );
+        }
+
+        if (shouldRedirectToActivity) {
+          lastRedirectActivityIdRef.current = activityId;
           // Delay redirect slightly so the toast is visible even when coming from import screen.
           setTimeout(() => {
             router.replace(buildCreatedActivityHref(activityId) as never);
@@ -67,7 +76,7 @@ export const useImportCompletionListener = () => {
       }
 
       if (nextStatus === "failed" || nextStatus === "deleted") {
-        if (!onImportScreen) {
+        if (!onImportScreen && shouldShowToast) {
           const action =
             nextStatus === "failed"
               ? {
@@ -96,9 +105,17 @@ export const useImportCompletionListener = () => {
     };
 
     if (!activityId || status !== "processing") {
-      if (status === "complete") {
-        handleStatusChange("complete");
+      if (activityId && status) {
+        handleStatusChange(status);
       }
+
+      if (activityId) {
+        lastStatusRef.current = {
+          id: activityId,
+          status,
+        };
+      }
+      lastRedirectActivityIdRef.current = null;
 
       if (pollRef.current) {
         clearInterval(pollRef.current);
@@ -124,7 +141,7 @@ export const useImportCompletionListener = () => {
         (payload) => {
           const next = payload.new as any;
           const nextStatus = (next.processing_status ??
-            "complete") as ActivityProcessingStatus;
+            "processing") as ActivityProcessingStatus;
           dispatch(activityUpdated(next));
           dispatch(setImportActivity(next));
           if (nextStatus !== "processing") {
@@ -151,7 +168,7 @@ export const useImportCompletionListener = () => {
         const latest = await ActivitiesService.fetchActivityById(activityId);
         if (latest) {
           const nextStatus = (latest.processing_status ??
-            "complete") as ActivityProcessingStatus;
+            "processing") as ActivityProcessingStatus;
           dispatch(activityUpdated(latest));
           dispatch(setImportActivity(latest));
           if (nextStatus !== "processing") {
@@ -190,6 +207,7 @@ export const useImportCompletionListener = () => {
   useEffect(() => {
     if (!activity) {
       lastStatusRef.current = null;
+      lastRedirectActivityIdRef.current = null;
     }
   }, [activity]);
 };

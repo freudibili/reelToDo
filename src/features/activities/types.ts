@@ -57,3 +57,5 @@ export type ActivityCategory =
   | "travel_practical";
 
 export type ActivityProcessingStatus = "processing" | "complete" | "failed";
+
+export type ActivityModeDate = "update" | "suggest";

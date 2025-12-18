@@ -102,10 +102,13 @@ const ImportScreen = () => {
 
   useFocusEffect(
     useCallback(() => {
+      if (displayActivity) {
+        return;
+      }
       dispatch(resetImport());
       setManualLink(sharedData?.text ?? "");
       hasAnalyzedRef.current = false;
-    }, [dispatch, sharedData?.text])
+    }, [dispatch, sharedData?.text, displayActivity])
   );
 
   const triggerAnalyze = useCallback(

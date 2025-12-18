@@ -27,12 +27,13 @@ const AdditionalInfoList: React.FC<Props> = ({ title, icon, items }) => {
       </Text>
       <View style={styles.items}>
         {items.map((item, index) => (
-          <View
-            key={`${item}-${index}`}
-            style={styles.itemRow}
-          >
+          <View key={`${item}-${index}`} style={styles.itemRow}>
             <Icon source={icon} size={18} color={colors.secondaryText} />
-            <Text variant="body" style={{ color: colors.text }} numberOfLines={2}>
+            <Text
+              variant="body"
+              style={{ color: colors.text }}
+              numberOfLines={2}
+            >
               {item}
             </Text>
           </View>
@@ -57,6 +58,7 @@ const styles = StyleSheet.create({
   itemRow: {
     flexDirection: "row",
     alignItems: "center",
+    marginRight: 10,
     gap: 8,
   },
 });

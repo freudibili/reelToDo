@@ -2,6 +2,7 @@ import React, {
   useCallback,
   useEffect,
   useImperativeHandle,
+  useRef,
   useState,
 } from "react";
 import { useTranslation } from "react-i18next";
@@ -56,6 +57,7 @@ const ImportDetailsForm = React.forwardRef<
     date: officialDateValue ? new Date(officialDateValue) : null,
   }));
   const [suggestingLocation, setSuggestingLocation] = useState(false);
+  const prevActivityIdRef = useRef(activity.id);
 
   const isOwner = !!userId && activity.user_id === userId;
   const hasExistingLocation =
@@ -73,6 +75,11 @@ const ImportDetailsForm = React.forwardRef<
   }, [dirty, onDirtyChange]);
 
   useEffect(() => {
+    const sameActivity = prevActivityIdRef.current === activity.id;
+    if (sameActivity && dirty) {
+      return;
+    }
+
     setDraft({
       location: null,
       date: officialDateValue ? new Date(officialDateValue) : null,
@@ -80,12 +87,14 @@ const ImportDetailsForm = React.forwardRef<
 
     setDirty(false);
     onDirtyChange?.(false);
+    prevActivityIdRef.current = activity.id;
   }, [
     activity.id,
     activity.location_name,
     activity.address,
     officialDateValue,
     onDirtyChange,
+    dirty,
   ]);
 
   const handleSavePress = useCallback(() => {

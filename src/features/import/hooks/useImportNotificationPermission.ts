@@ -18,15 +18,21 @@ export const useImportNotificationPermission = (
 
     inFlightRef.current = true;
     try {
-      const alreadyRequested =
+      const userKey = `${FIRST_IMPORT_NOTIFICATION_KEY}:${userId}`;
+      const legacyRequested =
         (await AsyncStorage.getItem(FIRST_IMPORT_NOTIFICATION_KEY)) === "1";
+      const alreadyRequested =
+        legacyRequested || (await AsyncStorage.getItem(userKey)) === "1";
 
       const token = await registerForPushNotifications({
         requestPermissions: !alreadyRequested,
       });
 
       if (!alreadyRequested) {
-        await AsyncStorage.setItem(FIRST_IMPORT_NOTIFICATION_KEY, "1");
+        await AsyncStorage.setItem(userKey, "1");
+        if (legacyRequested) {
+          await AsyncStorage.removeItem(FIRST_IMPORT_NOTIFICATION_KEY);
+        }
       }
 
       if (token) {
@@ -39,4 +45,3 @@ export const useImportNotificationPermission = (
     }
   }, [userId]);
 };
-

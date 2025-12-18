@@ -13,7 +13,7 @@ import {
 import type { PlaceDetails } from "@features/import/types";
 
 import { ActivitiesService } from "../services/activitiesService";
-import type { Activity } from "../types";
+import type { ActivityModeDate } from "../types";
 import {
   getFallbackLabels,
   getOfficialDateInfo,
@@ -122,10 +122,7 @@ export const useActivityScreenController = ({
     ]
   );
   const locationStatus = useMemo(
-    () =>
-      activity
-        ? resolveLocationStatus(activity, t, { isOwner })
-        : null,
+    () => (activity ? resolveLocationStatus(activity, t, { isOwner }) : null),
     [activity, isOwner, t]
   );
   const locationAction = useMemo(
@@ -377,7 +374,13 @@ export const useActivityScreenController = ({
       return;
     }
     onExit();
-  }, [handleSaveDate, handleSaveLocation, needsDateAction, needsLocationAction, onExit]);
+  }, [
+    handleSaveDate,
+    handleSaveLocation,
+    needsDateAction,
+    needsLocationAction,
+    onExit,
+  ]);
 
   const footerProps = useMemo(
     () => ({
@@ -422,7 +425,7 @@ export const useActivityScreenController = ({
     : t("activities:details.suggestDateSubtitleForActivity", {
         title: activity?.title ?? t("common:labels.activity"),
       });
-  const dateModalMode = isOwner ? "update" : "suggest";
+  const dateModalMode: ActivityModeDate = isOwner ? "update" : "suggest";
 
   return {
     activity,

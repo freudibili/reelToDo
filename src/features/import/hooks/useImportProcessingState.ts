@@ -26,7 +26,7 @@ export const useImportProcessingState = ({
   }, [activities, activity]);
 
   const processingStatus = (displayActivity?.processing_status ??
-    "complete") as ImportProcessingState["processingStatus"];
+    "processing") as ImportProcessingState["processingStatus"];
   const isProcessing = processingStatus === "processing";
   const isFailed = processingStatus === "failed";
   const processingErrorMessage =

@@ -9,6 +9,7 @@ import { useAppTheme } from "@common/theme/appTheme";
 
 import { usePlatformDateTimePicker } from "../hooks/usePlatformDateTimePicker";
 import { formatDisplayDateTime } from "../utils/activityDisplay";
+import { ActivityModeDate } from "../types";
 
 type Props = {
   visible: boolean;
@@ -18,7 +19,7 @@ type Props = {
   title?: string;
   subtitle?: string;
   onClose: () => void;
-  mode?: "update" | "suggest";
+  mode?: ActivityModeDate;
 };
 
 const DateChangeModal: React.FC<Props> = ({
