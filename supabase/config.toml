@@ -10,3 +10,9 @@ entrypoint = "./functions/analyze-post/index.ts"
 # Specifies static files to be bundled with the function. Supports glob patterns.
 # For example, if you want to serve static HTML pages in your function:
 # static_files = [ "./functions/analyze-post/*.html" ]
+
+[functions.process-activity]
+enabled = true
+verify_jwt = true
+import_map = "./functions/analyze-post/deno.json"
+entrypoint = "./functions/process-activity/index.ts"
