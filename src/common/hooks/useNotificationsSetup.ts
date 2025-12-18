@@ -6,6 +6,8 @@ import {
   registerForPushNotifications,
   savePushToken,
 } from "@common/services/pushNotifications";
+import { resetImport } from "@features/import/store/importSlice";
+import { useAppDispatch } from "@core/store/hook";
 import { useAppSelector } from "@core/store/hook";
 import { selectAuthUser } from "@features/auth/store/authSelectors";
 
@@ -14,6 +16,7 @@ export const useNotificationsSetup = () => {
   const userId = user?.id ?? null;
   const router = useRouter();
   const lastToken = useRef<string | null>(null);
+  const dispatch = useAppDispatch();
 
   useEffect(() => {
     if (!userId) return;
@@ -23,10 +26,20 @@ export const useNotificationsSetup = () => {
       const data = response.notification.request.content.data as any;
       const activityId = data?.activityId ?? data?.activity_id;
       const targetUrl = data?.url as string | undefined;
+
       if (activityId) {
-        router.push(`/activity/${activityId}` as never);
+        dispatch(resetImport());
+        const baseUrl =
+          typeof targetUrl === "string" && targetUrl.includes("/activity/")
+            ? targetUrl
+            : `/activity/${activityId}`;
+        const separator = baseUrl.includes("?") ? "&" : "?";
+        router.push(
+          `${baseUrl}${separator}created=import&from=notification` as never
+        );
         return;
       }
+
       if (typeof targetUrl === "string") {
         router.push(targetUrl as never);
       }
@@ -57,5 +70,5 @@ export const useNotificationsSetup = () => {
       active = false;
       responseSub.remove();
     };
-  }, [router, userId]);
+  }, [dispatch, router, userId]);
 };

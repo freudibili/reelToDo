@@ -220,6 +220,7 @@ const ImportScreen = () => {
   useEffect(() => {
     if (!displayActivity) {
       lastStatusRef.current = null;
+      lastActivityIdRef.current = null;
       return;
     }
 
@@ -231,14 +232,14 @@ const ImportScreen = () => {
     lastActivityIdRef.current = displayActivity.id;
 
     if (processingStatus === "failed" && prev !== "failed") {
-      void handleProcessingFailure(displayActivity.id);
+      showToast(t("import:toast.failed"), "error");
     }
 
     lastStatusRef.current = {
       id: displayActivity.id,
       status: processingStatus,
     };
-  }, [displayActivity, handleProcessingFailure, processingStatus]);
+  }, [displayActivity, processingStatus, showToast, t]);
 
   const handleBackPress = useCallback(() => {
     router.back();

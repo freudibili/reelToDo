@@ -17,26 +17,35 @@ import { useActivityScreenController } from "../hooks/useActivityScreenControlle
 import { shouldShowActivityFooter } from "../utils/activityScreen";
 
 const ActivityScreen = () => {
-  const { id, created } = useLocalSearchParams();
+  const { id, created, from } = useLocalSearchParams();
   const activityId = useMemo(
     () => (Array.isArray(id) ? id[0] : id) ?? null,
     [id]
   );
-  const shouldShowFooter = useMemo(
-    () => shouldShowActivityFooter(created),
-    [created]
+  const sourceParam = useMemo(
+    () => (Array.isArray(from) ? from[0] : from) ?? null,
+    [from]
   );
+  const shouldShowFooter = useMemo(() => {
+    if (sourceParam === "notification") return true;
+    return shouldShowActivityFooter(created);
+  }, [created, sourceParam]);
   const router = useRouter();
   const { colors } = useAppTheme();
   const { t } = useTranslation();
+  const shouldExitToActivities = sourceParam === "notification";
 
   const exitScreen = useCallback(() => {
+    if (shouldExitToActivities) {
+      router.replace("/activities" as never);
+      return;
+    }
     if (router.canGoBack()) {
       router.back();
-    } else {
-      router.replace("/activities" as never);
+      return;
     }
-  }, [router]);
+    router.replace("/activities" as never);
+  }, [router, shouldExitToActivities]);
 
   const controller = useActivityScreenController({
     activityId,
@@ -76,7 +85,7 @@ const ActivityScreen = () => {
   return (
     <Screen
       headerTitle={headerTitle}
-      onBackPress={() => router.back()}
+      onBackPress={exitScreen}
       loading={loading && !activity}
       scrollable
       footer={shouldShowFooter ? <ActivityScreenFooter {...footerProps} /> : null}

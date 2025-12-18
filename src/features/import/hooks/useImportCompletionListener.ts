@@ -81,10 +81,12 @@ export const useImportCompletionListener = () => {
               message: t("import:toast.failed"),
               type: "error",
               action,
-            })
+              })
           );
         }
-        dispatch(setImportActivity(null));
+        if (!onImportScreen || nextStatus === "deleted") {
+          dispatch(setImportActivity(null));
+        }
       }
 
       lastStatusRef.current = {
