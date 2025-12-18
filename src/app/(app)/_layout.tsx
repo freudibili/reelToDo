@@ -5,10 +5,7 @@ const AppStackLayout = () => {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tabs)" />
-      <Stack.Screen
-        name="onboarding"
-        options={{ presentation: "modal", animation: "fade" }}
-      />
+      <Stack.Screen name="onboarding" />
     </Stack>
   );
 };

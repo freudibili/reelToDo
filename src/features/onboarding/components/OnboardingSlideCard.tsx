@@ -69,6 +69,7 @@ const OnboardingSlideCard: React.FC<Props> = ({
 
 const styles = StyleSheet.create({
   slide: {
+    flex: 1,
     paddingVertical: spacing.xs,
   },
   cardShadow: {

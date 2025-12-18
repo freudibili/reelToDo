@@ -5,17 +5,17 @@
   "slides": {
     "share": {
       "eyebrow": "Partage-le",
-      "title": "Capturez liens et invitations vite.",
+      "title": "Sauvegardez vite.",
       "body": "Enregistrez un lieu ou une note en quelques gestes."
     },
     "find": {
       "eyebrow": "Retrouve-le",
-      "title": "Tout reste facile à retrouver.",
+      "title": "Tout sous la main.",
       "body": "Carte, liste ou agenda d'un geste."
     },
     "go": {
       "eyebrow": "Go",
-      "title": "Sortez prêts.",
+      "title": "Partez prêts.",
       "body": "Votre plan, votre rythme — partage-le, trouve-le, go."
     }
   },

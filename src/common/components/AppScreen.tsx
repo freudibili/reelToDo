@@ -34,6 +34,8 @@ interface AppScreenProps {
   headerCompact?: boolean;
   alignToTabBar?: boolean;
   flushBottom?: boolean;
+  footerOverlay?: boolean;
+  footerPlain?: boolean;
 }
 
 const AppScreen: React.FC<AppScreenProps> = ({
@@ -52,6 +54,8 @@ const AppScreen: React.FC<AppScreenProps> = ({
   headerCompact = false,
   alignToTabBar = true,
   flushBottom = false,
+  footerOverlay = false,
+  footerPlain = false,
 }) => {
   const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
@@ -73,11 +77,10 @@ const AppScreen: React.FC<AppScreenProps> = ({
   const horizontalPadding = noPadding ? 0 : 12;
   const verticalPadding = noPadding ? 0 : 4;
   const baseBottomSpacing = flushBottom ? 0 : noPadding ? 0 : 20;
+  const footerExtraPadding =
+    footer && !footerOverlay ? footerHeight + footerOffset : 0;
   const contentBottomPadding =
-    baseBottomSpacing +
-    (footer
-      ? footerHeight + footerOffset + footerBottomPadding
-      : footerBottomPadding);
+    baseBottomSpacing + footerBottomPadding + footerExtraPadding;
 
   const handleFooterLayout = React.useCallback((event: LayoutChangeEvent) => {
     setFooterHeight(event.nativeEvent.layout.height);
@@ -155,9 +158,11 @@ const AppScreen: React.FC<AppScreenProps> = ({
                   paddingBottom: noPadding
                     ? 8 + footerBottomPadding
                     : 12 + footerBottomPadding,
-
-                  borderTopColor: colors.border,
-                  backgroundColor: colors.background,
+                  borderTopWidth: footerPlain ? 0 : StyleSheet.hairlineWidth,
+                  borderTopColor: footerPlain ? "transparent" : colors.border,
+                  backgroundColor: footerPlain
+                    ? "transparent"
+                    : colors.background,
                   position: "absolute",
                   left: 0,
                   right: 0,
@@ -203,9 +208,7 @@ const styles = StyleSheet.create({
   scroll: { flex: 1 },
   scrollContent: { flexGrow: 1 },
   inner: { flex: 1 },
-  footer: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
+  footer: {},
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
     justifyContent: "center",

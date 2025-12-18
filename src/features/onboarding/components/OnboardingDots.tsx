@@ -19,7 +19,7 @@ const OnboardingDots: React.FC<Props> = ({
   colors,
 }) => {
   return (
-    <Stack direction="row" align="center" justify="center" gap="sm" paddingBottom="xl">
+    <Stack direction="row" align="center" justify="center" gap="sm">
       {Array.from({ length: total }).map((_, idx) => (
         <ProgressDot
           key={idx}
@@ -49,11 +49,7 @@ const ProgressDot: React.FC<ProgressDotProps> = ({
   activeColor,
   inactiveColor,
 }) => {
-  const inputRange = [
-    (index - 1) * width,
-    index * width,
-    (index + 1) * width,
-  ];
+  const inputRange = [(index - 1) * width, index * width, (index + 1) * width];
 
   const dotWidth = scrollX.interpolate({
     inputRange,

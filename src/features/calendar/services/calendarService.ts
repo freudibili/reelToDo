@@ -20,17 +20,23 @@ const ensureCalendarPermission = async () => {
 const buildActivityDeepLink = (activityId: string) =>
   `reeltodo://activity/${encodeURIComponent(activityId)}`;
 
-const buildEventNotes = (activity: Activity, deepLink: string) => {
-  const lines = ["Created with ReelToDo", `Open in app: ${deepLink}`];
-
-  const locationParts = [
+const getActivityLocationString = (activity: Activity) => {
+  return [
     activity.location_name,
     activity.address,
     activity.city,
     activity.country,
-  ].filter((part): part is string => Boolean(part && part.trim().length > 0));
-  if (locationParts.length) {
-    lines.push(`Location: ${locationParts.join(", ")}`);
+  ]
+    .filter((part): part is string => Boolean(part && part.trim().length > 0))
+    .join(", ");
+};
+
+const buildEventNotes = (activity: Activity, deepLink: string) => {
+  const lines = ["Created with ReelToDo", `Open in app: ${deepLink}`];
+
+  const location = getActivityLocationString(activity);
+  if (location) {
+    lines.push(`Location: ${location}`);
   }
 
   return lines.join("\n");
@@ -51,16 +57,22 @@ const getDefaultSource = async () => {
 const findPreferredCalendarId = (calendars: Calendar.Calendar[]) => {
   const writable = calendars.filter((c) => c.allowsModifications);
   const googleCalendar = writable.find((c) => {
-    const sourceName = c.source?.name?.toLowerCase?.() ?? "";
-    const owner =
-      typeof (c as any).ownerAccount === "string"
-        ? ((c as any).ownerAccount as string).toLowerCase()
-        : "";
-    return (
-      sourceName.includes("google") ||
-      sourceName.includes("gmail") ||
-      owner.includes("gmail.com") ||
-      owner.includes("google")
+    const parts = [
+      c.title,
+      c.name,
+      c.source?.name,
+      c.source?.type ?? "",
+      c.ownerAccount,
+      (c as any).account,
+    ]
+      .filter(Boolean)
+      .map((value) => value.toString().toLowerCase());
+
+    return parts.some(
+      (value) =>
+        value.includes("google") ||
+        value.includes("gmail") ||
+        value.endsWith("@googlemail.com")
     );
   });
 
@@ -129,12 +141,13 @@ export const createCalendarEventForActivity = async (
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const deepLink = buildActivityDeepLink(activity.id);
   const notes = buildEventNotes(activity, deepLink);
+  const location = getActivityLocationString(activity);
 
   const eventId = await Calendar.createEventAsync(calendarId, {
     title: activity.title,
     startDate,
     endDate,
-    location: activity.location_name ?? activity.address ?? activity.city ?? "",
+    location,
     notes,
     url: deepLink,
     timeZone,
@@ -194,12 +207,13 @@ export const updateCalendarEventForActivity = async (
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const deepLink = buildActivityDeepLink(activity.id);
   const notes = buildEventNotes(activity, deepLink);
+  const location = getActivityLocationString(activity);
 
   await Calendar.updateEventAsync(eventId, {
     title: activity.title,
     startDate,
     endDate,
-    location: activity.location_name ?? activity.address ?? activity.city ?? "",
+    location,
     notes,
     url: deepLink,
     timeZone,

@@ -6,6 +6,7 @@ import { PersistGate } from "redux-persist/integration/react";
 
 import { useNotificationsSetup } from "@common/hooks/useNotificationsSetup";
 import AppPreferencesProvider from "@common/providers/AppPreferencesProvider";
+import AppFontProvider from "@common/providers/AppFontProvider";
 import { store, persistor } from "@core/store";
 import AuthGate from "@features/auth/navigation/AuthGate";
 import { useImportCompletionListener } from "@features/import/hooks/useImportCompletionListener";
@@ -20,10 +21,12 @@ const RootLayout = () => {
       <SafeAreaProvider>
         <Provider store={store}>
           <PersistGate loading={null} persistor={persistor}>
-            <AppPreferencesProvider>
-              <AppBootstrap />
-              <AuthGate />
-            </AppPreferencesProvider>
+            <AppFontProvider>
+              <AppPreferencesProvider>
+                <AppBootstrap />
+                <AuthGate />
+              </AppPreferencesProvider>
+            </AppFontProvider>
           </PersistGate>
         </Provider>
       </SafeAreaProvider>

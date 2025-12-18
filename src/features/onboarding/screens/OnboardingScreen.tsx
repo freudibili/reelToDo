@@ -13,7 +13,7 @@ import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import AppScreen from "@common/components/AppScreen";
-import { Box, Chip, GradientButton, Stack, Text } from "@common/designSystem";
+import { Chip, GradientButton, Stack, Text } from "@common/designSystem";
 import { spacing } from "@common/designSystem/tokens";
 import { completeOnboarding } from "@common/store/appSlice";
 import { useAppTheme } from "@common/theme/appTheme";
@@ -155,16 +155,22 @@ const OnboardingScreen = () => {
               },
             ]}
           >
-            <Text variant="title1" weight="800" style={styles.titleText}>
+            <Text
+              variant="luxeTitle"
+              style={[styles.titleText, { color: colors.primaryText }]}
+            >
               {slide.title}
             </Text>
-            <Text variant="body" tone="muted" style={styles.subtitleText}>
+            <Text
+              variant="body"
+              style={[styles.subtitleText, { color: colors.secondaryText }]}
+            >
               {slide.body}
             </Text>
           </Animated.View>
         );
       }),
-    [slides, slideWidth, scrollX]
+    [slides, slideWidth, scrollX, colors]
   );
 
   return (
@@ -173,6 +179,17 @@ const OnboardingScreen = () => {
       backgroundColor={colors.background}
       scrollable={false}
       withBottomInset
+      footerOverlay
+      footerPlain
+      footer={
+        <Stack align="center" paddingVertical="md">
+          <GradientButton
+            label={actionLabel}
+            onPress={handleNext}
+            style={{ minWidth: 220 }}
+          />
+        </Stack>
+      }
     >
       <LinearGradient
         colors={[colors.background, colors.card]}
@@ -181,96 +198,92 @@ const OnboardingScreen = () => {
         end={{ x: 1, y: 1 }}
       />
       {gradientLayers}
-      <Stack flex={1} gap="sm" paddingTop="sm" paddingBottom={"xs"}>
-        <Stack
-          direction="row"
-          align="center"
-          justify="flex-end"
-          paddingHorizontal="lg"
-        >
-          <Chip
-            label={t("actions.skip")}
-            onPress={handleSkip}
-            tone="neutral"
-            textColor={colors.favoriteContrast}
-            style={{
-              backgroundColor: "transparent",
-              borderColor: "transparent",
-            }}
-            accessibilityRole="button"
-          />
-        </Stack>
-
-        <View
-          style={[
-            styles.titleArea,
-            {
-              paddingHorizontal: horizontalPadding,
-            },
-          ]}
-        >
-          {slideHeadlines}
-        </View>
-
-        <Animated.FlatList
-          ref={flatListRef}
-          data={slides}
-          horizontal
-          pagingEnabled={false}
-          snapToOffsets={snapOffsets}
-          decelerationRate="fast"
-          showsHorizontalScrollIndicator={false}
-          keyExtractor={(item) => item.key}
-          contentContainerStyle={{
-            paddingHorizontal: horizontalPadding,
-            paddingTop: spacing.xxs,
-            paddingBottom: spacing.lg,
-          }}
-          renderItem={({ item, index }) => (
-            <OnboardingSlideCard
-              item={item}
-              index={index}
-              width={slideWidth}
-              scrollX={scrollX}
-              colors={colors}
-              mode={mode}
-            />
-          )}
-          onScroll={Animated.event(
-            [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-            { useNativeDriver: false }
-          )}
-          onViewableItemsChanged={onViewableItemsChanged}
-          viewabilityConfig={viewabilityConfig}
-          getItemLayout={(_, index) => ({
-            length: slideWidth,
-            offset: slideWidth * index,
-            index,
-          })}
-          scrollEventThrottle={16}
-          bounces={false}
-        />
-
-        <OnboardingDots
-          total={slides.length}
-          scrollX={scrollX}
-          slideWidth={slideWidth}
-          colors={colors}
-        />
-
-        <Box
-          paddingHorizontal="lg"
-          paddingTop="xs"
-          paddingBottom={Math.max(insets.bottom, spacing.xs)}
-        >
-          <Stack align="center" fullWidth>
-            <GradientButton
-              label={actionLabel}
-              onPress={handleNext}
-              style={{ minWidth: 220 }}
+      <Stack flex={1} style={styles.content}>
+        <View>
+          <Stack
+            direction="row"
+            align="center"
+            justify="flex-end"
+            paddingHorizontal="lg"
+          >
+            <Chip
+              label={t("actions.skip")}
+              onPress={handleSkip}
+              tone="neutral"
+              textColor={colors.favoriteContrast}
+              style={{
+                backgroundColor: "transparent",
+                borderColor: "transparent",
+              }}
+              accessibilityRole="button"
             />
           </Stack>
-        </Box>
+
+          <View
+            style={[
+              styles.titleArea,
+              {
+                paddingHorizontal: horizontalPadding,
+              },
+            ]}
+          >
+            {slideHeadlines}
+          </View>
+        </View>
+
+        <View style={styles.carouselSection}>
+          <Animated.FlatList
+            style={styles.carousel}
+            ref={flatListRef}
+            data={slides}
+            horizontal
+            pagingEnabled={false}
+            snapToOffsets={snapOffsets}
+            decelerationRate="fast"
+            showsHorizontalScrollIndicator={false}
+            keyExtractor={(item) => item.key}
+            contentContainerStyle={[
+              styles.carouselContent,
+              {
+                paddingHorizontal: horizontalPadding,
+                paddingTop: spacing.xxs,
+                paddingBottom: spacing.md,
+              },
+            ]}
+            renderItem={({ item, index }) => (
+              <OnboardingSlideCard
+                item={item}
+                index={index}
+                width={slideWidth}
+                scrollX={scrollX}
+                colors={colors}
+                mode={mode}
+              />
+            )}
+            onScroll={Animated.event(
+              [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+              { useNativeDriver: false }
+            )}
+            onViewableItemsChanged={onViewableItemsChanged}
+            viewabilityConfig={viewabilityConfig}
+            getItemLayout={(_, index) => ({
+              length: slideWidth,
+              offset: slideWidth * index,
+              index,
+            })}
+            scrollEventThrottle={16}
+            bounces={false}
+          />
+
+          <View style={styles.dots}>
+            <OnboardingDots
+              total={slides.length}
+              scrollX={scrollX}
+              slideWidth={slideWidth}
+              colors={colors}
+            />
+          </View>
+        </View>
       </Stack>
     </AppScreen>
   );
@@ -291,6 +304,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     alignItems: "center",
+    marginHorizontal: spacing.lg,
   },
   titleText: {
     textAlign: "center",
@@ -298,6 +312,25 @@ const styles = StyleSheet.create({
   subtitleText: {
     marginTop: spacing.xs,
     textAlign: "center",
+  },
+  content: {
+    flex: 1,
+    paddingBottom: spacing.xxl * 2,
+  },
+  carouselSection: {
+    flex: 1,
+    justifyContent: "space-between",
+  },
+  carousel: {
+    flex: 1,
+  },
+  carouselContent: {
+    flexGrow: 1,
+    justifyContent: "center",
+  },
+  dots: {
+    paddingTop: spacing.md,
+    paddingBottom: spacing.xxl,
   },
 });
 

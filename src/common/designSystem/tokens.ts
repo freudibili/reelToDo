@@ -1,4 +1,4 @@
-import { StyleSheet, type TextStyle } from "react-native";
+import { Platform, StyleSheet, type TextStyle } from "react-native";
 
 import { createAppTheme, type AppThemeMode } from "../theme/appTheme";
 
@@ -37,7 +37,8 @@ export type TextVariant =
   | "bodyStrong"
   | "bodySmall"
   | "caption"
-  | "eyebrow";
+  | "eyebrow"
+  | "luxeTitle";
 
 export const typography: Record<TextVariant, TextStyle> = {
   display: { fontSize: 30, lineHeight: 36, fontWeight: "800" },
@@ -54,6 +55,13 @@ export const typography: Record<TextVariant, TextStyle> = {
     lineHeight: 14,
     fontWeight: "700",
     letterSpacing: 0.4,
+    textTransform: "uppercase",
+  },
+  luxeTitle: {
+    fontSize: 32,
+    lineHeight: 38,
+    letterSpacing: 0.1,
+    fontFamily: "ZTNature-Medium",
     textTransform: "uppercase",
   },
 };

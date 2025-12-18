@@ -53,7 +53,7 @@ const ScreenHeader: React.FC<ScreenHeaderProps> = ({
           </Text>
         ) : null}
         <Text
-          variant={compact ? "title2" : "title1"}
+          variant={compact ? "title2" : "luxeTitle"}
           numberOfLines={1}
           ellipsizeMode="tail"
         >
