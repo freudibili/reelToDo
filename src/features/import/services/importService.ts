@@ -78,11 +78,6 @@ export const importService = {
     if (anyShared?.location?.name)
       extraSharedData.locationHint = anyShared.location.name;
     if (anyShared?.city) extraSharedData.cityHint = anyShared.city;
-    if (anyShared?.extraLocationHint)
-      extraSharedData.extraLocationHint = anyShared.extraLocationHint;
-    if (anyShared?.extraCityHint)
-      extraSharedData.extraCityHint = anyShared.extraCityHint;
-    if (anyShared?.uploadDate) extraSharedData.uploadDate = anyShared.uploadDate;
     if (anyShared?.coordinates)
       extraSharedData.coordinates = anyShared.coordinates;
     if (Array.isArray(anyShared?.tags) && anyShared.tags.length > 0)

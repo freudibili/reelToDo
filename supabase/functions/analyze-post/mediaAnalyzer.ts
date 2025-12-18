@@ -2,80 +2,51 @@ import { mediaAnalyzerApiToken, mediaAnalyzerUrl } from "./deps.ts";
 import { normalizeActivityUrl } from "./normalize.ts";
 
 type MediaAnalyzerLocation = {
-  name: string | null;
-  address: string | null;
-  city: string | null;
-  country: string | null;
-  latitude: number | null;
-  longitude: number | null;
+  name?: string | null;
+  address?: string | null;
+  city?: string | null;
+  country?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
 };
 
 type MediaAnalyzerKeyInfo = {
-  estimated_price: string | null;
-  transport: string | null;
-  best_time: string | null;
-  duration: string | null;
+  estimated_price?: string | null;
+  transport?: string | null;
+  best_time?: string | null;
+  duration?: string | null;
 };
 
 type MediaAnalyzerActivity = {
-  title: string | null;
-  category: string | null;
-  location_name: string | null;
-  address: string | null;
-  city: string | null;
-  country: string | null;
-  latitude: number | null;
-  longitude: number | null;
-  dates: (string | null)[] | null;
-  tags: string[] | null;
-  creator: string | null;
-  source_url: string | null;
-  confidence: number | null;
-  locations: MediaAnalyzerLocation[] | null;
-  key_info: MediaAnalyzerKeyInfo | null;
-  thumbnailBase64: string | null;
-  thumbnailUrl: string | null;
-  general_category: string | null;
+  title?: string | null;
+  category?: string | null;
+  location_name?: string | null;
+  address?: string | null;
+  city?: string | null;
+  country?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  dates?: string[]; // upstream now returns an array of dates
+  tags?: string[];
+  creator?: string | null;
+  source_url?: string | null;
+  confidence?: number | null;
+  locations?: MediaAnalyzerLocation[];
+  key_info?: MediaAnalyzerKeyInfo;
+  thumbnailBase64?: string | null;
+  thumbnailUrl?: string | null;
+  general_category?: string | null;
 };
 
 export type MediaAnalyzerResponse = {
-  sourceUrl: string | null;
-  platform: string | null;
-  rawTitle: string | null;
-  rawDescription: string | null;
-  creator: string | null;
-  thumbnailUrl: string | null;
-  activity: MediaAnalyzerActivity | null;
-  content: MediaAnalyzerActivity | null;
-};
-
-const buildAnalyzerEndpoint = (baseUrl: string | null): string | null => {
-  if (!baseUrl) return null;
-  const trimmed = baseUrl.trim();
-  if (!trimmed) return null;
-  const ensureTrailingPath = (path: string) =>
-    path.endsWith("/") ? path.slice(0, -1) : path;
-
-  const endsWithEndpoint = (input: string): boolean => {
-    try {
-      const parsed = new URL(input);
-      const normalizedPath = ensureTrailingPath(parsed.pathname || "/");
-      return normalizedPath.endsWith("/buildContentFromOpenAI");
-    } catch {
-      return /\/buildContentFromOpenAI\/?$/.test(input);
-    }
-  };
-
-  if (endsWithEndpoint(trimmed)) return trimmed;
-
-  try {
-    const parsed = new URL(trimmed);
-    const currentPath = ensureTrailingPath(parsed.pathname || "/");
-    parsed.pathname = `${currentPath}/buildContentFromOpenAI`;
-    return parsed.toString();
-  } catch {
-    return `${trimmed.replace(/\/$/, "")}/buildContentFromOpenAI`;
-  }
+  sourceUrl?: string | null;
+  platform?: string | null;
+  rawTitle?: string | null;
+  rawDescription?: string | null;
+  creator?: string | null;
+  thumbnailUrl?: string | null;
+  activity?: MediaAnalyzerActivity | null;
+  content?: MediaAnalyzerActivity | null;
 };
 
 export type AnalyzerResult =
@@ -93,7 +64,7 @@ export type AnalyzerMappedActivity = {
   latitude: number | null;
   longitude: number | null;
   date: string | null;
-  dates: string[];
+  dates?: string[];
   locations?: MediaAnalyzerLocation[] | null;
   tags: string[];
   creator: string | null;
@@ -197,13 +168,12 @@ export const fetchMediaAnalyzer = async (
     extraSharedData?: Record<string, any> | null;
   }
 ): Promise<AnalyzerResult> => {
-  const endpoint = buildAnalyzerEndpoint(mediaAnalyzerUrl);
-  if (!endpoint) return { _errorReason: "UNSUPPORTED_URL" };
+  if (!mediaAnalyzerUrl) return { _errorReason: "UNSUPPORTED_URL" };
 
   const timeoutMs = 60000;
 
   try {
-    const res = await fetch(endpoint, {
+    const res = await fetch(mediaAnalyzerUrl, {
       method: "POST",
       headers: {
         "content-type": "application/json",
@@ -269,10 +239,7 @@ export const mapMediaAnalyzer = async (
     text?: string;
     creator?: string;
     locationHint?: string;
-    extraLocationHint?: string;
     cityHint?: string;
-    extraCityHint?: string;
-    uploadDate?: string;
     coordinates?: { latitude?: number; longitude?: number };
     tags?: string[];
   }
@@ -293,27 +260,6 @@ export const mapMediaAnalyzer = async (
     );
     return { activity: null, description: descOnly };
   }
-
-  const cleanedLocationHint =
-    cleanString(hints?.locationHint ?? null) ??
-    cleanString(hints?.extraLocationHint ?? null);
-  const cleanedCityHint =
-    cleanString(hints?.cityHint ?? null) ??
-    cleanString(hints?.extraCityHint ?? null);
-  const uploadDateHint = cleanString(hints?.uploadDate ?? null);
-  const normalizedDates = Array.isArray(activity.dates)
-    ? activity.dates
-        .map((d) => cleanString(d))
-        .filter((d): d is string => Boolean(d))
-    : [];
-
-  if (normalizedDates.length === 0 && uploadDateHint) {
-    normalizedDates.push(uploadDateHint);
-  }
-
-  const primaryDate = normalizedDates.length > 0
-    ? normalizedDates[0]
-    : uploadDateHint ?? null;
 
   const loc = pickBestLocation(activity.locations);
   const sanitizedLocations = sanitizeLocations(activity.locations);
@@ -350,17 +296,15 @@ export const mapMediaAnalyzer = async (
     ),
     location_name:
       cleanString(activity.location_name ?? null) ??
-      cleanString(loc?.name ?? null) ??
-      cleanedLocationHint,
+      cleanString(loc?.name ?? null),
     address:
       cleanString(activity.address ?? null) ??
       cleanString(loc?.address ?? null) ??
-      cleanString(loc?.name ?? null) ??
-      cleanedLocationHint,
+      cleanString(loc?.name ?? null),
     city:
       cleanString(activity.city ?? null) ??
       cleanString(loc?.city ?? null) ??
-      cleanedCityHint,
+      cleanString(hints?.cityHint ?? null),
     country:
       cleanString(activity.country ?? null) ??
       cleanString(loc?.country ?? null),
@@ -370,8 +314,15 @@ export const mapMediaAnalyzer = async (
     longitude:
       cleanNumber(activity.longitude ?? null) ??
       cleanNumber(loc?.longitude ?? null),
-    date: primaryDate,
-    dates: normalizedDates,
+    date:
+      Array.isArray(activity.dates) && activity.dates.length > 0
+        ? cleanString(activity.dates[0])
+        : null,
+    dates: Array.isArray(activity.dates)
+      ? activity.dates
+          .map((d) => cleanString(d))
+          .filter((d): d is string => Boolean(d))
+      : undefined,
     locations: sanitizedLocations,
     tags: Array.from(
       new Set([
@@ -414,9 +365,9 @@ export const mapMediaAnalyzer = async (
     }
   }
 
-  if (!mapped.location_name && cleanedLocationHint) {
-    mapped.location_name = cleanedLocationHint;
-  }
+  // If location name missing, use locationHint
+  if (!mapped.location_name && hints?.locationHint)
+    mapped.location_name = String(hints.locationHint).trim() || null;
 
   return {
     activity: mapped,

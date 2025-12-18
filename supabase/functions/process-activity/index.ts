@@ -170,10 +170,7 @@ serve(async (req) => {
         text: extraSharedData?.text,
         creator: extraSharedData?.creator,
         locationHint: extraSharedData?.locationHint,
-        extraLocationHint: extraSharedData?.extraLocationHint,
         cityHint: extraSharedData?.cityHint,
-        extraCityHint: extraSharedData?.extraCityHint,
-        uploadDate: extraSharedData?.uploadDate,
         coordinates: extraSharedData?.coordinates,
         tags: extraSharedData?.tags,
       });
