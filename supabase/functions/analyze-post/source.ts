@@ -61,6 +61,56 @@ export const fetchWithUA = async (
   return res;
 };
 
+const isTikTokShortLink = (url: URL): boolean => {
+  const host = url.hostname.toLowerCase();
+  const path = url.pathname.toLowerCase();
+  return (
+    host === "vm.tiktok.com" ||
+    host === "vt.tiktok.com" ||
+    (host.endsWith("tiktok.com") && path.startsWith("/t/"))
+  );
+};
+
+export const resolveTikTokUrl = async (
+  input: string
+): Promise<string | null> => {
+  let parsed: URL;
+  try {
+    parsed = new URL(input);
+  } catch {
+    return null;
+  }
+
+  if (!isTikTokShortLink(parsed)) return null;
+
+  const tryResolve = async (method: "HEAD" | "GET") => {
+    try {
+      const res = await fetchWithUA(parsed.toString(), {
+        method,
+        redirect: "follow",
+      });
+      const finalUrl = res.url || input;
+      try {
+        res.body?.cancel();
+      } catch {
+        // ignore cancellation errors
+      }
+      if (res.redirected && finalUrl !== input) {
+        return finalUrl;
+      }
+    } catch (e) {
+      console.log(`[source] tiktok ${method.toLowerCase()} resolve error`, String(e));
+    }
+    return null;
+  };
+
+  const headResolved = await tryResolve("HEAD");
+  if (headResolved && headResolved !== input) return headResolved;
+
+  const getResolved = await tryResolve("GET");
+  return getResolved ?? headResolved ?? null;
+};
+
 const resolveFacebookRedirect = async (url: string): Promise<string> => {
   const tryResolve = async (method: "HEAD" | "GET") => {
     try {

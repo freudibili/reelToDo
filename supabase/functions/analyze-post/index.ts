@@ -5,6 +5,7 @@ import {
   supabaseUrl,
 } from "./deps.ts";
 import { normalizeActivityUrl } from "./normalize.ts";
+import { resolveTikTokUrl } from "./source.ts";
 
 const triggerProcessActivity = (payload: Record<string, unknown>) => {
   if (!supabaseUrl || !supabaseServiceRoleKey) {
@@ -81,7 +82,8 @@ serve(async (req) => {
     );
   }
 
-  const normalizedUrl = normalizeActivityUrl(url);
+  const resolvedUrl = (await resolveTikTokUrl(url)) ?? url;
+  const normalizedUrl = normalizeActivityUrl(resolvedUrl);
   console.log("[fn] checking if activity already exists for", normalizedUrl);
   const { data: existing } = await supabase
     .from("activities")

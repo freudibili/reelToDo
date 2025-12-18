@@ -11,6 +11,7 @@ import {
 import { fetchMediaAnalyzer, mapMediaAnalyzer } from "../analyze-post/mediaAnalyzer.ts";
 import { allowedCategories } from "../analyze-post/categories.ts";
 import { sendActivityPush } from "../analyze-post/pushNotifications.ts";
+import { resolveTikTokUrl } from "../analyze-post/source.ts";
 
 type ProcessBody = {
   activityId?: string;
@@ -102,7 +103,8 @@ serve(async (req) => {
     });
   }
 
-  const normalizedUrl = normalizeActivityUrl(url);
+  const resolvedUrl = (await resolveTikTokUrl(url)) ?? url;
+  const normalizedUrl = normalizeActivityUrl(resolvedUrl);
   const userId = body.userId ?? body.user_id ?? activity.user_id ?? null;
   const platform =
     body.platform ?? (activity as any).import_platform ?? null;

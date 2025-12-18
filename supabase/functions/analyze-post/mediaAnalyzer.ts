@@ -73,6 +73,47 @@ export type AnalyzerMappedActivity = {
   confidence: number | null;
 };
 
+const buildAnalyzerEndpoints = (baseUrl: string | null): string[] => {
+  if (!baseUrl) return [];
+  const trimmed = baseUrl.trim();
+  if (!trimmed) return [];
+
+  const normalizePath = (path: string) => path.replace(/\/+$/, "") || "/";
+
+  try {
+    const parsed = new URL(trimmed);
+    const normalizedPath = normalizePath(parsed.pathname || "/");
+    const withPath = (path: string) => {
+      const clone = new URL(parsed.toString());
+      clone.pathname = path;
+      return clone.toString();
+    };
+
+    const endpoints: string[] = [];
+
+    if (normalizedPath === "/") {
+      endpoints.push(withPath("/analyze"));
+      endpoints.push(withPath("/buildContentFromOpenAI"));
+    } else if (
+      normalizedPath.endsWith("/analyze") ||
+      normalizedPath.endsWith("/buildContentFromOpenAI")
+    ) {
+      endpoints.push(withPath(normalizedPath));
+      const alt = normalizedPath.endsWith("/analyze")
+        ? "/buildContentFromOpenAI"
+        : "/analyze";
+      endpoints.push(withPath(alt));
+    } else {
+      endpoints.push(withPath(normalizedPath));
+    }
+
+    return Array.from(new Set(endpoints));
+  } catch {
+    const normalized = normalizePath(trimmed);
+    return normalized === "/" ? [] : [normalized];
+  }
+};
+
 const cleanString = (value: unknown): string | null => {
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
@@ -168,67 +209,77 @@ export const fetchMediaAnalyzer = async (
     extraSharedData?: Record<string, any> | null;
   }
 ): Promise<AnalyzerResult> => {
-  if (!mediaAnalyzerUrl) return { _errorReason: "UNSUPPORTED_URL" };
+  const endpoints = buildAnalyzerEndpoints(mediaAnalyzerUrl);
+  if (endpoints.length === 0) return { _errorReason: "UNSUPPORTED_URL" };
 
   const timeoutMs = 60000;
 
-  try {
-    const res = await fetch(mediaAnalyzerUrl, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        ...(mediaAnalyzerApiToken
-          ? { "x-api-key": mediaAnalyzerApiToken }
-          : {}),
-      },
-      body: JSON.stringify({
-        url,
-        platform: options?.platform ?? null,
-        extraSharedData: options?.extraSharedData ?? null,
-      }),
-      signal:
-        typeof AbortSignal !== "undefined" &&
-        typeof (AbortSignal as any).timeout === "function"
-          ? (AbortSignal as any).timeout(timeoutMs)
-          : undefined,
-    });
+  for (const endpoint of endpoints) {
+    try {
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          ...(mediaAnalyzerApiToken
+            ? {
+                "x-api-key": mediaAnalyzerApiToken,
+                Authorization: `Bearer ${mediaAnalyzerApiToken}`,
+              }
+            : {}),
+        },
+        body: JSON.stringify({
+          url,
+          platform: options?.platform ?? null,
+          extraSharedData: options?.extraSharedData ?? null,
+        }),
+        signal:
+          typeof AbortSignal !== "undefined" &&
+          typeof (AbortSignal as any).timeout === "function"
+            ? (AbortSignal as any).timeout(timeoutMs)
+            : undefined,
+      });
 
-    if (!res.ok) {
-      console.log("[mediaanalyzer] upstream error", res.status);
-      if (res.status === 401 || res.status === 403 || res.status === 429) {
-        return { _errorReason: "LOGIN_REQUIRED_OR_RATE_LIMIT" };
+      if (!res.ok) {
+        console.log("[mediaanalyzer] upstream error", res.status, "endpoint", endpoint);
+        if (res.status === 401 || res.status === 403 || res.status === 429) {
+          return { _errorReason: "LOGIN_REQUIRED_OR_RATE_LIMIT" };
+        }
+        if (res.status === 404) {
+          continue; // try the next candidate endpoint
+        }
+        return { _errorReason: "DOWNLOAD_FAILED" };
       }
-      return { _errorReason: "DOWNLOAD_FAILED" };
-    }
 
-    const json = (await res.json()) as MediaAnalyzerResponse;
-    console.log("[mediaanalyzer] full response object", json);
-    const activity = json.activity ?? json.content ?? null;
-    console.log("[mediaanalyzer] raw response", {
-      platform: json.platform ?? null,
-      rawTitle: json.rawTitle ?? null,
-      rawDescription: json.rawDescription ?? null,
-      creator: json.creator ?? null,
-      activity: activity
-        ? {
-            category: activity.category ?? null,
-            title: activity.title ?? null,
-            locations: activity.locations ?? null,
-            dates: activity.dates ?? null,
-            key_info: activity.key_info ?? null,
-            tags: activity.tags ?? null,
-            creator: activity.creator ?? null,
-            source_url: activity.source_url ?? null,
-            thumbnailUrl: activity.thumbnailUrl ?? null,
-            confidence: activity.confidence ?? null,
-          }
-        : null,
-    });
-    return json;
-  } catch (err) {
-    console.log("[mediaanalyzer] request failed", String(err));
-    return { _errorReason: "DOWNLOAD_FAILED" };
+      const json = (await res.json()) as MediaAnalyzerResponse;
+      console.log("[mediaanalyzer] full response object", json);
+      const activity = json.activity ?? json.content ?? null;
+      console.log("[mediaanalyzer] raw response", {
+        platform: json.platform ?? null,
+        rawTitle: json.rawTitle ?? null,
+        rawDescription: json.rawDescription ?? null,
+        creator: json.creator ?? null,
+        activity: activity
+          ? {
+              category: activity.category ?? null,
+              title: activity.title ?? null,
+              locations: activity.locations ?? null,
+              dates: activity.dates ?? null,
+              key_info: activity.key_info ?? null,
+              tags: activity.tags ?? null,
+              creator: activity.creator ?? null,
+              source_url: activity.source_url ?? null,
+              thumbnailUrl: activity.thumbnailUrl ?? null,
+              confidence: activity.confidence ?? null,
+            }
+          : null,
+      });
+      return json;
+    } catch (err) {
+      console.log("[mediaanalyzer] request failed", String(err), "endpoint", endpoint);
+    }
   }
+
+  return { _errorReason: "DOWNLOAD_FAILED" };
 };
 
 export const mapMediaAnalyzer = async (
