@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { View, ActivityIndicator } from "react-native";
 import { useSelector } from "react-redux";
 
+import { selectShouldShowOnboarding } from "@common/store/appSlice";
 import {
   selectIsAuthenticated,
   selectRequiresPasswordChange,
@@ -13,6 +14,7 @@ import useSupabaseSessionSync from "./useSupabaseSessionSync";
 
 const AuthGate = () => {
   const isAuth = useSelector(selectIsAuthenticated);
+  const shouldShowOnboarding = useSelector(selectShouldShowOnboarding);
   const requiresPasswordChange = useSelector(selectRequiresPasswordChange);
   const sessionExpired = useSelector(selectSessionExpired);
   const [ready, setReady] = useState(false);
@@ -27,6 +29,7 @@ const AuthGate = () => {
     const [rootSegment, nestedSegment] = segmentsList;
     const inAuth = rootSegment === "auth";
     const currentAuthRoute = nestedSegment;
+    const inOnboarding = segmentsList.includes("onboarding");
 
     if (requiresPasswordChange) {
       if (!inAuth || currentAuthRoute !== "reset-password") {
@@ -42,7 +45,12 @@ const AuthGate = () => {
       return;
     }
 
-    if (!isAuth && !inAuth) {
+    if (shouldShowOnboarding && !inOnboarding) {
+      router.replace("/onboarding");
+      return;
+    }
+
+    if (!isAuth && !inAuth && !inOnboarding) {
       router.replace("/auth");
     } else if (isAuth && inAuth) {
       router.replace("/");
@@ -50,6 +58,7 @@ const AuthGate = () => {
   }, [
     ready,
     isAuth,
+    shouldShowOnboarding,
     requiresPasswordChange,
     sessionExpired,
     segments,

@@ -17,7 +17,8 @@ import { Chip, GradientButton, Stack, Text } from "@common/designSystem";
 import { spacing } from "@common/designSystem/tokens";
 import { completeOnboarding } from "@common/store/appSlice";
 import { useAppTheme } from "@common/theme/appTheme";
-import { useAppDispatch } from "@core/store/hook";
+import { useAppDispatch, useAppSelector } from "@core/store/hook";
+import { selectIsAuthenticated } from "@features/auth/store/authSelectors";
 
 import OnboardingDots from "../components/OnboardingDots";
 import OnboardingSlideCard from "../components/OnboardingSlideCard";
@@ -33,6 +34,7 @@ const OnboardingScreen = () => {
   const { colors, mode } = useAppTheme();
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
+  const isAuthenticated = useAppSelector(selectIsAuthenticated);
 
   const preferredSlideWidth = Math.round(width * 0.82);
   const maxSlideWidth = width - spacing.lg * 2;
@@ -66,8 +68,9 @@ const OnboardingScreen = () => {
 
   const completeFlow = React.useCallback(() => {
     dispatch(completeOnboarding());
-    router.replace("/activities");
-  }, [dispatch, router]);
+    const nextRoute = isAuthenticated ? "/activities" : "/auth";
+    router.replace(nextRoute);
+  }, [dispatch, isAuthenticated, router]);
 
   const handleNext = React.useCallback(() => {
     const lastIndex = slides.length - 1;
