@@ -28,6 +28,7 @@ export interface Activity {
   tags: string[];
   creator: string | null;
   source_url: string | null;
+  source?: string | null;
   image_url: string | null;
   confidence: number | null;
   created_at: string;

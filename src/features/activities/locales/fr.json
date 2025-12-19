@@ -49,6 +49,14 @@
     "suggestDateErrorTitle": "Envoi impossible",
     "suggestDateErrorMessage": "Réessaie dans quelques instants.",
     "suggestDateCta": "Proposer\nune correction",
+    "sources": {
+      "instagram": "Instagram",
+      "facebook": "Facebook",
+      "tiktok": "TikTok",
+      "youtube": "YouTube",
+      "app": "Ajoutée dans l'app",
+      "generic": "Lien source"
+    },
     "actions": {
       "favorite": "Favori",
       "removeFavorite": "Retirer favori",

@@ -5,7 +5,7 @@ import {
   supabaseUrl,
 } from "./deps.ts";
 import { normalizeActivityUrl } from "./normalize.ts";
-import { resolveTikTokUrl } from "./source.ts";
+import { detectSource, resolveTikTokUrl } from "./source.ts";
 
 const triggerProcessActivity = (payload: Record<string, unknown>) => {
   if (!supabaseUrl || !supabaseServiceRoleKey) {
@@ -154,6 +154,7 @@ serve(async (req) => {
     extraSharedData?.thumbnail_url ?? metadata?.thumbnail_url ?? null;
   const placeholderCreator =
     extraSharedData?.creator ?? metadata?.author_name ?? null;
+  const placeholderSource = detectSource(normalizedUrl);
   const tags = Array.isArray(extraSharedData?.tags)
     ? extraSharedData!.tags.filter((t: unknown) => typeof t === "string")
     : [];
@@ -173,6 +174,7 @@ serve(async (req) => {
     source_url: normalizedUrl,
     image_url: placeholderImage,
     confidence: null,
+    source: placeholderSource,
     needs_location_confirmation: false,
     needs_date_confirmation: false,
     user_id: userId ?? null,

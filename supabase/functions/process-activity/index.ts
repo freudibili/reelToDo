@@ -1,9 +1,8 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { supabase } from "../analyze-post/deps.ts";
-import { getSourceMetadata } from "../analyze-post/source.ts";
+import { detectSource, getSourceMetadata } from "../analyze-post/source.ts";
 import {
   categoriesRequiringDate,
-  generateTitle,
   mergeIfNull,
   normalizeActivity,
   normalizeActivityUrl,
@@ -331,11 +330,11 @@ serve(async (req) => {
         ? (dates[0].start ?? null)
         : null;
 
-    const finalTitle = generateTitle(
-      finalCategory,
-      location_name ?? sourceMeta.title ?? normalizedTitle ?? "Activity",
-      city ?? null,
-    );
+    const finalTitle =
+      normalizedTitle ??
+      location_name ??
+      sourceMeta.title ??
+      "Activity";
 
     const confidenceValue = typeof confidence === "number" ? confidence : 0.9;
 
@@ -363,6 +362,33 @@ serve(async (req) => {
         headers: { "Content-Type": "application/json" },
       });
     }
+
+    const normalizeSource = (value: string | null | undefined) => {
+      if (!value) return null;
+      const lower = value.toLowerCase();
+      if (lower.includes("instagram")) return "instagram";
+      if (lower.includes("facebook") || lower === "fb") return "facebook";
+      if (lower.includes("tiktok")) return "tiktok";
+      if (lower.includes("youtube") || lower === "yt") return "youtube";
+      if (lower === "generic") return "generic";
+      if (lower === "app") return "app";
+      return null;
+    };
+
+    const analyzerSourceUrl =
+      analyzerActivity?.source_url ??
+      analyzerResult?.activity?.source_url ??
+      analyzerResult?.sourceUrl ??
+      source_url ??
+      normalizedUrl ??
+      url;
+
+    const analyzerSource = normalizeSource(
+      detectSource(analyzerSourceUrl ?? normalizedUrl ?? url),
+    );
+    const metaSource = normalizeSource(sourceMeta.source ?? null);
+    const fallbackSource = normalizeSource(detectSource(normalizedUrl ?? url));
+    const finalSource = analyzerSource ?? metaSource ?? fallbackSource;
 
     const analyzerLocations =
       Array.isArray(analyzerActivity?.locations) &&
@@ -392,6 +418,7 @@ serve(async (req) => {
       source_url: source_url ?? normalizedUrl ?? url,
       image_url: image_url ?? sourceMeta.image ?? null,
       confidence: typeof confidence === "number" ? confidence : 0.9,
+      source: finalSource,
       needs_location_confirmation: needsLocationConfirmation,
       needs_date_confirmation: needsDateConfirmation,
       user_id: userId ?? activity.user_id ?? null,

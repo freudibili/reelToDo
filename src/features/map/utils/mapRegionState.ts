@@ -1,11 +1,11 @@
 import type { TFunction } from "i18next";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Alert } from "react-native";
 import type { Region } from "react-native-maps";
 
 import type { Activity } from "@features/activities/types";
 
-import { buildInitialRegion } from "./regionUtils";
+import { DEFAULT_REGION, buildInitialRegion } from "./regionUtils";
 import { requestUserRegion } from "../services/locationService";
 
 type MapRegionState = {
@@ -26,6 +26,38 @@ export const useMapRegionState = ({
   const [userRegion, setUserRegion] = useState<Region | null>(null);
   const [initialRegion, setInitialRegion] = useState<Region | null>(null);
   const [ready, setReady] = useState(false);
+  const activitiesRef = useRef<Activity[]>(activities);
+
+  useEffect(() => {
+    activitiesRef.current = activities;
+  }, [activities]);
+
+  useEffect(() => {
+    if (!initialRegion || userRegion) return;
+
+    const usingDefaultRegion =
+      initialRegion.latitude === DEFAULT_REGION.latitude &&
+      initialRegion.longitude === DEFAULT_REGION.longitude &&
+      initialRegion.latitudeDelta === DEFAULT_REGION.latitudeDelta &&
+      initialRegion.longitudeDelta === DEFAULT_REGION.longitudeDelta;
+
+    if (!usingDefaultRegion) return;
+
+    const nextRegion = buildInitialRegion({
+      userRegion: null,
+      activities,
+    });
+
+    const isSameRegion =
+      nextRegion.latitude === initialRegion.latitude &&
+      nextRegion.longitude === initialRegion.longitude &&
+      nextRegion.latitudeDelta === initialRegion.latitudeDelta &&
+      nextRegion.longitudeDelta === initialRegion.longitudeDelta;
+
+    if (!isSameRegion) {
+      setInitialRegion(nextRegion);
+    }
+  }, [activities, initialRegion, userRegion]);
 
   useEffect(() => {
     let isMounted = true;
@@ -44,21 +76,21 @@ export const useMapRegionState = ({
 
         const finalRegion = buildInitialRegion({
           userRegion: regionFromLocation,
-          activities,
+          activities: activitiesRef.current,
         });
 
         setUserRegion(regionFromLocation ?? finalRegion);
-        setInitialRegion(finalRegion);
+        setInitialRegion((prev) => prev ?? finalRegion);
       } catch {
         if (!isMounted) return;
 
         const fallbackRegion = buildInitialRegion({
           userRegion: null,
-          activities,
+          activities: activitiesRef.current,
         });
 
         setUserRegion(fallbackRegion);
-        setInitialRegion(fallbackRegion);
+        setInitialRegion((prev) => prev ?? fallbackRegion);
 
         Alert.alert(
           t("activities:map.permissionDeniedTitle"),
@@ -77,7 +109,7 @@ export const useMapRegionState = ({
     return () => {
       isMounted = false;
     };
-  }, [activities, fallbackAddress, t]);
+  }, [fallbackAddress, t]);
 
   return { userRegion, initialRegion, ready };
 };

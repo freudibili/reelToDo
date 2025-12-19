@@ -75,19 +75,6 @@ export const normalizeActivity = (activity: any) => {
   };
 };
 
-export const generateTitle = (
-  category: string | null,
-  baseName: string,
-  city: string | null,
-): string => {
-  const cleanBase = baseName.replace(/^#/, "").trim();
-  const suffix = city ? ` (${city})` : "";
-  const prefix = category && category !== "other"
-    ? `${category.replace(/[_-]/g, " ")}: `
-    : "";
-  return `${prefix}${cleanBase}${suffix}`;
-};
-
 export const categoriesRequiringDate = new Set<string>([
   "events_entertainment",
   "nightlife_social",

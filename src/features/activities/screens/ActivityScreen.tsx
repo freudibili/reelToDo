@@ -13,6 +13,7 @@ import ProcessingStateCard from "@features/import/components/ProcessingStateCard
 import ActivityDateEditorCard from "../components/ActivityDateEditorCard";
 import ActivityLocationEditorCard from "../components/ActivityLocationEditorCard";
 import ActivityScreenFooter from "../components/ActivityScreenFooter";
+import ActivitySourceBadge from "../components/ActivitySourceBadge";
 import { useActivityScreenController } from "../hooks/useActivityScreenController";
 import { shouldShowActivityFooter } from "../utils/activityScreen";
 
@@ -82,13 +83,23 @@ const ActivityScreen = () => {
     handleDateModalSubmit,
   } = controller;
 
+  console.log(
+    "ActivityScreen render - activityId:",
+    activityId,
+    "loading:",
+    loading,
+    "activity:",
+    activity
+  );
   return (
     <Screen
       headerTitle={headerTitle}
       onBackPress={exitScreen}
       loading={loading && !activity}
       scrollable
-      footer={shouldShowFooter ? <ActivityScreenFooter {...footerProps} /> : null}
+      footer={
+        shouldShowFooter ? <ActivityScreenFooter {...footerProps} /> : null
+      }
     >
       {!activity && loading ? (
         <View style={styles.centered}>
@@ -165,7 +176,11 @@ const ActivityScreen = () => {
         title={dateModalTitle}
         subtitle={dateModalSubtitle}
         mode={dateModalMode}
-      />
+          />
+
+          <ActivitySourceBadge
+            source={activity.source}
+          />
     </Screen>
   );
 };

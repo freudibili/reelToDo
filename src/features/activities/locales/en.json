@@ -49,6 +49,14 @@
     "suggestDateErrorTitle": "Couldn't send",
     "suggestDateErrorMessage": "Please try again later.",
     "suggestDateCta": "Suggest\nan edit",
+    "sources": {
+      "instagram": "Instagram",
+      "facebook": "Facebook",
+      "tiktok": "TikTok",
+      "youtube": "YouTube",
+      "app": "Added in app",
+      "generic": "Link source"
+    },
     "actions": {
       "favorite": "Favorite",
       "removeFavorite": "Remove favorite",

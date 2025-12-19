@@ -9,6 +9,7 @@ import AdditionalInfoList from "./AdditionalInfoList";
 import DateAssistButton from "./DateAssistButton";
 import InfoRow from "./InfoRow";
 import LocationAssistButton from "./LocationAssistButton";
+import ActivitySourceBadge from "./ActivitySourceBadge";
 import type { Activity } from "../types";
 
 type Props = {
@@ -38,10 +39,7 @@ const ActivityOverviewSection: React.FC<Props> = ({
   return (
     <View style={styles.container}>
       <View
-        style={[
-          styles.sectionHeader,
-          { borderBottomColor: colors.primary },
-        ]}
+        style={[styles.sectionHeader, { borderBottomColor: colors.primary }]}
       >
         <Text variant="headline" weight="700" style={{ color: colors.text }}>
           {t("activities:details.overview")}
@@ -85,6 +83,7 @@ const ActivityOverviewSection: React.FC<Props> = ({
           ) : null}
         </>
       )}
+      <ActivitySourceBadge source={activity.source} />
     </View>
   );
 };

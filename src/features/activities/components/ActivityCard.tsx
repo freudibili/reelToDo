@@ -110,7 +110,7 @@ const ActivityCard: React.FC<Props> = ({
         </Text>
 
         {locationLabel ? (
-          <Box direction="row" align="center" gap={6}>
+          <Box direction="row" align="center" gap={6} marginRight={10}>
             <Icon source="map-marker" size={14} color={colors.secondaryText} />
             <Text
               variant="bodySmall"
@@ -124,7 +124,7 @@ const ActivityCard: React.FC<Props> = ({
         ) : null}
 
         {dateLabel ? (
-          <Box direction="row" align="center" gap={6}>
+          <Box direction="row" align="center" gap={6} marginRight={10}>
             <Icon
               source={isPlanned ? "calendar-check" : "calendar"}
               size={14}
@@ -136,9 +136,7 @@ const ActivityCard: React.FC<Props> = ({
               numberOfLines={1}
               ellipsizeMode="tail"
             >
-              {isPlanned
-                ? t("activities:planned.timeLabel", { value: dateLabel })
-                : dateLabel}
+              {dateLabel}
             </Text>
           </Box>
         ) : null}
