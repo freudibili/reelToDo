@@ -22,6 +22,100 @@ type ProcessBody = {
   extraSharedData?: Record<string, any>;
 };
 
+const ACTIVITY_THUMBNAIL_BUCKET =
+  Deno.env.get("ACTIVITY_THUMBNAIL_BUCKET") ?? "activity-thumbnails";
+const MAX_THUMBNAIL_BYTES = Number(
+  Deno.env.get("MAX_THUMBNAIL_BYTES") ?? 5 * 1024 * 1024,
+);
+const SIGNED_THUMBNAIL_EXPIRES_IN = Number(
+  Deno.env.get("SIGNED_THUMBNAIL_EXPIRES_IN") ?? 60 * 60 * 24 * 7,
+);
+
+const isDataUrl = (value: string | null | undefined): value is string =>
+  typeof value === "string" && value.trim().startsWith("data:");
+
+const decodeBase64DataUrl = (
+  dataUrl: string,
+): { bytes: Uint8Array; contentType: string; extension: string } | null => {
+  const match = dataUrl.match(/^data:([^;]+);base64,(.+)$/s);
+  if (!match) return null;
+
+  const contentType = match[1].trim().toLowerCase();
+  let base64 = match[2].trim().replace(/\s/g, "");
+  base64 = base64.replace(/-/g, "+").replace(/_/g, "/");
+
+  const remainder = base64.length % 4;
+  if (remainder === 2) base64 += "==";
+  else if (remainder === 3) base64 += "=";
+  else if (remainder !== 0) return null;
+
+  try {
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i += 1) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    const extensionMap: Record<string, string> = {
+      "image/jpeg": "jpg",
+      "image/jpg": "jpg",
+      "image/png": "png",
+      "image/webp": "webp",
+      "image/gif": "gif",
+      "image/avif": "avif",
+      "image/heic": "heic",
+      "image/heif": "heif",
+    };
+    const extension = extensionMap[contentType] ?? "bin";
+    return { bytes, contentType, extension };
+  } catch {
+    return null;
+  }
+};
+
+const uploadThumbnailDataUrl = async (
+  dataUrl: string,
+  activityId: string,
+): Promise<{ url: string | null; path: string } | null> => {
+  const decoded = decodeBase64DataUrl(dataUrl);
+  if (!decoded) return null;
+
+  if (decoded.bytes.length > MAX_THUMBNAIL_BYTES) {
+    console.log(
+      "[fn] thumbnail upload skipped: exceeds max bytes",
+      decoded.bytes.length,
+    );
+    return null;
+  }
+
+  const fileName = `thumbnail-${crypto.randomUUID()}.${decoded.extension}`;
+  const objectPath = `activities/${activityId}/${fileName}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from(ACTIVITY_THUMBNAIL_BUCKET)
+    .upload(objectPath, decoded.bytes, {
+      contentType: decoded.contentType,
+      upsert: true,
+    });
+
+  if (uploadError) {
+    console.log("[fn] thumbnail upload failed", uploadError);
+    return null;
+  }
+
+  const { data: signedData, error: signedError } = await supabase.storage
+    .from(ACTIVITY_THUMBNAIL_BUCKET)
+    .createSignedUrl(objectPath, SIGNED_THUMBNAIL_EXPIRES_IN);
+
+  if (signedError) {
+    console.log("[fn] thumbnail signed url failed", signedError);
+  }
+
+  return {
+    url: signedData?.signedUrl ?? null,
+    path: objectPath,
+  };
+};
+
 const deleteActivityCascade = async (activityId: string) => {
   await supabase.from("activity_dates").delete().eq("activity_id", activityId);
   await supabase.from("user_activities").delete().eq("activity_id", activityId);
@@ -102,7 +196,13 @@ serve(async (req) => {
     });
   }
 
-  const resolvedUrl = (await resolveTikTokUrl(url)) ?? url;
+  let resolvedUrl = url;
+  try {
+    const maybeResolved = await resolveTikTokUrl(url);
+    resolvedUrl = maybeResolved ?? url;
+  } catch (err) {
+    console.log("[fn] resolveTikTokUrl failed, using original url", err);
+  }
   const normalizedUrl = normalizeActivityUrl(resolvedUrl);
   const userId = body.userId ?? body.user_id ?? activity.user_id ?? null;
   const platform =
@@ -110,7 +210,7 @@ serve(async (req) => {
   const extraSharedData =
     body.extraSharedData ?? (activity as any).import_shared_data ?? null;
 
-  await supabase
+  const { error: preUpdateError } = await supabase
     .from("activities")
     .update({
       processing_status: "processing",
@@ -122,6 +222,15 @@ serve(async (req) => {
       user_id: userId ?? activity.user_id ?? null,
     })
     .eq("id", activityId);
+
+  if (preUpdateError) {
+    console.log("[fn] failed to mark activity as processing", preUpdateError);
+    const failed = await markFailed(activityId, preUpdateError.message);
+    return new Response(JSON.stringify(failed ?? { error: "Update failed" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
 
   try {
     const userMeta = extraSharedData
@@ -305,6 +414,17 @@ serve(async (req) => {
       source_url,
     } = normalized;
 
+    let finalImageUrl = image_url ?? sourceMeta.image ?? null;
+    if (isDataUrl(finalImageUrl)) {
+      const uploaded = await uploadThumbnailDataUrl(finalImageUrl, activityId);
+      if (uploaded?.url) {
+        finalImageUrl = uploaded.url;
+      } else if (uploaded?.path) {
+        finalImageUrl = uploaded.path;
+      }
+    }
+    image_url = finalImageUrl;
+
     const finalCategory =
       category && allowedCategories.has(category) ? category : null;
 
@@ -416,7 +536,7 @@ serve(async (req) => {
       tags: Array.isArray(tags) ? tags : [],
       creator: creator ?? sourceMeta.author ?? null,
       source_url: source_url ?? normalizedUrl ?? url,
-      image_url: image_url ?? sourceMeta.image ?? null,
+      image_url: image_url ?? null,
       confidence: typeof confidence === "number" ? confidence : 0.9,
       source: finalSource,
       needs_location_confirmation: needsLocationConfirmation,

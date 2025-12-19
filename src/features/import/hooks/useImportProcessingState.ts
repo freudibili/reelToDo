@@ -31,9 +31,8 @@ export const useImportProcessingState = ({
   const isFailed = processingStatus === "failed";
   const processingErrorMessage =
     displayActivity?.processing_error ?? error ?? null;
-  const showAnalyzingCard =
-    !displayActivity && !error && (loading || hasSharedParam);
-  const showManualCard = !hasSharedParam && !displayActivity && !loading;
+  const showAnalyzingCard = !displayActivity && !error && loading;
+  const showManualCard = !displayActivity && !loading;
 
   return {
     displayActivity,
